@@ -3,16 +3,18 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users } from "lucide-react";
 import MemberCard from "@/components/MemberCard";
 import TransactionItem from "@/components/TransactionItem";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import TransactionDialog from "@/components/TransactionDialog";
+import BatchTransactionDialog from "@/components/BatchTransactionDialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
+  const [showBatchTransaction, setShowBatchTransaction] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
@@ -84,6 +86,29 @@ export default function Home() {
     }
   };
 
+  const handleBatchTransaction = async (transactions) => {
+    // Process all transactions
+    for (const item of transactions) {
+      const member = members.find(m => m.id === item.member_id);
+      if (!member) continue;
+
+      // Create transaction record
+      await createTransaction.mutateAsync({
+        type: 'withdraw',
+        amount: item.amount,
+        from_member_id: item.member_id,
+        from_member_name: member.name,
+        note: item.note
+      });
+
+      // Update balance
+      await updateMember.mutateAsync({
+        id: item.member_id,
+        data: { balance: (member.balance || 0) - item.amount }
+      });
+    }
+  };
+
   const totalBalance = members.reduce((sum, m) => sum + (m.balance || 0), 0);
 
   return (
@@ -119,22 +144,30 @@ export default function Home() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Button 
             onClick={() => setShowAddMember(true)}
             variant="outline"
-            className="flex-1 h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50"
+            className="h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50"
           >
             <UserPlus className="w-5 h-5 mr-2" />
             新增成員
           </Button>
           <Button 
             onClick={() => setShowTransaction(true)}
-            className="flex-1 h-14 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+            className="h-14 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
             disabled={members.length === 0}
           >
             <Plus className="w-5 h-5 mr-2" />
             新增交易
+          </Button>
+          <Button 
+            onClick={() => setShowBatchTransaction(true)}
+            className="h-14 bg-red-500 hover:bg-red-600 text-white font-semibold col-span-2 md:col-span-1"
+            disabled={members.length === 0}
+          >
+            <Users className="w-5 h-5 mr-2" />
+            批次扣款
           </Button>
         </div>
 
@@ -254,6 +287,12 @@ export default function Home() {
         onOpenChange={setShowTransaction}
         members={members}
         onTransaction={handleTransaction}
+      />
+      <BatchTransactionDialog 
+        open={showBatchTransaction} 
+        onOpenChange={setShowBatchTransaction}
+        members={members}
+        onBatchTransaction={handleBatchTransaction}
       />
     </div>
   );
