@@ -19,27 +19,27 @@ export default function Home() {
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('-created_date'),
+    queryFn: () => base44.entities.Member.list('-created_date')
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 20),
+    queryFn: () => base44.entities.Transaction.list('-created_date', 20)
   });
 
   const createMember = useMutation({
     mutationFn: (data) => base44.entities.Member.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
   });
 
   const updateMember = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
   });
 
   const createTransaction = useMutation({
     mutationFn: (data) => base44.entities.Transaction.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
   });
 
   const handleAddMember = async (memberData) => {
@@ -48,9 +48,9 @@ export default function Home() {
 
   const handleTransaction = async (transactionData) => {
     const { type, amount, from_member_id, to_member_id, note } = transactionData;
-    
-    const fromMember = members.find(m => m.id === from_member_id);
-    const toMember = members.find(m => m.id === to_member_id);
+
+    const fromMember = members.find((m) => m.id === from_member_id);
+    const toMember = members.find((m) => m.id === to_member_id);
 
     // Create transaction record
     await createTransaction.mutateAsync({
@@ -89,7 +89,7 @@ export default function Home() {
   const handleBatchTransaction = async (transactions) => {
     // Process all transactions
     for (const item of transactions) {
-      const member = members.find(m => m.id === item.member_id);
+      const member = members.find((m) => m.id === item.member_id);
       if (!member) continue;
 
       // Create transaction record
@@ -145,27 +145,27 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <Button 
+          <Button
             onClick={() => setShowAddMember(true)}
-            variant="outline"
-            className="h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50"
-          >
+            variant="outline" className="bg-background px-4 py-2 text-sm font-medium rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow-sm hover:text-accent-foreground h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50">
+
+
             <UserPlus className="w-5 h-5 mr-2" />
             新增成員
           </Button>
-          <Button 
-            onClick={() => setShowTransaction(true)}
-            className="h-14 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
-            disabled={members.length === 0}
-          >
+          <Button
+            onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
+
+            disabled={members.length === 0}>
+
             <Plus className="w-5 h-5 mr-2" />
             新增交易
           </Button>
-          <Button 
-            onClick={() => setShowBatchTransaction(true)}
-            className="h-14 bg-red-500 hover:bg-red-600 text-white font-semibold col-span-2 md:col-span-1"
-            disabled={members.length === 0}
-          >
+          <Button
+            onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600 col-span-2 md:col-span-1"
+
+            disabled={members.length === 0}>
+
             <Users className="w-5 h-5 mr-2" />
             批次扣款
           </Button>
@@ -178,10 +178,10 @@ export default function Home() {
             <h2 className="text-lg font-semibold text-slate-800">成員餘額</h2>
           </div>
           
-          {membersLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[1, 2, 3].map(i => (
-                <Card key={i} className="p-4 animate-pulse">
+          {membersLoading ?
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2, 3].map((i) =>
+            <Card key={i} className="p-4 animate-pulse">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-slate-200" />
                     <div className="flex-1">
@@ -190,38 +190,38 @@ export default function Home() {
                     </div>
                   </div>
                 </Card>
-              ))}
-            </div>
-          ) : members.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
+            )}
+            </div> :
+          members.length === 0 ?
+          <Card className="p-8 text-center border-dashed">
               <UserPlus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500">尚未新增成員</p>
               <p className="text-slate-400 text-sm mt-1">點擊上方按鈕開始新增</p>
-            </Card>
-          ) : (
-            <motion.div 
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                visible: { transition: { staggerChildren: 0.05 } }
-              }}
-            >
+            </Card> :
+
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.05 } }
+            }}>
+
               <AnimatePresence>
-                {members.map((member) => (
-                  <motion.div
-                    key={member.id}
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      visible: { opacity: 1, y: 0 }
-                    }}
-                  >
+                {members.map((member) =>
+              <motion.div
+                key={member.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}>
+
                     <MemberCard member={member} />
                   </motion.div>
-                ))}
+              )}
               </AnimatePresence>
             </motion.div>
-          )}
+          }
         </section>
 
         {/* Transactions Section */}
@@ -231,10 +231,10 @@ export default function Home() {
             <h2 className="text-lg font-semibold text-slate-800">最近交易</h2>
           </div>
           
-          {transactionsLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <Card key={i} className="p-4 animate-pulse">
+          {transactionsLoading ?
+          <div className="space-y-3">
+              {[1, 2, 3].map((i) =>
+            <Card key={i} className="p-4 animate-pulse">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-slate-200" />
                     <div className="flex-1">
@@ -244,56 +244,56 @@ export default function Home() {
                     <div className="h-6 bg-slate-200 rounded w-16" />
                   </div>
                 </Card>
-              ))}
-            </div>
-          ) : transactions.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
+            )}
+            </div> :
+          transactions.length === 0 ?
+          <Card className="p-8 text-center border-dashed">
               <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500">尚無交易紀錄</p>
-            </Card>
-          ) : (
-            <motion.div 
-              className="space-y-3"
-              initial="hidden"
-              animate="visible"
+            </Card> :
+
+          <motion.div
+            className="space-y-3"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.03 } }
+            }}>
+
+              {transactions.map((transaction) =>
+            <motion.div
+              key={transaction.id}
               variants={{
-                visible: { transition: { staggerChildren: 0.03 } }
-              }}
-            >
-              {transactions.map((transaction) => (
-                <motion.div
-                  key={transaction.id}
-                  variants={{
-                    hidden: { opacity: 0, x: -20 },
-                    visible: { opacity: 1, x: 0 }
-                  }}
-                >
+                hidden: { opacity: 0, x: -20 },
+                visible: { opacity: 1, x: 0 }
+              }}>
+
                   <TransactionItem transaction={transaction} />
                 </motion.div>
-              ))}
+            )}
             </motion.div>
-          )}
+          }
         </section>
       </div>
 
       {/* Dialogs */}
-      <AddMemberDialog 
-        open={showAddMember} 
+      <AddMemberDialog
+        open={showAddMember}
         onOpenChange={setShowAddMember}
-        onAdd={handleAddMember}
-      />
-      <TransactionDialog 
-        open={showTransaction} 
+        onAdd={handleAddMember} />
+
+      <TransactionDialog
+        open={showTransaction}
         onOpenChange={setShowTransaction}
         members={members}
-        onTransaction={handleTransaction}
-      />
-      <BatchTransactionDialog 
-        open={showBatchTransaction} 
+        onTransaction={handleTransaction} />
+
+      <BatchTransactionDialog
+        open={showBatchTransaction}
         onOpenChange={setShowBatchTransaction}
         members={members}
-        onBatchTransaction={handleBatchTransaction}
-      />
-    </div>
-  );
+        onBatchTransaction={handleBatchTransaction} />
+
+    </div>);
+
 }
