@@ -18,13 +18,16 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function BatchTransactionDialog({ open, onOpenChange, members, onBatchTransaction }) {
+  const [type, setType] = useState('withdraw');
   const [items, setItems] = useState([{ member_id: '', amount: '' }]);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
+    setType('withdraw');
     setItems([{ member_id: '', amount: '' }]);
     setNote('');
   };
@@ -65,6 +68,7 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
     const transactions = items.map(item => ({
       member_id: item.member_id,
       amount: parseFloat(item.amount),
+      type,
       note
     }));
     await onBatchTransaction(transactions);
@@ -86,15 +90,26 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Users className="w-5 h-5" />
-            批次扣款（訂餐）
+            批次交易
           </DialogTitle>
-          <p className="text-sm text-slate-500 mt-1">一次向多位成員收取不同金額</p>
+          <p className="text-sm text-slate-500 mt-1">一次處理多位成員的交易</p>
         </DialogHeader>
+
+        <Tabs value={type} onValueChange={setType} className="mt-4">
+          <TabsList className="grid w-full grid-cols-2 h-12">
+            <TabsTrigger value="withdraw" className="data-[state=active]:bg-red-100">
+              批次扣款
+            </TabsTrigger>
+            <TabsTrigger value="deposit" className="data-[state=active]:bg-emerald-100">
+              批次入帳
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           {/* Items List */}
           <div className="space-y-3">
-            <Label className="text-slate-700">扣款明細</Label>
+            <Label className="text-slate-700">{type === 'withdraw' ? '扣款明細' : '入帳明細'}</Label>
             {items.map((item, index) => (
               <Card key={index} className="p-4 bg-slate-50 border-slate-200">
                 <div className="flex gap-3 items-start">
@@ -186,10 +201,12 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full h-12 bg-red-500 hover:bg-red-600 font-medium text-white"
+            className={`w-full h-12 font-medium text-white ${
+              type === 'withdraw' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'
+            }`}
             disabled={loading || !isValid()}
           >
-            {loading ? '處理中...' : `確認扣款 ${items.length} 筆交易`}
+            {loading ? '處理中...' : `確認${type === 'withdraw' ? '扣款' : '入帳'} ${items.length} 筆交易`}
           </Button>
         </form>
       </DialogContent>

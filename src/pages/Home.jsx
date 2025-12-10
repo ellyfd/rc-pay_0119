@@ -92,19 +92,27 @@ export default function Home() {
       const member = members.find((m) => m.id === item.member_id);
       if (!member) continue;
 
+      const isDeposit = item.type === 'deposit';
+
       // Create transaction record
       await createTransaction.mutateAsync({
-        type: 'withdraw',
+        type: item.type,
         amount: item.amount,
-        from_member_id: item.member_id,
-        from_member_name: member.name,
+        from_member_id: isDeposit ? null : item.member_id,
+        to_member_id: isDeposit ? item.member_id : null,
+        from_member_name: isDeposit ? '' : member.name,
+        to_member_name: isDeposit ? member.name : '',
         note: item.note
       });
 
       // Update balance
+      const newBalance = isDeposit 
+        ? (member.balance || 0) + item.amount
+        : (member.balance || 0) - item.amount;
+      
       await updateMember.mutateAsync({
         id: item.member_id,
-        data: { balance: (member.balance || 0) - item.amount }
+        data: { balance: newBalance }
       });
     }
   };
