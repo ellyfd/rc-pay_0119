@@ -1,6 +1,8 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { User } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 const colorMap = {
   blue: "bg-blue-500",
@@ -14,13 +16,7 @@ const colorMap = {
 export default function MemberCard({ member, onClick, selected }) {
   const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
   
-  return (
-    <Card 
-      className={`p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-        selected ? 'ring-2 ring-amber-400 shadow-lg' : ''
-      }`}
-      onClick={() => onClick && onClick(member)}
-    >
+  const CardContent = () => (
       <div className="flex items-center gap-4">
         <div className={`w-12 h-12 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-lg`}>
           {member.name?.charAt(0)}
@@ -32,6 +28,26 @@ export default function MemberCard({ member, onClick, selected }) {
           </p>
         </div>
       </div>
-    </Card>
+  );
+
+  if (onClick) {
+    return (
+      <Card 
+        className={`p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+          selected ? 'ring-2 ring-amber-400 shadow-lg' : ''
+        }`}
+        onClick={() => onClick(member)}
+      >
+        <CardContent />
+      </Card>
+    );
+  }
+
+  return (
+    <Link to={createPageUrl('MemberDetail') + `?id=${member.id}`}>
+      <Card className="p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <CardContent />
+      </Card>
+    </Link>
   );
 }
