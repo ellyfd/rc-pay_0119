@@ -167,7 +167,7 @@ export default function Home() {
             disabled={members.length === 0}>
 
             <Users className="w-5 h-5 mr-2" />
-            批次扣款
+            新增交易（多筆）
           </Button>
         </div>
 
