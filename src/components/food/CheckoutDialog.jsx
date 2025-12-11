@@ -29,12 +29,18 @@ const riceOptionLabels = {
   rice_to_veg: '飯換菜'
 };
 
-export default function CheckoutDialog({ open, onOpenChange, cart, members, totalAmount, onComplete }) {
+export default function CheckoutDialog({ open, onOpenChange, cart, members, totalAmount, onComplete, initialMemberId }) {
   const [memberId, setMemberId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('balance');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (initialMemberId) {
+      setMemberId(initialMemberId);
+    }
+  }, [initialMemberId, open]);
 
   const createOrder = useMutation({
     mutationFn: (data) => base44.entities.Order.create(data),

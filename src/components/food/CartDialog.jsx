@@ -7,8 +7,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const riceOptionLabels = {
   normal: '正常飯量',
@@ -16,7 +24,7 @@ const riceOptionLabels = {
   rice_to_veg: '飯換菜'
 };
 
-export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onRemoveItem, onCheckout, totalAmount }) {
+export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onRemoveItem, onCheckout, totalAmount, members, selectedMember, onMemberChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -34,6 +42,26 @@ export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onR
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Member Selection */}
+            <div className="space-y-2">
+              <Label className="text-slate-700 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                訂購人
+              </Label>
+              <Select value={selectedMember} onValueChange={onMemberChange}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="選擇成員" />
+                </SelectTrigger>
+                <SelectContent>
+                  {members.map(member => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name} - 餘額: ${member.balance?.toLocaleString() || 0}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Cart Items */}
             <div className="space-y-3 max-h-[400px] overflow-y-auto">
               {cart.map((item, index) => (

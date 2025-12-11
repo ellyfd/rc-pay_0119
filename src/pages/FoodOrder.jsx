@@ -16,6 +16,7 @@ export default function FoodOrder() {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState('');
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
@@ -202,6 +203,9 @@ export default function FoodOrder() {
         onRemoveItem={removeFromCart}
         onCheckout={handleCheckout}
         totalAmount={getTotalAmount()}
+        members={members}
+        selectedMember={selectedMemberId}
+        onMemberChange={setSelectedMemberId}
       />
 
       <CheckoutDialog
@@ -211,6 +215,7 @@ export default function FoodOrder() {
         members={members}
         totalAmount={getTotalAmount()}
         onComplete={handleCheckoutComplete}
+        initialMemberId={selectedMemberId}
       />
     </div>
   );
