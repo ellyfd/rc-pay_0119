@@ -26,12 +26,10 @@ export default function FoodOrder() {
     queryFn: () => base44.entities.Product.list('-created_date')
   });
 
-  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
+  const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('name')
   });
-
-  const members = allMembers.filter(m => m.is_active !== false);
 
   const activeProducts = products.filter(p => p.is_active);
   const mealBoxes = activeProducts.filter(p => p.category === 'meal_box');
