@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Package, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Package, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ProductFormDialog from "@/components/food/ProductFormDialog";
 import { Link } from "react-router-dom";
@@ -65,6 +65,13 @@ export default function ProductManagement() {
       await deleteProduct.mutateAsync(deletingProduct.id);
       setDeletingProduct(null);
     }
+  };
+
+  const handleToggleActive = async (product) => {
+    await updateProduct.mutateAsync({
+      id: product.id,
+      data: { is_active: !product.is_active }
+    });
   };
 
   const mealBoxes = products.filter(p => p.category === 'meal_box');
@@ -143,6 +150,18 @@ export default function ProductManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => handleToggleActive(product)}
+                        title={product.is_active ? '隱藏產品' : '顯示產品'}
+                      >
+                        {product.is_active ? (
+                          <Eye className="w-4 h-4" />
+                        ) : (
+                          <EyeOff className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEdit(product)}
                       >
                         <Edit className="w-4 h-4" />
@@ -189,6 +208,19 @@ export default function ProductManagement() {
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-slate-800">{product.name}</h3>
                     <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleToggleActive(product)}
+                        title={product.is_active ? '隱藏產品' : '顯示產品'}
+                      >
+                        {product.is_active ? (
+                          <Eye className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
