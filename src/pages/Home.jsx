@@ -157,22 +157,6 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          
-          {/* Total Stats */}
-          <Card className="mt-6 bg-slate-800/50 border-slate-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm mb-1">總餘額</p>
-                <p className="text-3xl font-bold text-amber-400">
-                  ${totalBalance.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-slate-400 text-sm mb-1">成員數</p>
-                <p className="text-2xl font-bold text-white">{allMembers.length}</p>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 
