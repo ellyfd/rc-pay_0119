@@ -235,128 +235,178 @@ export default function FoodOrder() {
             <p className="text-slate-500">尚未新增成員，請先到首頁新增成員</p>
           </Card>
         ) : (
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-emerald-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">成員</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">飯</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-700 border-b">小計</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((member) => (
-                    <tr key={member.id} className="border-b hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-800">{member.name}</td>
-                      <td className="px-4 py-3">
-                        <Select
-                          value={memberOrders[member.id]?.meal_box_id || ''}
-                          onValueChange={(value) => updateMemberOrder(member.id, 'meal_box_id', value)}
-                        >
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="選擇餐盒" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={null}>不選</SelectItem>
-                            {mealBoxes.map((box) => (
-                              <SelectItem key={box.id} value={box.id}>
-                                {box.name} ${box.price}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Select
-                          value={memberOrders[member.id]?.rice_option || 'normal'}
-                          onValueChange={(value) => updateMemberOrder(member.id, 'rice_option', value)}
-                          disabled={!memberOrders[member.id]?.meal_box_id}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="normal">正常</SelectItem>
-                            <SelectItem value="less_rice">飯少</SelectItem>
-                            <SelectItem value="rice_to_veg">飯換菜</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Select
-                          value={memberOrders[member.id]?.side_dishes?.[0] || ''}
-                          onValueChange={(value) => {
-                            if (value) {
-                              const current = memberOrders[member.id]?.side_dishes || [];
-                              updateMemberOrder(member.id, 'side_dishes', [...current, value]);
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="選擇單點" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sideDishes.map((dish) => (
-                              <SelectItem key={dish.id} value={dish.id}>
-                                {dish.name} ${dish.price}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {memberOrders[member.id]?.side_dishes?.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {memberOrders[member.id].side_dishes.map((dishId, idx) => {
-                              const dish = sideDishes.find(d => d.id === dishId);
-                              return dish ? (
-                                <div key={idx} className="text-sm text-slate-600 flex items-center gap-2">
-                                  <span>• {dish.name}</span>
-                                  <button
-                                    onClick={() => {
-                                      const newDishes = memberOrders[member.id].side_dishes.filter((_, i) => i !== idx);
-                                      updateMemberOrder(member.id, 'side_dishes', newDishes);
-                                    }}
-                                    className="text-red-500 hover:text-red-700 text-xs"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : null;
-                            })}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-emerald-600">
-                        ${getMemberTotal(member.id).toLocaleString()}
-                      </td>
+          <>
+            <Card className="overflow-hidden mb-4">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-emerald-50">
+                    <tr>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-32">成員</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-28">飯</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-28">付款</th>
+                      <th className="px-3 py-3 text-right font-semibold text-slate-700 border-b w-24">小計</th>
+                      <th className="px-3 py-3 border-b w-16"></th>
                     </tr>
-                  ))}
-                  <tr className="bg-emerald-50 font-bold">
-                    <td colSpan="4" className="px-4 py-4 text-right text-lg">總計</td>
-                    <td className="px-4 py-4 text-right text-lg text-emerald-600">
-                      ${getGrandTotal().toLocaleString()}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )}
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item) => (
+                      <tr key={item.id} className="border-b hover:bg-slate-50">
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.member_id}
+                            onValueChange={(value) => updateOrderItem(item.id, 'member_id', value)}
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue placeholder="選擇" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {members.map((member) => (
+                                <SelectItem key={member.id} value={member.id}>
+                                  {member.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.meal_box_id}
+                            onValueChange={(value) => updateOrderItem(item.id, 'meal_box_id', value)}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="選擇餐盒" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={null}>不選</SelectItem>
+                              {mealBoxes.map((box) => (
+                                <SelectItem key={box.id} value={box.id}>
+                                  {box.name} ${box.price}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.rice_option}
+                            onValueChange={(value) => updateOrderItem(item.id, 'rice_option', value)}
+                            disabled={!item.meal_box_id}
+                          >
+                            <SelectTrigger className="w-24">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="normal">正常</SelectItem>
+                              <SelectItem value="less_rice">飯少</SelectItem>
+                              <SelectItem value="rice_to_veg">飯換菜</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value=""
+                            onValueChange={(value) => {
+                              if (value) {
+                                updateOrderItem(item.id, 'side_dishes', [...(item.side_dishes || []), value]);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="選擇單點" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {sideDishes.map((dish) => (
+                                <SelectItem key={dish.id} value={dish.id}>
+                                  {dish.name} ${dish.price}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {item.side_dishes && item.side_dishes.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {item.side_dishes.map((dishId, idx) => {
+                                const dish = sideDishes.find(d => d.id === dishId);
+                                return dish ? (
+                                  <div key={idx} className="text-xs text-slate-600 flex items-center gap-2">
+                                    <span>• {dish.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        const newDishes = item.side_dishes.filter((_, i) => i !== idx);
+                                        updateOrderItem(item.id, 'side_dishes', newDishes);
+                                      }}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.payment_method}
+                            onValueChange={(value) => updateOrderItem(item.id, 'payment_method', value)}
+                          >
+                            <SelectTrigger className="w-24">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="balance">餘額</SelectItem>
+                              <SelectItem value="cash">現金</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3 text-right font-bold text-emerald-600">
+                          ${getItemTotal(item).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeOrderItem(item.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            ✕
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-emerald-50 font-bold">
+                      <td colSpan="5" className="px-3 py-4 text-right text-lg">總計</td>
+                      <td className="px-3 py-4 text-right text-lg text-emerald-600">
+                        ${getGrandTotal().toLocaleString()}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
 
-        {/* Submit Button */}
-        {members.length > 0 && (
-          <div className="mt-6 flex justify-end">
-            <Button
-              onClick={handleSubmitOrders}
-              disabled={getGrandTotal() === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
-            >
-              <Save className="w-5 h-5 mr-2" />
-              送出訂單
-            </Button>
-          </div>
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center">
+              <Button
+                onClick={addOrderItem}
+                variant="outline"
+                className="border-2 border-dashed border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
+              >
+                <UtensilsCrossed className="w-4 h-4 mr-2" />
+                新增項目
+              </Button>
+              <Button
+                onClick={handleSubmitOrders}
+                disabled={orderItems.length === 0}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
+              >
+                <Save className="w-5 h-5 mr-2" />
+                送出訂單
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </div>
