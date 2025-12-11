@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -19,7 +19,7 @@ export default function Home() {
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: async () => {
       const memberList = await base44.entities.Member.list('-created_date');
@@ -30,6 +30,9 @@ export default function Home() {
       });
     }
   });
+
+  // Filter active members for display
+  const members = allMembers.filter(m => m.is_active !== false);
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
@@ -58,8 +61,8 @@ export default function Home() {
   const handleTransaction = async (transactionData) => {
     const { type, amount, from_member_id, to_member_id, wallet_type, note } = transactionData;
 
-    const fromMember = members.find((m) => m.id === from_member_id);
-    const toMember = members.find((m) => m.id === to_member_id);
+    const fromMember = allMembers.find((m) => m.id === from_member_id);
+    const toMember = allMembers.find((m) => m.id === to_member_id);
     const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
     // Create transaction record
@@ -100,7 +103,7 @@ export default function Home() {
   const handleBatchTransaction = async (transactions) => {
     // Process all transactions
     for (const item of transactions) {
-      const member = members.find((m) => m.id === item.member_id);
+      const member = allMembers.find((m) => m.id === item.member_id);
       if (!member) continue;
 
       const isDeposit = item.type === 'deposit';
@@ -130,20 +133,30 @@ export default function Home() {
     }
   };
 
-  const totalBalance = members.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
+  const totalBalance = allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
       <div className="bg-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-slate-900" />
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
+                  <Wallet className="w-6 h-6 text-slate-900" />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight">RC Pay</h1>
+              </div>
+              <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">RC Pay</h1>
+            <Link to={createPageUrl('MemberManagement')}>
+              <Button variant="ghost" className="text-white hover:bg-slate-800">
+                <Settings className="w-5 h-5 mr-2" />
+                成員管理
+              </Button>
+            </Link>
           </div>
-          <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
           
           {/* Total Stats */}
           <Card className="mt-6 bg-slate-800/50 border-slate-700 p-6">
@@ -183,7 +196,7 @@ export default function Home() {
           <Button
             onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
 
-            disabled={members.length === 0}>
+            disabled={allMembers.length === 0}>
 
             <Plus className="w-5 h-5 mr-2" />
             新增交易（單筆）
@@ -191,7 +204,7 @@ export default function Home() {
           <Button
             onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
 
-            disabled={members.length === 0}>
+            disabled={allMembers.length === 0}>
 
             <Users className="w-5 h-5 mr-2" />
             新增交易（多筆）
@@ -312,13 +325,13 @@ export default function Home() {
       <TransactionDialog
         open={showTransaction}
         onOpenChange={setShowTransaction}
-        members={members}
+        members={allMembers}
         onTransaction={handleTransaction} />
 
       <BatchTransactionDialog
         open={showBatchTransaction}
         onOpenChange={setShowBatchTransaction}
-        members={members}
+        members={allMembers}
         onBatchTransaction={handleBatchTransaction} />
 
     </div>);
