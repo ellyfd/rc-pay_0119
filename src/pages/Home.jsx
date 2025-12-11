@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed } from "lucide-react";
+import { Link } from "react-router-dom";
 import MemberCard from "@/components/MemberCard";
 import TransactionItem from "@/components/TransactionItem";
 import AddMemberDialog from "@/components/AddMemberDialog";
@@ -152,7 +153,13 @@ export default function Home() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Link to={createPageUrl('FoodOrder')} className="col-span-2 md:col-span-1">
+            <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
+              <UtensilsCrossed className="w-5 h-5 mr-2" />
+              七分飽訂餐
+            </Button>
+          </Link>
           <Button
             onClick={() => setShowAddMember(true)}
             variant="outline" className="bg-background px-4 py-2 text-sm font-medium rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow-sm hover:text-accent-foreground h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50">
@@ -170,7 +177,7 @@ export default function Home() {
             新增交易（單筆）
           </Button>
           <Button
-            onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600 col-span-2 md:col-span-1"
+            onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
 
             disabled={members.length === 0}>
 
