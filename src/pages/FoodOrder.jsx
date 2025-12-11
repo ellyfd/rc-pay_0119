@@ -247,7 +247,7 @@ export default function FoodOrder() {
           <Card className="p-8 text-center border-dashed">
             <p className="text-slate-500">尚未新增成員，請先到首頁新增成員</p>
           </Card>
-        ) : currentUser?.role === 'admin' ? (
+        ) : (
           <>
             <Card className="overflow-hidden mb-4">
               <div className="overflow-x-auto">
@@ -401,29 +401,31 @@ export default function FoodOrder() {
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center">
-              <Button
-                onClick={addOrderItem}
-                variant="outline"
-                className="border-2 border-dashed border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
-              >
-                <UtensilsCrossed className="w-4 h-4 mr-2" />
-                新增項目
-              </Button>
-              <Button
-                onClick={handleSubmitOrders}
-                disabled={orderItems.length === 0}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
-              >
-                <Save className="w-5 h-5 mr-2" />
-                送出訂單
-              </Button>
-            </div>
+            {currentUser?.role === 'admin' ? (
+              <div className="flex justify-between items-center">
+                <Button
+                  onClick={addOrderItem}
+                  variant="outline"
+                  className="border-2 border-dashed border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
+                >
+                  <UtensilsCrossed className="w-4 h-4 mr-2" />
+                  新增項目
+                </Button>
+                <Button
+                  onClick={handleSubmitOrders}
+                  disabled={orderItems.length === 0}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
+                >
+                  <Save className="w-5 h-5 mr-2" />
+                  送出訂單
+                </Button>
+              </div>
+            ) : (
+              <Card className="p-8 text-center border-dashed">
+                <p className="text-slate-500">只有管理員可以新增訂單</p>
+              </Card>
+            )}
           </>
-        ) : (
-          <Card className="p-8 text-center border-dashed">
-            <p className="text-slate-500">只有管理員可以新增訂單</p>
-          </Card>
         )}
       </div>
     </div>
