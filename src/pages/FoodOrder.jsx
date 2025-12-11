@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,20 @@ import { Input } from "@/components/ui/input";
 export default function FoodOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [orderItems, setOrderItems] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
@@ -405,8 +418,9 @@ export default function FoodOrder() {
               </Button>
               <Button
                 onClick={handleSubmitOrders}
-                disabled={orderItems.length === 0}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
+                disabled={orderItems.length === 0 || currentUser?.role !== 'admin'}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg disabled:opacity-50"
+                title={currentUser?.role !== 'admin' ? '僅管理員可送出訂單' : ''}
               >
                 <Save className="w-5 h-5 mr-2" />
                 送出訂單
