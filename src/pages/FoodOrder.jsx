@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, UtensilsCrossed, Settings, Save } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -18,7 +19,7 @@ import { Input } from "@/components/ui/input";
 
 export default function FoodOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [memberOrders, setMemberOrders] = useState({});
+  const [orderItems, setOrderItems] = useState([]);
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
@@ -35,27 +36,37 @@ export default function FoodOrder() {
   const mealBoxes = activeProducts.filter(p => p.category === 'meal_box');
   const sideDishes = activeProducts.filter(p => p.category === 'side_dish');
 
-  const updateMemberOrder = (memberId, field, value) => {
-    setMemberOrders(prev => ({
-      ...prev,
-      [memberId]: {
-        ...prev[memberId],
-        [field]: value
-      }
-    }));
+  const addOrderItem = () => {
+    setOrderItems([...orderItems, {
+      id: Date.now(),
+      member_id: '',
+      meal_box_id: '',
+      rice_option: 'normal',
+      side_dishes: [],
+      payment_method: 'balance'
+    }]);
   };
 
-  const getMemberTotal = (memberId) => {
-    const order = memberOrders[memberId] || {};
+  const updateOrderItem = (id, field, value) => {
+    setOrderItems(orderItems.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ));
+  };
+
+  const removeOrderItem = (id) => {
+    setOrderItems(orderItems.filter(item => item.id !== id));
+  };
+
+  const getItemTotal = (item) => {
     let total = 0;
     
-    if (order.meal_box_id) {
-      const mealBox = mealBoxes.find(p => p.id === order.meal_box_id);
+    if (item.meal_box_id) {
+      const mealBox = mealBoxes.find(p => p.id === item.meal_box_id);
       if (mealBox) total += mealBox.price;
     }
     
-    if (order.side_dishes) {
-      order.side_dishes.forEach(dishId => {
+    if (item.side_dishes && item.side_dishes.length > 0) {
+      item.side_dishes.forEach(dishId => {
         const dish = sideDishes.find(p => p.id === dishId);
         if (dish) total += dish.price;
       });
@@ -65,7 +76,7 @@ export default function FoodOrder() {
   };
 
   const getGrandTotal = () => {
-    return members.reduce((sum, member) => sum + getMemberTotal(member.id), 0);
+    return orderItems.reduce((sum, item) => sum + getItemTotal(item), 0);
   };
 
   const createOrder = useMutation({
@@ -88,28 +99,32 @@ export default function FoodOrder() {
   });
 
   const handleSubmitOrders = async () => {
-    // Process each member's order
-    for (const member of members) {
-      const order = memberOrders[member.id];
-      if (!order || (!order.meal_box_id && (!order.side_dishes || order.side_dishes.length === 0))) {
-        continue; // Skip members with no order
+    if (orderItems.length === 0) return;
+
+    // Process each order item
+    for (const item of orderItems) {
+      if (!item.member_id || (!item.meal_box_id && (!item.side_dishes || item.side_dishes.length === 0))) {
+        continue;
       }
 
-      const totalAmount = getMemberTotal(member.id);
+      const member = members.find(m => m.id === item.member_id);
+      if (!member) continue;
+
+      const totalAmount = getItemTotal(item);
       
       // Create order
       const orderRecord = await createOrder.mutateAsync({
         member_id: member.id,
         member_name: member.name,
         total_amount: totalAmount,
-        payment_method: 'balance',
+        payment_method: item.payment_method,
         status: 'completed',
         order_date: orderDate
       });
 
       // Create order items
-      if (order.meal_box_id) {
-        const mealBox = mealBoxes.find(p => p.id === order.meal_box_id);
+      if (item.meal_box_id) {
+        const mealBox = mealBoxes.find(p => p.id === item.meal_box_id);
         if (mealBox) {
           await createOrderItem.mutateAsync({
             order_id: orderRecord.id,
@@ -117,13 +132,13 @@ export default function FoodOrder() {
             product_name: mealBox.name,
             price: mealBox.price,
             quantity: 1,
-            rice_option: order.rice_option || 'normal'
+            rice_option: item.rice_option || 'normal'
           });
         }
       }
 
-      if (order.side_dishes && order.side_dishes.length > 0) {
-        for (const dishId of order.side_dishes) {
+      if (item.side_dishes && item.side_dishes.length > 0) {
+        for (const dishId of item.side_dishes) {
           const dish = sideDishes.find(p => p.id === dishId);
           if (dish) {
             await createOrderItem.mutateAsync({
@@ -138,23 +153,25 @@ export default function FoodOrder() {
         }
       }
 
-      // Create transaction and update balance
-      await createTransaction.mutateAsync({
-        type: 'withdraw',
-        amount: totalAmount,
-        from_member_id: member.id,
-        from_member_name: member.name,
-        note: `七分飽訂餐 - ${format(new Date(orderDate), 'yyyy/MM/dd')}`
-      });
+      // Create transaction and update balance only if payment method is balance
+      if (item.payment_method === 'balance') {
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: totalAmount,
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: `七分飽訂餐 - ${format(new Date(orderDate), 'yyyy/MM/dd')}`
+        });
 
-      await updateMember.mutateAsync({
-        id: member.id,
-        data: { balance: (member.balance || 0) - totalAmount }
-      });
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: { balance: (member.balance || 0) - totalAmount }
+        });
+      }
     }
 
     // Clear orders after submission
-    setMemberOrders({});
+    setOrderItems([]);
     alert('訂單已送出！');
   };
 
