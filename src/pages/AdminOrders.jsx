@@ -39,6 +39,14 @@ export default function AdminOrders() {
     queryFn: () => base44.entities.Member.list('name')
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list()
+  });
+
+  const mealBoxes = products.filter(p => p.category === 'meal_box');
+  const sideDishProducts = products.filter(p => p.category === 'side_dish');
+
   const updateOrder = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Order.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] })
@@ -170,65 +178,99 @@ export default function AdminOrders() {
             <p className="text-slate-500">此日期沒有待處理訂單</p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {Object.entries(groupedOrders).map(([memberName, memberOrders]) => (
-              <Card key={memberName} className="overflow-hidden">
-                <div className="bg-slate-50 px-4 py-3 border-b flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-slate-600" />
-                    <h3 className="font-semibold text-slate-800">{memberName}</h3>
-                    <Badge variant="outline">{memberOrders.length} 筆</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500">小計</span>
-                    <span className="font-bold text-emerald-600">
-                      ${memberOrders.reduce((sum, o) => sum + o.total_amount, 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4 space-y-3">
-                  {memberOrders.map(order => {
-                    const items = getOrderItems(order.id);
-                    return (
-                      <div key={order.id} className="bg-white border border-slate-200 rounded-lg p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
-                                {order.payment_method === 'cash' ? '現金' : '餘額'}
-                              </Badge>
-                              <span className="text-xs text-slate-500">
-                                {format(new Date(order.created_date), 'HH:mm')}
-                              </span>
+          <>
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-emerald-50">
+                    <tr>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-32">成員</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">飯量</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">付款</th>
+                      <th className="px-3 py-3 text-right font-semibold text-slate-700 border-b w-32">小計</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => {
+                      const items = getOrderItems(order.id);
+                      const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
+                      const mealBox = items.find(item => {
+                        const product = mealBoxes.find(p => p.id === item.product_id);
+                        return product && product.category === 'meal_box';
+                      });
+                      const sideItems = items.filter(item => {
+                        const product = sideDishProducts.find(p => p.id === item.product_id);
+                        return product && product.category === 'side_dish';
+                      });
+                      
+                      return (
+                        <tr key={order.id} className="border-b hover:bg-slate-50">
+                          <td className="px-3 py-3">
+                            <div className="font-medium text-slate-800">{order.member_name}</div>
+                            <div className="text-xs text-slate-500">
+                              {format(new Date(order.created_date), 'HH:mm')}
                             </div>
-                            <div className="space-y-1">
-                              {items.map(item => (
-                                <div key={item.id} className="text-sm text-slate-700 flex items-center gap-2">
-                                  <span>• {item.product_name}</span>
-                                  {item.rice_option !== 'normal' && (
-                                    <span className="text-xs text-slate-500">
-                                      ({item.rice_option === 'less_rice' ? '飯少' : '飯換菜'})
-                                    </span>
-                                  )}
-                                  <span className="text-slate-500">${item.price}</span>
-                                </div>
-                              ))}
-                            </div>
-                            {order.note && (
-                              <p className="text-xs text-slate-500 mt-2">備註：{order.note}</p>
+                          </td>
+                          <td className="px-3 py-3">
+                            {mealBox ? (
+                              <div className="text-sm text-slate-700">
+                                {mealBox.product_name}
+                                <div className="text-xs text-slate-500">${mealBox.price}</div>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-sm">-</span>
                             )}
-                          </div>
-                          <div className="font-bold text-emerald-600 ml-4">
+                          </td>
+                          <td className="px-3 py-3">
+                            {mealBox && mealBoxItem ? (
+                              <span className="text-sm text-slate-700">
+                                {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
+                                 mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
+                              </span>
+                            ) : mealBox ? (
+                              <span className="text-sm text-slate-700">正常</span>
+                            ) : (
+                              <span className="text-slate-400 text-sm">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-3">
+                            {sideItems.length > 0 ? (
+                              <div className="space-y-1">
+                                {sideItems.map(item => (
+                                  <div key={item.id} className="text-sm text-slate-700">
+                                    {item.product_name}
+                                    <span className="text-xs text-slate-500 ml-1">${item.price}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-sm">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-3">
+                            <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                              {order.payment_method === 'cash' ? '現金' : '餘額'}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3 text-right font-bold text-emerald-600">
                             ${order.total_amount.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            ))}
-          </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr className="bg-emerald-50 font-bold">
+                      <td colSpan="5" className="px-3 py-4 text-right text-lg">總計</td>
+                      <td className="px-3 py-4 text-right text-lg text-emerald-600">
+                        ${totalAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </>
         )}
       </div>
     </div>
