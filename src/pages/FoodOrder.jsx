@@ -3,19 +3,22 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Package, UtensilsCrossed, Plus, Settings } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import ProductCard from "@/components/food/ProductCard";
-import CartDialog from "@/components/food/CartDialog";
-import CheckoutDialog from "@/components/food/CheckoutDialog";
+import { ArrowLeft, UtensilsCrossed, Settings, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 export default function FoodOrder() {
-  const [cart, setCart] = useState([]);
-  const [showCart, setShowCart] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [memberOrders, setMemberOrders] = useState({});
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
@@ -23,195 +26,318 @@ export default function FoodOrder() {
     queryFn: () => base44.entities.Product.list('-created_date')
   });
 
-  const { data: members = [] } = useQuery({
+  const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('-created_date')
+    queryFn: () => base44.entities.Member.list('name')
   });
 
   const activeProducts = products.filter(p => p.is_active);
   const mealBoxes = activeProducts.filter(p => p.category === 'meal_box');
   const sideDishes = activeProducts.filter(p => p.category === 'side_dish');
 
-  const addToCart = (product, riceOption = 'normal') => {
-    const existingIndex = cart.findIndex(
-      item => item.product_id === product.id && item.rice_option === riceOption
-    );
+  const updateMemberOrder = (memberId, field, value) => {
+    setMemberOrders(prev => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        [field]: value
+      }
+    }));
+  };
 
-    if (existingIndex >= 0) {
-      const newCart = [...cart];
-      newCart[existingIndex].quantity += 1;
-      setCart(newCart);
-    } else {
-      setCart([...cart, {
-        product_id: product.id,
-        product_name: product.name,
-        price: product.price,
-        quantity: 1,
-        rice_option: riceOption,
-        category: product.category
-      }]);
+  const getMemberTotal = (memberId) => {
+    const order = memberOrders[memberId] || {};
+    let total = 0;
+    
+    if (order.meal_box_id) {
+      const mealBox = mealBoxes.find(p => p.id === order.meal_box_id);
+      if (mealBox) total += mealBox.price;
     }
-  };
-
-  const updateCartItem = (index, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(index);
-      return;
+    
+    if (order.side_dishes) {
+      order.side_dishes.forEach(dishId => {
+        const dish = sideDishes.find(p => p.id === dishId);
+        if (dish) total += dish.price;
+      });
     }
-    const newCart = [...cart];
-    newCart[index].quantity = quantity;
-    setCart(newCart);
+    
+    return total;
   };
 
-  const removeFromCart = (index) => {
-    setCart(cart.filter((_, i) => i !== index));
+  const getGrandTotal = () => {
+    return members.reduce((sum, member) => sum + getMemberTotal(member.id), 0);
   };
 
-  const getTotalAmount = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  };
+  const createOrder = useMutation({
+    mutationFn: async (orderData) => base44.entities.Order.create(orderData),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] })
+  });
 
-  const handleCheckout = () => {
-    if (cart.length === 0) return;
-    setShowCart(false);
-    setShowCheckout(true);
-  };
+  const createOrderItem = useMutation({
+    mutationFn: async (itemData) => base44.entities.OrderItem.create(itemData),
+  });
 
-  const handleCheckoutComplete = () => {
-    setCart([]);
-    setShowCheckout(false);
+  const createTransaction = useMutation({
+    mutationFn: async (data) => base44.entities.Transaction.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
+  });
+
+  const updateMember = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
+  });
+
+  const handleSubmitOrders = async () => {
+    // Process each member's order
+    for (const member of members) {
+      const order = memberOrders[member.id];
+      if (!order || (!order.meal_box_id && (!order.side_dishes || order.side_dishes.length === 0))) {
+        continue; // Skip members with no order
+      }
+
+      const totalAmount = getMemberTotal(member.id);
+      
+      // Create order
+      const orderRecord = await createOrder.mutateAsync({
+        member_id: member.id,
+        member_name: member.name,
+        total_amount: totalAmount,
+        payment_method: 'balance',
+        status: 'completed',
+        order_date: orderDate
+      });
+
+      // Create order items
+      if (order.meal_box_id) {
+        const mealBox = mealBoxes.find(p => p.id === order.meal_box_id);
+        if (mealBox) {
+          await createOrderItem.mutateAsync({
+            order_id: orderRecord.id,
+            product_id: mealBox.id,
+            product_name: mealBox.name,
+            price: mealBox.price,
+            quantity: 1,
+            rice_option: order.rice_option || 'normal'
+          });
+        }
+      }
+
+      if (order.side_dishes && order.side_dishes.length > 0) {
+        for (const dishId of order.side_dishes) {
+          const dish = sideDishes.find(p => p.id === dishId);
+          if (dish) {
+            await createOrderItem.mutateAsync({
+              order_id: orderRecord.id,
+              product_id: dish.id,
+              product_name: dish.name,
+              price: dish.price,
+              quantity: 1,
+              rice_option: 'normal'
+            });
+          }
+        }
+      }
+
+      // Create transaction and update balance
+      await createTransaction.mutateAsync({
+        type: 'withdraw',
+        amount: totalAmount,
+        from_member_id: member.id,
+        from_member_name: member.name,
+        note: `七分飽訂餐 - ${format(new Date(orderDate), 'yyyy/MM/dd')}`
+      });
+
+      await updateMember.mutateAsync({
+        id: member.id,
+        data: { balance: (member.balance || 0) - totalAmount }
+      });
+    }
+
+    // Clear orders after submission
+    setMemberOrders({});
+    alert('訂單已送出！');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       {/* Header */}
       <div className="bg-emerald-600 text-white">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                <UtensilsCrossed className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">七分飽訂餐</h1>
-                <p className="text-emerald-100 text-sm">健康美味的午餐選擇</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Link to={createPageUrl('ProductManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500">
-                  <Settings className="w-5 h-5 mr-2" />
-                  產品管理
-                </Button>
-              </Link>
-              <Button
-                onClick={() => setShowCart(true)}
-                className="bg-white text-emerald-600 hover:bg-emerald-50 relative"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                購物車
-                {cart.length > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-red-500 text-white px-2">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                  </Badge>
-                )}
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-emerald-500 -ml-2">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回
               </Button>
+            </Link>
+            <Link to={createPageUrl('ProductManagement')}>
+              <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                <Settings className="w-5 h-5 mr-2" />
+                產品管理
+              </Button>
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+              <UtensilsCrossed className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">七分飽訂餐</h1>
+              <p className="text-emerald-100 text-sm">團體訂餐系統</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <Tabs defaultValue="meal_box" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 h-12">
-            <TabsTrigger value="meal_box" className="text-base">
-              <Package className="w-4 h-4 mr-2" />
-              餐盒系列
-            </TabsTrigger>
-            <TabsTrigger value="side_dish" className="text-base">
-              <Plus className="w-4 h-4 mr-2" />
-              單點系列
-            </TabsTrigger>
-          </TabsList>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Date Selection */}
+        <Card className="p-4 mb-6">
+          <div className="flex items-center gap-4">
+            <label className="font-semibold text-slate-700">訂餐日期：</label>
+            <Input
+              type="date"
+              value={orderDate}
+              onChange={(e) => setOrderDate(e.target.value)}
+              className="w-48"
+            />
+          </div>
+        </Card>
 
-          <TabsContent value="meal_box">
-            {productsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3].map(i => (
-                  <Card key={i} className="p-4 animate-pulse">
-                    <div className="h-32 bg-slate-200 rounded mb-3" />
-                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2" />
-                    <div className="h-6 bg-slate-200 rounded w-1/2" />
-                  </Card>
-                ))}
-              </div>
-            ) : mealBoxes.length === 0 ? (
-              <Card className="p-8 text-center border-dashed">
-                <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">尚無餐盒產品</p>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mealBoxes.map(product => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={addToCart}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+        {/* Order Table */}
+        {membersLoading || productsLoading ? (
+          <Card className="p-8 text-center">
+            <div className="w-12 h-12 border-4 border-emerald-300 border-t-emerald-600 rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-slate-500">載入中...</p>
+          </Card>
+        ) : members.length === 0 ? (
+          <Card className="p-8 text-center border-dashed">
+            <p className="text-slate-500">尚未新增成員，請先到首頁新增成員</p>
+          </Card>
+        ) : (
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-emerald-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">成員</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">飯</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-700 border-b">小計</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((member) => (
+                    <tr key={member.id} className="border-b hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-800">{member.name}</td>
+                      <td className="px-4 py-3">
+                        <Select
+                          value={memberOrders[member.id]?.meal_box_id || ''}
+                          onValueChange={(value) => updateMemberOrder(member.id, 'meal_box_id', value)}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="選擇餐盒" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={null}>不選</SelectItem>
+                            {mealBoxes.map((box) => (
+                              <SelectItem key={box.id} value={box.id}>
+                                {box.name} ${box.price}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Select
+                          value={memberOrders[member.id]?.rice_option || 'normal'}
+                          onValueChange={(value) => updateMemberOrder(member.id, 'rice_option', value)}
+                          disabled={!memberOrders[member.id]?.meal_box_id}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="normal">正常</SelectItem>
+                            <SelectItem value="less_rice">飯少</SelectItem>
+                            <SelectItem value="rice_to_veg">飯換菜</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Select
+                          value={memberOrders[member.id]?.side_dishes?.[0] || ''}
+                          onValueChange={(value) => {
+                            if (value) {
+                              const current = memberOrders[member.id]?.side_dishes || [];
+                              updateMemberOrder(member.id, 'side_dishes', [...current, value]);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="選擇單點" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sideDishes.map((dish) => (
+                              <SelectItem key={dish.id} value={dish.id}>
+                                {dish.name} ${dish.price}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {memberOrders[member.id]?.side_dishes?.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {memberOrders[member.id].side_dishes.map((dishId, idx) => {
+                              const dish = sideDishes.find(d => d.id === dishId);
+                              return dish ? (
+                                <div key={idx} className="text-sm text-slate-600 flex items-center gap-2">
+                                  <span>• {dish.name}</span>
+                                  <button
+                                    onClick={() => {
+                                      const newDishes = memberOrders[member.id].side_dishes.filter((_, i) => i !== idx);
+                                      updateMemberOrder(member.id, 'side_dishes', newDishes);
+                                    }}
+                                    className="text-red-500 hover:text-red-700 text-xs"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-600">
+                        ${getMemberTotal(member.id).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-emerald-50 font-bold">
+                    <td colSpan="4" className="px-4 py-4 text-right text-lg">總計</td>
+                    <td className="px-4 py-4 text-right text-lg text-emerald-600">
+                      ${getGrandTotal().toLocaleString()}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
 
-          <TabsContent value="side_dish">
-            {productsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3].map(i => (
-                  <Card key={i} className="p-4 animate-pulse">
-                    <div className="h-20 bg-slate-200 rounded mb-3" />
-                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2" />
-                    <div className="h-6 bg-slate-200 rounded w-1/2" />
-                  </Card>
-                ))}
-              </div>
-            ) : sideDishes.length === 0 ? (
-              <Card className="p-8 text-center border-dashed">
-                <Plus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">尚無單點產品</p>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sideDishes.map(product => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={addToCart}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        {/* Submit Button */}
+        {members.length > 0 && (
+          <div className="mt-6 flex justify-end">
+            <Button
+              onClick={handleSubmitOrders}
+              disabled={getGrandTotal() === 0}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
+            >
+              <Save className="w-5 h-5 mr-2" />
+              送出訂單
+            </Button>
+          </div>
+        )}
       </div>
-
-      <CartDialog
-        open={showCart}
-        onOpenChange={setShowCart}
-        cart={cart}
-        onUpdateItem={updateCartItem}
-        onRemoveItem={removeFromCart}
-        onCheckout={handleCheckout}
-        totalAmount={getTotalAmount()}
-      />
-
-      <CheckoutDialog
-        open={showCheckout}
-        onOpenChange={setShowCheckout}
-        cart={cart}
-        members={members}
-        totalAmount={getTotalAmount()}
-        onComplete={handleCheckoutComplete}
-      />
     </div>
   );
 }
