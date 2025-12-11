@@ -21,7 +21,14 @@ export default function Home() {
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('-created_date')
+    queryFn: async () => {
+      const memberList = await base44.entities.Member.list('-created_date');
+      return memberList.sort((a, b) => {
+        const totalA = (a.balance || 0) + (a.cash_balance || 0);
+        const totalB = (b.balance || 0) + (b.cash_balance || 0);
+        return totalB - totalA;
+      });
+    }
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
