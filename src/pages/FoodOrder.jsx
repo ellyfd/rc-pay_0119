@@ -169,7 +169,7 @@ export default function FoodOrder() {
 
         await updateMember.mutateAsync({
           id: member.id,
-          data: { deposit_balance: (member.deposit_balance || 0) - totalAmount }
+          data: { balance: (member.balance || 0) - totalAmount }
         });
       }
     }

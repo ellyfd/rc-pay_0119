@@ -23,16 +23,9 @@ export default function MemberCard({ member, onClick, selected }) {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-slate-800 truncate">{member.name}</h3>
-          <div className="flex gap-3 text-sm">
-            <div>
-              <span className="text-slate-500">現金：</span>
-              <span className="font-bold text-amber-600">${member.cash_balance?.toLocaleString() || 0}</span>
-            </div>
-            <div>
-              <span className="text-slate-500">存款：</span>
-              <span className="font-bold text-emerald-600">${member.deposit_balance?.toLocaleString() || 0}</span>
-            </div>
-          </div>
+          <p className={`text-lg font-bold ${member.balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            ${member.balance?.toLocaleString() || 0}
+          </p>
         </div>
       </div>
   );
