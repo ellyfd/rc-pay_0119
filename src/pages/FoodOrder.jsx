@@ -26,10 +26,12 @@ export default function FoodOrder() {
     queryFn: () => base44.entities.Product.list('-created_date')
   });
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('name')
   });
+
+  const members = allMembers.filter(m => m.is_active !== false);
 
   const activeProducts = products.filter(p => p.is_active);
   const mealBoxes = activeProducts.filter(p => p.category === 'meal_box');
@@ -106,7 +108,7 @@ export default function FoodOrder() {
 
     // Process each order item
     for (const item of orderItems) {
-      const member = members.find(m => m.id === item.member_id);
+      const member = allMembers.find(m => m.id === item.member_id);
       if (!member) continue;
 
       // Skip if no meal box or side dishes
