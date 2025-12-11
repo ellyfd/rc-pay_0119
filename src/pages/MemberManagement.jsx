@@ -31,7 +31,12 @@ const colorMap = {
 export default function MemberManagement() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [deletingMember, setDeletingMember] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(user => setCurrentUser(user)).catch(() => {});
+  }, []);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['members'],
@@ -97,13 +102,15 @@ export default function MemberManagement() {
               </h1>
               <p className="text-slate-400 text-sm mt-1">新增、編輯或刪除成員</p>
             </div>
-            <Button
-              onClick={() => setShowAddMember(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-            >
-              <UserPlus className="w-5 h-5 mr-2" />
-              新增成員
-            </Button>
+            {currentUser?.role === 'admin' && (
+              <Button
+                onClick={() => setShowAddMember(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                新增成員
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -167,29 +174,31 @@ export default function MemberManagement() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleToggleActive(member)}
-                        className="h-8 w-8"
-                        title={member.is_active ? '從首頁隱藏' : '在首頁顯示'}
-                      >
-                        {member.is_active ? (
-                          <Eye className="w-4 h-4 text-slate-600" />
-                        ) : (
-                          <EyeOff className="w-4 h-4 text-slate-400" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletingMember(member)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {currentUser?.role === 'admin' && (
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleActive(member)}
+                          className="h-8 w-8"
+                          title={member.is_active ? '從首頁隱藏' : '在首頁顯示'}
+                        >
+                          {member.is_active ? (
+                            <Eye className="w-4 h-4 text-slate-600" />
+                          ) : (
+                            <EyeOff className="w-4 h-4 text-slate-400" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingMember(member)}
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </Card>
               );

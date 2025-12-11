@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,12 @@ import { Input } from "@/components/ui/input";
 export default function FoodOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [orderItems, setOrderItems] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(user => setCurrentUser(user)).catch(() => {});
+  }, []);
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
@@ -197,12 +202,14 @@ export default function FoodOrder() {
                 返回
               </Button>
             </Link>
-            <Link to={createPageUrl('ProductManagement')}>
-              <Button variant="ghost" className="text-white hover:bg-emerald-500">
-                <Settings className="w-5 h-5 mr-2" />
-                產品管理
-              </Button>
-            </Link>
+            {currentUser?.role === 'admin' && (
+              <Link to={createPageUrl('ProductManagement')}>
+                <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                  <Settings className="w-5 h-5 mr-2" />
+                  產品管理
+                </Button>
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
@@ -394,24 +401,30 @@ export default function FoodOrder() {
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center">
-              <Button
-                onClick={addOrderItem}
-                variant="outline"
-                className="border-2 border-dashed border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
-              >
-                <UtensilsCrossed className="w-4 h-4 mr-2" />
-                新增項目
-              </Button>
-              <Button
-                onClick={handleSubmitOrders}
-                disabled={orderItems.length === 0}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
-              >
-                <Save className="w-5 h-5 mr-2" />
-                送出訂單
-              </Button>
-            </div>
+            {currentUser?.role === 'admin' ? (
+              <div className="flex justify-between items-center">
+                <Button
+                  onClick={addOrderItem}
+                  variant="outline"
+                  className="border-2 border-dashed border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
+                >
+                  <UtensilsCrossed className="w-4 h-4 mr-2" />
+                  新增項目
+                </Button>
+                <Button
+                  onClick={handleSubmitOrders}
+                  disabled={orderItems.length === 0}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg"
+                >
+                  <Save className="w-5 h-5 mr-2" />
+                  送出訂單
+                </Button>
+              </div>
+            ) : (
+              <Card className="p-8 text-center border-dashed">
+                <p className="text-slate-500">只有管理員可以新增訂單</p>
+              </Card>
+            )}
           </>
         )}
       </div>

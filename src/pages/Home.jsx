@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,12 @@ export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(user => setCurrentUser(user)).catch(() => {});
+  }, []);
 
   const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
@@ -150,41 +155,47 @@ export default function Home() {
               </div>
               <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
             </div>
-            <Link to={createPageUrl('MemberManagement')}>
-              <Button variant="ghost" className="text-white hover:bg-slate-800">
-                <Settings className="w-5 h-5 mr-2" />
-                成員管理
-              </Button>
-            </Link>
+            {currentUser?.role === 'admin' && (
+              <Link to={createPageUrl('MemberManagement')}>
+                <Button variant="ghost" className="text-white hover:bg-slate-800">
+                  <Settings className="w-5 h-5 mr-2" />
+                  成員管理
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Link to={createPageUrl('FoodOrder')} className="col-span-2 md:col-span-1">
             <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
               <UtensilsCrossed className="w-5 h-5 mr-2" />
               七分飽訂餐
             </Button>
           </Link>
-          <Button
-            onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
+          {currentUser?.role === 'admin' && (
+            <>
+              <Button
+                onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
 
-            disabled={allMembers.length === 0}>
+                disabled={allMembers.length === 0}>
 
-            <Plus className="w-5 h-5 mr-2" />
-            新增交易（單筆）
-          </Button>
-          <Button
-            onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
+                <Plus className="w-5 h-5 mr-2" />
+                新增交易（單筆）
+              </Button>
+              <Button
+                onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
 
-            disabled={allMembers.length === 0}>
+                disabled={allMembers.length === 0}>
 
-            <Users className="w-5 h-5 mr-2" />
-            新增交易（多筆）
-          </Button>
+                <Users className="w-5 h-5 mr-2" />
+                新增交易（多筆）
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Members Section */}
