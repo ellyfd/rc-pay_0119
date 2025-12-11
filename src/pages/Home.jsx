@@ -65,25 +65,25 @@ export default function Home() {
       note
     });
 
-    // Update balances
+    // Update balances (默認操作存款)
     if (type === 'deposit' && toMember) {
       await updateMember.mutateAsync({
         id: to_member_id,
-        data: { balance: (toMember.balance || 0) + amount }
+        data: { deposit_balance: (toMember.deposit_balance || 0) + amount }
       });
     } else if (type === 'withdraw' && fromMember) {
       await updateMember.mutateAsync({
         id: from_member_id,
-        data: { balance: (fromMember.balance || 0) - amount }
+        data: { deposit_balance: (fromMember.deposit_balance || 0) - amount }
       });
     } else if (type === 'transfer' && fromMember && toMember) {
       await updateMember.mutateAsync({
         id: from_member_id,
-        data: { balance: (fromMember.balance || 0) - amount }
+        data: { deposit_balance: (fromMember.deposit_balance || 0) - amount }
       });
       await updateMember.mutateAsync({
         id: to_member_id,
-        data: { balance: (toMember.balance || 0) + amount }
+        data: { deposit_balance: (toMember.deposit_balance || 0) + amount }
       });
     }
   };
@@ -107,19 +107,21 @@ export default function Home() {
         note: item.note
       });
 
-      // Update balance
+      // Update balance (默認操作存款)
       const newBalance = isDeposit 
-        ? (member.balance || 0) + item.amount
-        : (member.balance || 0) - item.amount;
-      
+        ? (member.deposit_balance || 0) + item.amount
+        : (member.deposit_balance || 0) - item.amount;
+
       await updateMember.mutateAsync({
         id: item.member_id,
-        data: { balance: newBalance }
+        data: { deposit_balance: newBalance }
       });
     }
   };
 
-  const totalBalance = members.reduce((sum, m) => sum + (m.balance || 0), 0);
+  const totalCash = members.reduce((sum, m) => sum + (m.cash_balance || 0), 0);
+  const totalDeposit = members.reduce((sum, m) => sum + (m.deposit_balance || 0), 0);
+  const totalBalance = totalCash + totalDeposit;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -136,14 +138,20 @@ export default function Home() {
           
           {/* Total Stats */}
           <Card className="mt-6 bg-slate-800/50 border-slate-700 p-6">
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <p className="text-slate-400 text-sm mb-1">總餘額</p>
-                <p className="text-3xl font-bold text-amber-400">
-                  ${totalBalance.toLocaleString()}
+                <p className="text-slate-400 text-sm mb-1">總現金</p>
+                <p className="text-2xl font-bold text-amber-400">
+                  ${totalCash.toLocaleString()}
                 </p>
               </div>
-              <div className="text-right">
+              <div>
+                <p className="text-slate-400 text-sm mb-1">總存款</p>
+                <p className="text-2xl font-bold text-emerald-400">
+                  ${totalDeposit.toLocaleString()}
+                </p>
+              </div>
+              <div>
                 <p className="text-slate-400 text-sm mb-1">成員數</p>
                 <p className="text-2xl font-bold text-white">{members.length}</p>
               </div>
