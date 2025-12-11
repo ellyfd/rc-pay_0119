@@ -119,7 +119,7 @@ export default function Home() {
     }
   };
 
-  const totalBalance = members.reduce((sum, m) => sum + (m.balance || 0), 0);
+  const totalBalance = members.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
