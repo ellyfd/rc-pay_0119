@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,19 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
   const [toMemberId, setToMemberId] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    };
+    loadUser();
+  }, []);
 
   const resetForm = () => {
     setAmount('');
@@ -193,9 +207,9 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                 type === 'withdraw' ? 'bg-red-500 hover:bg-red-600' :
                 'bg-blue-600 hover:bg-blue-700'
               }`}
-              disabled={loading || !isValid()}
+              disabled={loading || !isValid() || currentUser?.role !== 'admin'}
             >
-              {loading ? '處理中...' : '確認'}
+              {loading ? '處理中...' : currentUser?.role !== 'admin' ? '僅限管理員操作' : '確認'}
             </Button>
           </form>
         </Tabs>
