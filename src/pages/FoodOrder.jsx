@@ -4,15 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Package, UtensilsCrossed, Plus, Settings, User } from "lucide-react";
+import { ShoppingCart, Package, UtensilsCrossed, Plus, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ProductCard from "@/components/food/ProductCard";
 import CartDialog from "@/components/food/CartDialog";
 import CheckoutDialog from "@/components/food/CheckoutDialog";
@@ -20,7 +13,6 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function FoodOrder() {
-  const [selectedMemberId, setSelectedMemberId] = useState('');
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -80,7 +72,7 @@ export default function FoodOrder() {
   };
 
   const handleCheckout = () => {
-    if (cart.length === 0 || !selectedMemberId) return;
+    if (cart.length === 0) return;
     setShowCart(false);
     setShowCheckout(true);
   };
@@ -95,7 +87,7 @@ export default function FoodOrder() {
       {/* Header */}
       <div className="bg-emerald-600 text-white">
         <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
                 <UtensilsCrossed className="w-6 h-6 text-emerald-600" />
@@ -124,28 +116,6 @@ export default function FoodOrder() {
                   </Badge>
                 )}
               </Button>
-            </div>
-          </div>
-          
-          {/* Member Selection */}
-          <div className="bg-emerald-500 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-white" />
-              <div className="flex-1">
-                <p className="text-emerald-100 text-sm mb-1">訂購人</p>
-                <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-                  <SelectTrigger className="h-11 bg-white text-slate-800 border-0">
-                    <SelectValue placeholder="請選擇訂購人" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members.map(member => (
-                      <SelectItem key={member.id} value={member.id}>
-                        {member.name} - 餘額: ${member.balance?.toLocaleString() || 0}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
         </div>
@@ -239,7 +209,6 @@ export default function FoodOrder() {
         onOpenChange={setShowCheckout}
         cart={cart}
         members={members}
-        selectedMemberId={selectedMemberId}
         totalAmount={getTotalAmount()}
         onComplete={handleCheckoutComplete}
       />
