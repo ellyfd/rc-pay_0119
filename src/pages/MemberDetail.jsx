@@ -76,6 +76,15 @@ export default function MemberDetail() {
     .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
     .reduce((sum, t) => sum + (t.amount || 0), 0);
 
+  // Calculate balance and cash spending
+  const balanceSpending = memberTransactions
+    .filter(t => t.type === 'withdraw' && t.from_member_id === memberId && t.note?.includes('七分飽'))
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  const cashSpending = allTransactions
+    .filter(t => t.type === 'withdraw' && t.from_member_id === memberId && !t.note?.includes('七分飽'))
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
   const colorMap = {
     blue: "bg-blue-500",
     green: "bg-emerald-500",
@@ -123,7 +132,7 @@ export default function MemberDetail() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
           <Card className="p-4 bg-emerald-50 border-emerald-200">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
@@ -131,16 +140,6 @@ export default function MemberDetail() {
             </div>
             <p className="text-xl font-bold text-emerald-700">
               ${totalDeposit.toLocaleString()}
-            </p>
-          </Card>
-
-          <Card className="p-4 bg-red-50 border-red-200">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-red-600" />
-              <p className="text-xs text-red-700 font-medium">總出帳</p>
-            </div>
-            <p className="text-xl font-bold text-red-700">
-              ${totalWithdraw.toLocaleString()}
             </p>
           </Card>
 
@@ -161,6 +160,28 @@ export default function MemberDetail() {
             </div>
             <p className="text-xl font-bold text-orange-700">
               ${totalTransferOut.toLocaleString()}
+            </p>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="p-4 bg-purple-50 border-purple-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="w-4 h-4 text-purple-600" />
+              <p className="text-xs text-purple-700 font-medium">用餘款消費</p>
+            </div>
+            <p className="text-xl font-bold text-purple-700">
+              ${balanceSpending.toLocaleString()}
+            </p>
+          </Card>
+
+          <Card className="p-4 bg-amber-50 border-amber-200">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingDown className="w-4 h-4 text-amber-600" />
+              <p className="text-xs text-amber-700 font-medium">用現金消費</p>
+            </div>
+            <p className="text-xl font-bold text-amber-700">
+              ${cashSpending.toLocaleString()}
             </p>
           </Card>
         </div>
