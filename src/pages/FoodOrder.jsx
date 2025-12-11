@@ -252,7 +252,154 @@ export default function FoodOrder() {
             <Card className="overflow-hidden mb-4">
               <div className="overflow-x-auto">
                 <table className="w-full">
-        ...
+                  <thead className="bg-emerald-50">
+                    <tr>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-32">成員</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-28">飯</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
+                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-28">付款</th>
+                      <th className="px-3 py-3 text-right font-semibold text-slate-700 border-b w-24">小計</th>
+                      <th className="px-3 py-3 border-b w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item) => (
+                      <tr key={item.id} className="border-b hover:bg-slate-50">
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.member_id}
+                            onValueChange={(value) => updateOrderItem(item.id, 'member_id', value)}
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue placeholder="選擇" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {members.map((member) => (
+                                <SelectItem key={member.id} value={member.id}>
+                                  {member.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.meal_box_id}
+                            onValueChange={(value) => updateOrderItem(item.id, 'meal_box_id', value)}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="選擇餐盒" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={null}>不選</SelectItem>
+                              {mealBoxes.map((box) => (
+                                <SelectItem key={box.id} value={box.id}>
+                                  {box.name} ${box.price}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.rice_option}
+                            onValueChange={(value) => updateOrderItem(item.id, 'rice_option', value)}
+                            disabled={!item.meal_box_id}
+                          >
+                            <SelectTrigger className="w-24">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="normal">正常</SelectItem>
+                              <SelectItem value="less_rice">飯少</SelectItem>
+                              <SelectItem value="rice_to_veg">飯換菜</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value=""
+                            onValueChange={(value) => {
+                              if (value) {
+                                updateOrderItem(item.id, 'side_dishes', [...(item.side_dishes || []), value]);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="選擇單點" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {sideDishes.map((dish) => (
+                                <SelectItem key={dish.id} value={dish.id}>
+                                  {dish.name} ${dish.price}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {item.side_dishes && item.side_dishes.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {item.side_dishes.map((dishId, idx) => {
+                                const dish = sideDishes.find(d => d.id === dishId);
+                                return dish ? (
+                                  <div key={idx} className="text-xs text-slate-600 flex items-center gap-2">
+                                    <span>• {dish.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        const newDishes = item.side_dishes.filter((_, i) => i !== idx);
+                                        updateOrderItem(item.id, 'side_dishes', newDishes);
+                                      }}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          <Select
+                            value={item.payment_method}
+                            onValueChange={(value) => updateOrderItem(item.id, 'payment_method', value)}
+                          >
+                            <SelectTrigger className="w-24">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="balance">餘額</SelectItem>
+                              <SelectItem value="cash">現金</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-3 text-right font-bold text-emerald-600">
+                          ${getItemTotal(item).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeOrderItem(item.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            ✕
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-emerald-50 font-bold">
+                      <td colSpan="5" className="px-3 py-4 text-right text-lg">總計</td>
+                      <td className="px-3 py-4 text-right text-lg text-emerald-600">
+                        ${getGrandTotal().toLocaleString()}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
             {/* Action Buttons */}
             <div className="flex justify-between items-center">
               <Button
