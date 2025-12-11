@@ -19,32 +19,17 @@ const colorMap = {
   cyan: "bg-cyan-500",
 };
 
-export default function AddMemberDialog({ open, onOpenChange, member, onAdd }) {
+export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState('blue');
   const [loading, setLoading] = useState(false);
-
-  React.useEffect(() => {
-    if (member) {
-      setName(member.name || '');
-      setSelectedColor(member.avatar_color || 'blue');
-    } else {
-      setName('');
-      setSelectedColor('blue');
-    }
-  }, [member]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
     
     setLoading(true);
-    const memberData = { name: name.trim(), avatar_color: selectedColor };
-    if (!member) {
-      memberData.balance = 0;
-      memberData.cash_balance = 0;
-    }
-    await onAdd(memberData);
+    await onAdd({ name: name.trim(), avatar_color: selectedColor, balance: 0 });
     setLoading(false);
     setName('');
     setSelectedColor('blue');
@@ -55,9 +40,7 @@ export default function AddMemberDialog({ open, onOpenChange, member, onAdd }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-800">
-            {member ? '編輯成員' : '新增成員'}
-          </DialogTitle>
+          <DialogTitle className="text-xl font-bold text-slate-800">新增成員</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           <div className="space-y-2">
@@ -92,7 +75,7 @@ export default function AddMemberDialog({ open, onOpenChange, member, onAdd }) {
             className="w-full h-12 bg-slate-800 hover:bg-slate-700 text-white font-medium"
             disabled={loading || !name.trim()}
           >
-            {loading ? '處理中...' : member ? '確認修改' : '確認新增'}
+            {loading ? '新增中...' : '確認新增'}
           </Button>
         </form>
       </DialogContent>
