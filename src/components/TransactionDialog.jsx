@@ -110,7 +110,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                     <SelectValue placeholder="選擇成員" />
                   </SelectTrigger>
                   <SelectContent>
-                    {members.map((m) => (
+                    {members.filter(m => m.is_active !== false).map((m) => (
                       <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -127,7 +127,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                       <SelectValue placeholder="選擇成員" />
                     </SelectTrigger>
                     <SelectContent>
-                      {members.map((m) => (
+                      {members.filter(m => m.is_active !== false).map((m) => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -140,7 +140,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                       <SelectValue placeholder="選擇成員" />
                     </SelectTrigger>
                     <SelectContent>
-                      {members.filter(m => m.id !== fromMemberId).map((m) => (
+                      {members.filter(m => m.id !== fromMemberId && m.is_active !== false).map((m) => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
                     </SelectContent>

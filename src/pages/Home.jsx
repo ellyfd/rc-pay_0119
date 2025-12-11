@@ -8,30 +8,25 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
 import TransactionItem from "@/components/TransactionItem";
-import AddMemberDialog from "@/components/AddMemberDialog";
 import TransactionDialog from "@/components/TransactionDialog";
 import BatchTransactionDialog from "@/components/BatchTransactionDialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
-  const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('-created_date')
+    queryFn: () => base44.entities.Member.list('name')
   });
+
+  const members = allMembers.filter(m => m.is_active !== false);
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-created_date', 20)
-  });
-
-  const createMember = useMutation({
-    mutationFn: (data) => base44.entities.Member.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
   });
 
   const updateMember = useMutation({
@@ -43,10 +38,6 @@ export default function Home() {
     mutationFn: (data) => base44.entities.Transaction.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
   });
-
-  const handleAddMember = async (memberData) => {
-    await createMember.mutateAsync(memberData);
-  };
 
   const handleTransaction = async (transactionData) => {
     const { type, amount, from_member_id, to_member_id, wallet_type, note } = transactionData;
@@ -165,14 +156,14 @@ export default function Home() {
               七分飽訂餐
             </Button>
           </Link>
-          <Button
-            onClick={() => setShowAddMember(true)}
-            variant="outline" className="bg-background px-4 py-2 text-sm font-medium rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow-sm hover:text-accent-foreground h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50">
+          <Link to={createPageUrl('MemberManagement')}>
+            <Button
+              variant="outline" className="bg-background px-4 py-2 text-sm font-medium rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow-sm hover:text-accent-foreground h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50">
 
-
-            <UserPlus className="w-5 h-5 mr-2" />
-            新增成員
-          </Button>
+              <UserPlus className="w-5 h-5 mr-2" />
+              成員管理
+            </Button>
+          </Link>
           <Button
             onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
 
@@ -297,11 +288,6 @@ export default function Home() {
       </div>
 
       {/* Dialogs */}
-      <AddMemberDialog
-        open={showAddMember}
-        onOpenChange={setShowAddMember}
-        onAdd={handleAddMember} />
-
       <TransactionDialog
         open={showTransaction}
         onOpenChange={setShowTransaction}

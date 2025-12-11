@@ -84,7 +84,7 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
     const selectedIds = items
       .map((item, idx) => idx !== currentIndex ? item.member_id : null)
       .filter(Boolean);
-    return members.filter(m => !selectedIds.includes(m.id));
+    return members.filter(m => !selectedIds.includes(m.id) && m.is_active !== false);
   };
 
   return (
