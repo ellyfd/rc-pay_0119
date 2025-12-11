@@ -31,7 +31,36 @@ const colorMap = {
 export default function MemberManagement() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [deletingMember, setDeletingMember] = useState(null);
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => setUser(null));
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-500">載入中...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500 mb-4">此頁面僅限管理員訪問</p>
+          <Link to={createPageUrl('Home')}>
+            <Button>返回首頁</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['members'],

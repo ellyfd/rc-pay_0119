@@ -17,7 +17,12 @@ export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => setUser(null));
+  }, []);
 
   const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
@@ -59,6 +64,11 @@ export default function Home() {
   };
 
   const handleTransaction = async (transactionData) => {
+    if (user?.role !== 'admin') {
+      alert('只有管理員可以執行交易操作');
+      return;
+    }
+
     const { type, amount, from_member_id, to_member_id, wallet_type, note } = transactionData;
 
     const fromMember = allMembers.find((m) => m.id === from_member_id);
@@ -101,6 +111,11 @@ export default function Home() {
   };
 
   const handleBatchTransaction = async (transactions) => {
+    if (user?.role !== 'admin') {
+      alert('只有管理員可以執行交易操作');
+      return;
+    }
+
     // Process all transactions
     for (const item of transactions) {
       const member = allMembers.find((m) => m.id === item.member_id);
@@ -150,12 +165,14 @@ export default function Home() {
               </div>
               <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
             </div>
-            <Link to={createPageUrl('MemberManagement')}>
-              <Button variant="ghost" className="text-white hover:bg-slate-800">
-                <Settings className="w-5 h-5 mr-2" />
-                成員管理
-              </Button>
-            </Link>
+            {user?.role === 'admin' && (
+              <Link to={createPageUrl('MemberManagement')}>
+                <Button variant="ghost" className="text-white hover:bg-slate-800">
+                  <Settings className="w-5 h-5 mr-2" />
+                  成員管理
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
