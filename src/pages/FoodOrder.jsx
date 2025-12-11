@@ -157,7 +157,7 @@ export default function FoodOrder() {
         }
       }
 
-      // Update balance based on payment method
+      // Create transaction and update balance only if payment method is balance
       if (item.payment_method === 'balance') {
         await createTransaction.mutateAsync({
           type: 'withdraw',
@@ -170,11 +170,6 @@ export default function FoodOrder() {
         await updateMember.mutateAsync({
           id: member.id,
           data: { balance: (member.balance || 0) - totalAmount }
-        });
-      } else if (item.payment_method === 'cash') {
-        await updateMember.mutateAsync({
-          id: member.id,
-          data: { cash_balance: (member.cash_balance || 0) - totalAmount }
         });
       }
     }
