@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed } from "lucide-react";
 import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
 import TransactionItem from "@/components/TransactionItem";
 import AddMemberDialog from "@/components/AddMemberDialog";
