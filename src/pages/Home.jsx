@@ -49,15 +49,17 @@ export default function Home() {
   };
 
   const handleTransaction = async (transactionData) => {
-    const { type, amount, from_member_id, to_member_id, note } = transactionData;
+    const { type, amount, from_member_id, to_member_id, wallet_type, note } = transactionData;
 
     const fromMember = members.find((m) => m.id === from_member_id);
     const toMember = members.find((m) => m.id === to_member_id);
+    const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
     // Create transaction record
     await createTransaction.mutateAsync({
       type,
       amount,
+      wallet_type,
       from_member_id,
       to_member_id,
       from_member_name: fromMember?.name || '',
@@ -69,21 +71,21 @@ export default function Home() {
     if (type === 'deposit' && toMember) {
       await updateMember.mutateAsync({
         id: to_member_id,
-        data: { balance: (toMember.balance || 0) + amount }
+        data: { [balanceField]: (toMember[balanceField] || 0) + amount }
       });
     } else if (type === 'withdraw' && fromMember) {
       await updateMember.mutateAsync({
         id: from_member_id,
-        data: { balance: (fromMember.balance || 0) - amount }
+        data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
       });
     } else if (type === 'transfer' && fromMember && toMember) {
       await updateMember.mutateAsync({
         id: from_member_id,
-        data: { balance: (fromMember.balance || 0) - amount }
+        data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
       });
       await updateMember.mutateAsync({
         id: to_member_id,
-        data: { balance: (toMember.balance || 0) + amount }
+        data: { [balanceField]: (toMember[balanceField] || 0) + amount }
       });
     }
   };
@@ -95,11 +97,13 @@ export default function Home() {
       if (!member) continue;
 
       const isDeposit = item.type === 'deposit';
+      const balanceField = item.wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
       // Create transaction record
       await createTransaction.mutateAsync({
         type: item.type,
         amount: item.amount,
+        wallet_type: item.wallet_type,
         from_member_id: isDeposit ? null : item.member_id,
         to_member_id: isDeposit ? item.member_id : null,
         from_member_name: isDeposit ? '' : member.name,
@@ -109,12 +113,12 @@ export default function Home() {
 
       // Update balance
       const newBalance = isDeposit 
-        ? (member.balance || 0) + item.amount
-        : (member.balance || 0) - item.amount;
+        ? (member[balanceField] || 0) + item.amount
+        : (member[balanceField] || 0) - item.amount;
       
       await updateMember.mutateAsync({
         id: item.member_id,
-        data: { balance: newBalance }
+        data: { [balanceField]: newBalance }
       });
     }
   };

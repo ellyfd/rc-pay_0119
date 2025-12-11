@@ -158,25 +158,24 @@ export default function FoodOrder() {
       }
 
       // Create transaction record for both payment methods
-      const transactionNote = item.payment_method === 'cash' 
-        ? `${format(new Date(orderDate), 'yyyy/MM/dd')} 七分飽 (現金)`
-        : `${format(new Date(orderDate), 'yyyy/MM/dd')} 七分飽`;
+      const walletType = item.payment_method === 'cash' ? 'cash' : 'balance';
+      const balanceField = item.payment_method === 'cash' ? 'cash_balance' : 'balance';
+      const transactionNote = `${format(new Date(orderDate), 'yyyy/MM/dd')} 七分飽`;
 
       await createTransaction.mutateAsync({
         type: 'withdraw',
         amount: totalAmount,
+        wallet_type: walletType,
         from_member_id: member.id,
         from_member_name: member.name,
         note: transactionNote
       });
 
-      // Update balance only if payment method is balance
-      if (item.payment_method === 'balance') {
-        await updateMember.mutateAsync({
-          id: member.id,
-          data: { balance: (member.balance || 0) - totalAmount }
-        });
-      }
+      // Update corresponding balance
+      await updateMember.mutateAsync({
+        id: member.id,
+        data: { [balanceField]: (member[balanceField] || 0) - totalAmount }
+      });
     }
 
     // Clear orders after submission

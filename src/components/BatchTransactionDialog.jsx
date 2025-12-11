@@ -22,12 +22,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function BatchTransactionDialog({ open, onOpenChange, members, onBatchTransaction }) {
   const [type, setType] = useState('withdraw');
+  const [walletType, setWalletType] = useState('balance');
   const [items, setItems] = useState([{ member_id: '', amount: '' }]);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
     setType('withdraw');
+    setWalletType('balance');
     setItems([{ member_id: '', amount: '' }]);
     setNote('');
   };
@@ -69,6 +71,7 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
       member_id: item.member_id,
       amount: parseFloat(item.amount),
       type,
+      wallet_type: walletType,
       note
     }));
     await onBatchTransaction(transactions);
@@ -107,6 +110,20 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
         </Tabs>
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+          {/* Wallet Type Selection */}
+          <div className="space-y-2">
+            <Label className="text-slate-700">錢包類型</Label>
+            <Select value={walletType} onValueChange={setWalletType}>
+              <SelectTrigger className="h-12">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="balance">錢包</SelectItem>
+                <SelectItem value="cash">現金</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Items List */}
           <div className="space-y-3">
             <Label className="text-slate-700">{type === 'withdraw' ? '扣款明細' : '入帳明細'}</Label>

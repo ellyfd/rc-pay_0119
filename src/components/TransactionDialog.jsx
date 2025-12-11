@@ -21,6 +21,7 @@ import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from "lucide-react";
 
 export default function TransactionDialog({ open, onOpenChange, members, onTransaction }) {
   const [type, setType] = useState('deposit');
+  const [walletType, setWalletType] = useState('balance');
   const [amount, setAmount] = useState('');
   const [fromMemberId, setFromMemberId] = useState('');
   const [toMemberId, setToMemberId] = useState('');
@@ -32,6 +33,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
     setFromMemberId('');
     setToMemberId('');
     setNote('');
+    setWalletType('balance');
   };
 
   const handleSubmit = async (e) => {
@@ -44,6 +46,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
       amount: parseFloat(amount),
       from_member_id: type === 'deposit' ? null : fromMemberId,
       to_member_id: type === 'withdraw' ? null : toMemberId,
+      wallet_type: walletType,
       note
     });
     setLoading(false);
@@ -146,6 +149,19 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
               </div>
             </TabsContent>
             
+            <div className="space-y-2">
+              <Label className="text-slate-700">錢包類型</Label>
+              <Select value={walletType} onValueChange={setWalletType}>
+                <SelectTrigger className="h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="balance">錢包</SelectItem>
+                  <SelectItem value="cash">現金</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-slate-700">金額</Label>
               <Input

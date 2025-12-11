@@ -109,15 +109,25 @@ export default function MemberDetail() {
             </div>
           </div>
 
-          {/* Balance Card */}
-          <Card className="bg-slate-800/50 border-slate-700 p-6">
-            <div className="text-center">
-              <p className="text-slate-400 text-sm mb-2">目前餘額</p>
-              <p className={`text-4xl font-bold ${member.balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                ${member.balance?.toLocaleString() || 0}
-              </p>
-            </div>
-          </Card>
+          {/* Balance Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="bg-slate-800/50 border-slate-700 p-6">
+              <div className="text-center">
+                <p className="text-slate-400 text-sm mb-2">錢包餘額</p>
+                <p className={`text-3xl font-bold ${member.balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  ${member.balance?.toLocaleString() || 0}
+                </p>
+              </div>
+            </Card>
+            <Card className="bg-slate-800/50 border-slate-700 p-6">
+              <div className="text-center">
+                <p className="text-slate-400 text-sm mb-2">現金餘額</p>
+                <p className={`text-3xl font-bold ${member.cash_balance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                  ${member.cash_balance?.toLocaleString() || 0}
+                </p>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
 
