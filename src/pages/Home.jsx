@@ -21,7 +21,7 @@ export default function Home() {
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('-created_date')
+    queryFn: () => base44.entities.Member.list('name')
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
