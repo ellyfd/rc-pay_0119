@@ -1,0 +1,228 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Save } from "lucide-react";
+
+export default function EditOrderDialog({ open, onOpenChange, order, orderItems, products, members, onSave }) {
+  const [paymentMethod, setPaymentMethod] = useState('balance');
+  const [note, setNote] = useState('');
+  const [mealBoxId, setMealBoxId] = useState('');
+  const [riceOption, setRiceOption] = useState('normal');
+  const [sideDishes, setSideDishes] = useState([]);
+
+  const mealBoxes = products.filter(p => p.category === 'meal_box');
+  const sideDishProducts = products.filter(p => p.category === 'side_dish');
+
+  useEffect(() => {
+    if (order && orderItems) {
+      setPaymentMethod(order.payment_method || 'balance');
+      setNote(order.note || '');
+
+      const mealBoxItem = orderItems.find(item => {
+        const product = mealBoxes.find(p => p.id === item.product_id);
+        return product && product.category === 'meal_box';
+      });
+
+      if (mealBoxItem) {
+        setMealBoxId(mealBoxItem.product_id);
+        setRiceOption(mealBoxItem.rice_option || 'normal');
+      } else {
+        setMealBoxId('');
+        setRiceOption('normal');
+      }
+
+      const sideItems = orderItems.filter(item => {
+        const product = sideDishProducts.find(p => p.id === item.product_id);
+        return product && product.category === 'side_dish';
+      });
+      setSideDishes(sideItems.map(item => item.product_id));
+    }
+  }, [order, orderItems]);
+
+  const getTotal = () => {
+    let total = 0;
+    if (mealBoxId) {
+      const mealBox = mealBoxes.find(p => p.id === mealBoxId);
+      if (mealBox) total += mealBox.price;
+    }
+    sideDishes.forEach(dishId => {
+      const dish = sideDishProducts.find(p => p.id === dishId);
+      if (dish) total += dish.price;
+    });
+    return total;
+  };
+
+  const handleSave = () => {
+    if (!mealBoxId && sideDishes.length === 0) {
+      alert('請至少選擇一個餐盒或單點！');
+      return;
+    }
+
+    const items = [];
+    
+    if (mealBoxId) {
+      const mealBox = mealBoxes.find(p => p.id === mealBoxId);
+      if (mealBox) {
+        items.push({
+          product_id: mealBox.id,
+          product_name: mealBox.name,
+          price: mealBox.price,
+          quantity: 1,
+          rice_option: riceOption
+        });
+      }
+    }
+
+    sideDishes.forEach(dishId => {
+      const dish = sideDishProducts.find(p => p.id === dishId);
+      if (dish) {
+        items.push({
+          product_id: dish.id,
+          product_name: dish.name,
+          price: dish.price,
+          quantity: 1,
+          rice_option: 'normal'
+        });
+      }
+    });
+
+    onSave({
+      payment_method: paymentMethod,
+      note: note || undefined,
+      total_amount: getTotal(),
+      items
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>編輯訂單 - {order?.member_name}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Meal Box Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">餐盒</label>
+            <Select value={mealBoxId} onValueChange={setMealBoxId}>
+              <SelectTrigger>
+                <SelectValue placeholder="選擇餐盒（可不選）" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>不選</SelectItem>
+                {mealBoxes.map((box) => (
+                  <SelectItem key={box.id} value={box.id}>
+                    {box.name} - ${box.price}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Rice Option */}
+          {mealBoxId && (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">飯量</label>
+              <Select value={riceOption} onValueChange={setRiceOption}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">正常</SelectItem>
+                  <SelectItem value="less_rice">飯少</SelectItem>
+                  <SelectItem value="rice_to_veg">飯換菜</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Side Dishes */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">單點（可多選）</label>
+            <Select
+              value=""
+              onValueChange={(value) => {
+                if (value && !sideDishes.includes(value)) {
+                  setSideDishes([...sideDishes, value]);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="選擇單點" />
+              </SelectTrigger>
+              <SelectContent>
+                {sideDishProducts.map((dish) => (
+                  <SelectItem key={dish.id} value={dish.id}>
+                    {dish.name} - ${dish.price}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {sideDishes.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {sideDishes.map((dishId) => {
+                  const dish = sideDishProducts.find(d => d.id === dishId);
+                  return dish ? (
+                    <div key={dishId} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                      <span className="text-sm text-slate-700">{dish.name} - ${dish.price}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSideDishes(sideDishes.filter(id => id !== dishId))}
+                        className="text-red-500 hover:text-red-700 h-6 px-2"
+                      >
+                        移除
+                      </Button>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Payment Method */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">付款方式</label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="balance">餘額</SelectItem>
+                <SelectItem value="cash">現金</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">備註（選填）</label>
+            <Input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="例：不要蔥、辣一點..."
+            />
+          </div>
+
+          {/* Total */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-lg font-semibold text-slate-700">總計</span>
+              <span className="text-2xl font-bold text-emerald-600">${getTotal().toLocaleString()}</span>
+            </div>
+            <Button
+              onClick={handleSave}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              儲存變更
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

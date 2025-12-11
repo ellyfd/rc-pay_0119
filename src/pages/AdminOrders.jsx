@@ -3,15 +3,28 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
+import EditOrderDialog from "@/components/food/EditOrderDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AdminOrders() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [deletingOrder, setDeletingOrder] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
@@ -62,8 +75,72 @@ export default function AdminOrders() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
   });
 
+  const deleteOrder = useMutation({
+    mutationFn: (id) => base44.entities.Order.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderItems'] });
+    }
+  });
+
+  const deleteOrderItem = useMutation({
+    mutationFn: (id) => base44.entities.OrderItem.delete(id)
+  });
+
+  const createOrderItem = useMutation({
+    mutationFn: async (itemData) => base44.entities.OrderItem.create(itemData),
+  });
+
   const getOrderItems = (orderId) => {
     return orderItems.filter(item => item.order_id === orderId);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingOrder) return;
+
+    // Delete all order items first
+    const items = getOrderItems(deletingOrder.id);
+    for (const item of items) {
+      await deleteOrderItem.mutateAsync(item.id);
+    }
+
+    // Then delete the order
+    await deleteOrder.mutateAsync(deletingOrder.id);
+    setDeletingOrder(null);
+  };
+
+  const handleEdit = (order) => {
+    setEditingOrder(order);
+  };
+
+  const handleSaveEdit = async (data) => {
+    if (!editingOrder) return;
+
+    // Delete existing order items
+    const existingItems = getOrderItems(editingOrder.id);
+    for (const item of existingItems) {
+      await deleteOrderItem.mutateAsync(item.id);
+    }
+
+    // Create new order items
+    for (const item of data.items) {
+      await createOrderItem.mutateAsync({
+        order_id: editingOrder.id,
+        ...item
+      });
+    }
+
+    // Update order
+    await updateOrder.mutateAsync({
+      id: editingOrder.id,
+      data: {
+        payment_method: data.payment_method,
+        total_amount: data.total_amount,
+        note: data.note
+      }
+    });
+
+    setEditingOrder(null);
   };
 
   const handleCheckoutAll = async () => {
@@ -190,6 +267,7 @@ export default function AdminOrders() {
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">付款</th>
                       <th className="px-3 py-3 text-right font-semibold text-slate-700 border-b w-32">小計</th>
+                      <th className="px-3 py-3 text-center font-semibold text-slate-700 border-b w-24">操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -257,6 +335,26 @@ export default function AdminOrders() {
                           <td className="px-3 py-3 text-right font-bold text-emerald-600">
                             ${order.total_amount.toLocaleString()}
                           </td>
+                          <td className="px-3 py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(order)}
+                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeletingOrder(order)}
+                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
@@ -265,6 +363,7 @@ export default function AdminOrders() {
                       <td className="px-3 py-4 text-right text-lg text-emerald-600">
                         ${totalAmount.toLocaleString()}
                       </td>
+                      <td></td>
                     </tr>
                   </tbody>
                 </table>
@@ -273,6 +372,33 @@ export default function AdminOrders() {
           </>
         )}
       </div>
+
+      <EditOrderDialog
+        open={!!editingOrder}
+        onOpenChange={() => setEditingOrder(null)}
+        order={editingOrder}
+        orderItems={editingOrder ? getOrderItems(editingOrder.id) : []}
+        products={products}
+        members={allMembers}
+        onSave={handleSaveEdit}
+      />
+
+      <AlertDialog open={!!deletingOrder} onOpenChange={() => setDeletingOrder(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認刪除訂單</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除「{deletingOrder?.member_name}」的訂單嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
