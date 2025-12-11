@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -19,10 +19,13 @@ export default function Home() {
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('-created_date')
   });
+
+  // Filter out hidden members for display
+  const members = allMembers.filter(m => !m.is_hidden);
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
@@ -51,8 +54,8 @@ export default function Home() {
   const handleTransaction = async (transactionData) => {
     const { type, amount, from_member_id, to_member_id, wallet_type, note } = transactionData;
 
-    const fromMember = members.find((m) => m.id === from_member_id);
-    const toMember = members.find((m) => m.id === to_member_id);
+    const fromMember = allMembers.find((m) => m.id === from_member_id);
+    const toMember = allMembers.find((m) => m.id === to_member_id);
     const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
     // Create transaction record
@@ -93,7 +96,7 @@ export default function Home() {
   const handleBatchTransaction = async (transactions) => {
     // Process all transactions
     for (const item of transactions) {
-      const member = members.find((m) => m.id === item.member_id);
+      const member = allMembers.find((m) => m.id === item.member_id);
       if (!member) continue;
 
       const isDeposit = item.type === 'deposit';
@@ -123,7 +126,7 @@ export default function Home() {
     }
   };
 
-  const totalBalance = members.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
+  const totalBalance = allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -149,7 +152,7 @@ export default function Home() {
               </div>
               <div className="text-right">
                 <p className="text-slate-400 text-sm mb-1">成員數</p>
-                <p className="text-2xl font-bold text-white">{members.length}</p>
+                <p className="text-2xl font-bold text-white">{allMembers.length}</p>
               </div>
             </div>
           </Card>
@@ -157,6 +160,16 @@ export default function Home() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
+        {/* Member Management Link */}
+        <div className="flex justify-end mb-4">
+          <Link to={createPageUrl('MemberManagement')}>
+            <Button variant="outline" className="border-slate-300">
+              <Settings className="w-4 h-4 mr-2" />
+              成員管理
+            </Button>
+          </Link>
+        </div>
+
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Link to={createPageUrl('FoodOrder')} className="col-span-2 md:col-span-1">
