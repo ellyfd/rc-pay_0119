@@ -169,7 +169,7 @@ export default function Home() {
               </div>
               <div className="text-right">
                 <p className="text-slate-400 text-sm mb-1">成員數</p>
-                <p className="text-2xl font-bold text-white">{members.length}</p>
+                <p className="text-2xl font-bold text-white">{allMembers.length}</p>
               </div>
             </div>
           </Card>
@@ -185,14 +185,6 @@ export default function Home() {
               七分飽訂餐
             </Button>
           </Link>
-          <Button
-            onClick={() => setShowAddMember(true)}
-            variant="outline" className="bg-background px-4 py-2 text-sm font-medium rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow-sm hover:text-accent-foreground h-14 border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50">
-
-
-            <UserPlus className="w-5 h-5 mr-2" />
-            新增成員
-          </Button>
           <Button
             onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
 
