@@ -101,6 +101,7 @@ export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onR
             <Button
               onClick={onCheckout}
               className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              disabled={cart.length === 0}
             >
               前往結帳
             </Button>
