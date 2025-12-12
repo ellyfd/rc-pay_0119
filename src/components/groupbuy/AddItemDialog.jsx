@@ -60,7 +60,13 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
   }, [item, currentUser, open, members]);
 
   const addRow = () => {
-    setItems([...items, {
+    // 收起所有現有行的平分選項
+    const updatedItems = items.map(item => ({
+      ...item,
+      split: false
+    }));
+
+    setItems([...updatedItems, {
       product_name: '',
       quantity: 1,
       price: 0,
