@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -177,6 +177,11 @@ export default function Home() {
 
   const totalBalance = allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
 
+  // Find current user's member
+  const currentMember = allMembers.find(m => 
+    m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
@@ -202,6 +207,14 @@ export default function Home() {
               </Link>
             </div>
             <div className="flex gap-2">
+              {currentMember && (
+                <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
+                  <Button variant="ghost" className="text-white hover:bg-slate-800">
+                    <User className="w-5 h-5 mr-2" />
+                    個人資料
+                  </Button>
+                </Link>
+              )}
               <Link to={createPageUrl('MemberManagement')}>
                 <Button variant="ghost" className="text-white hover:bg-slate-800">
                   <Settings className="w-5 h-5 mr-2" />
