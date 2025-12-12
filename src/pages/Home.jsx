@@ -179,15 +179,24 @@ export default function Home() {
       {/* Header */}
       <div className="bg-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
-                  <Wallet className="w-6 h-6 text-slate-900" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
+                    <Wallet className="w-6 h-6 text-slate-900" />
+                  </div>
+                  <h1 className="text-2xl font-bold tracking-tight">RC Pay</h1>
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight">RC Pay</h1>
+                <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
               </div>
-              <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
+              <div className="h-12 w-px bg-slate-700" />
+              <Link to={createPageUrl('GroupBuy')}>
+                <Button variant="ghost" className="text-white hover:bg-slate-800">
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  團購專區
+                </Button>
+              </Link>
             </div>
             <div className="flex gap-2">
               <Link to={createPageUrl('MemberManagement')}>
@@ -210,32 +219,26 @@ export default function Home() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Link to={createPageUrl('FoodOrder')} className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Link to={createPageUrl('FoodOrder')}>
             <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
               <UtensilsCrossed className="w-5 h-5 mr-2" />
               七分飽訂餐
             </Button>
           </Link>
-          <Link to={createPageUrl('GroupBuy')} className="col-span-2 md:col-span-1">
-            <Button className="w-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-purple-700">
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              團購專區
-            </Button>
-          </Link>
           <Button
-            onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
-
-            disabled={allMembers.length === 0}>
-
+            onClick={() => setShowTransaction(true)}
+            className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
+            disabled={allMembers.length === 0}
+          >
             <Plus className="w-5 h-5 mr-2" />
             新增交易（單筆）
           </Button>
           <Button
-            onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
-
-            disabled={allMembers.length === 0}>
-
+            onClick={() => setShowBatchTransaction(true)}
+            className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
+            disabled={allMembers.length === 0}
+          >
             <Users className="w-5 h-5 mr-2" />
             新增交易（多筆）
           </Button>
