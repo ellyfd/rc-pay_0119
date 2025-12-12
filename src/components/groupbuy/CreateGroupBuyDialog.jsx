@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2 } from "lucide-react";
+import { Upload, Plus, Trash2, Link as LinkIcon, Sparkles } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -38,6 +38,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   }]);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [analyzingUrl, setAnalyzingUrl] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
 
   // Auto-select organizer based on current user
   React.useEffect(() => {
@@ -130,6 +132,54 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     }
   };
 
+  const handleAnalyzeUrl = async () => {
+    if (!urlInput.trim()) {
+      alert('請輸入網址！');
+      return;
+    }
+
+    setAnalyzingUrl(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `請分析這個網頁 ${urlInput}，提取出所有可用的產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。請盡可能完整地提取產品資訊，包括菜單、商品名稱、價格等。`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            products: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  product_name: { type: "string" },
+                  price: { type: "number" },
+                  description: { type: "string" }
+                },
+                required: ["product_name", "price"]
+              }
+            }
+          },
+          required: ["products"]
+        }
+      });
+
+      if (result.products && result.products.length > 0) {
+        setProducts(result.products);
+        // Auto-fill product_link if not already set
+        if (!formData.product_link) {
+          setFormData({ ...formData, product_link: urlInput });
+        }
+        alert(`成功識別 ${result.products.length} 個產品！`);
+      } else {
+        alert('未能識別出產品資訊，請手動輸入。');
+      }
+    } catch (error) {
+      alert('分析失敗：' + error.message);
+    } finally {
+      setAnalyzingUrl(false);
+    }
+  };
+
   const addProduct = () => {
     setProducts([...products, {
       product_name: '',
@@ -215,9 +265,36 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
           </div>
 
+          {/* URL Analysis */}
+          <div>
+            <Label className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              AI 網址辨識 - 快速新增商品列表
+            </Label>
+            <p className="text-xs text-slate-500 mb-2">輸入網頁或 UberEats 連結，AI 自動識別商品</p>
+            <div className="flex gap-2">
+              <Input
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="貼上網址，例如：https://ubereats.com/..."
+                type="url"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={handleAnalyzeUrl}
+                disabled={analyzingUrl || !urlInput.trim()}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <LinkIcon className="w-4 h-4 mr-2" />
+                {analyzingUrl ? '分析中...' : 'AI 辨識'}
+              </Button>
+            </div>
+          </div>
+
           {/* Product Link */}
           <div>
-            <Label>商品連結</Label>
+            <Label>商品連結（選填）</Label>
             <Input
               value={formData.product_link}
               onChange={(e) => setFormData({ ...formData, product_link: e.target.value })}
@@ -228,9 +305,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
           {/* Image Upload */}
           <div>
-            <Label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">商品圖片
-(上傳圖片利用AI識別，快速新增商品列表)
-            </Label>
+            <Label>商品圖片（選填）</Label>
+            <p className="text-xs text-slate-500 mb-2">上傳圖片利用 AI 識別商品</p>
             <div className="flex items-center gap-3">
               <Button type="button" variant="outline"
                 onClick={() => document.getElementById('groupbuy-image').click()}
