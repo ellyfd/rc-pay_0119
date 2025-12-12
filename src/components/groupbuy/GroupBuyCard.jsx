@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function GroupBuyCard({ groupBuy, currentUser, members }) {
-  const isOrganizer = currentUser && groupBuy.organizer_id === currentUser.id;
+  const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
   const isOpen = groupBuy.status === 'open';
 
   return (
