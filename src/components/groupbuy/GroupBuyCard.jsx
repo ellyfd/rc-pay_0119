@@ -76,21 +76,13 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 pt-2">
-          <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)} className="flex-1">
-            <Button variant="outline" className="w-full">
-              <Package className="w-4 h-4 mr-2" />
-              查看詳情
+        <div className="pt-2">
+          <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700">
+              <Plus className="w-4 h-4 mr-2" />
+              我要跟團
             </Button>
           </Link>
-          {isOpen && !isOrganizer && (
-            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)} className="flex-1">
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                <Plus className="w-4 h-4 mr-2" />
-                我要跟團
-              </Button>
-            </Link>
-          )}
         </div>
       </div>
     </Card>
