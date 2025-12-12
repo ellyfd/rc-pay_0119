@@ -28,6 +28,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
     description: ''
   }]);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -41,6 +42,47 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
       alert('上傳失敗：' + error.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (!formData.image_url) return;
+
+    setAnalyzing(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `請分析這張圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
+        file_urls: [formData.image_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            products: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  product_name: { type: "string" },
+                  price: { type: "number" },
+                  description: { type: "string" }
+                },
+                required: ["product_name", "price"]
+              }
+            }
+          },
+          required: ["products"]
+        }
+      });
+
+      if (result.products && result.products.length > 0) {
+        setProducts(result.products);
+        alert(`成功識別 ${result.products.length} 個產品！`);
+      } else {
+        alert('未能識別出產品資訊，請手動輸入。');
+      }
+    } catch (error) {
+      alert('分析失敗：' + error.message);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -154,7 +196,18 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
                 className="hidden"
               />
               {formData.image_url && (
-                <span className="text-sm text-green-600">✓ 已上傳</span>
+                <>
+                  <span className="text-sm text-green-600">✓ 已上傳</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAnalyzeImage}
+                    disabled={analyzing}
+                    className="ml-auto"
+                  >
+                    {analyzing ? '分析中...' : '🤖 AI 識別產品'}
+                  </Button>
+                </>
               )}
             </div>
             {formData.image_url && (
