@@ -210,15 +210,15 @@ export default function Home() {
               {currentMember && (
                 <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
                   <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                    <User className="w-5 h-5 mr-2" />
-                    個人資料
+                    <User className="w-5 h-5 md:mr-2" />
+                    <span className="hidden md:inline">個人資料</span>
                   </Button>
                 </Link>
               )}
               <Link to={createPageUrl('MemberManagement')}>
                 <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                  <Settings className="w-5 h-5 mr-2" />
-                  成員管理
+                  <Settings className="w-5 h-5 md:mr-2" />
+                  <span className="hidden md:inline">成員管理</span>
                 </Button>
               </Link>
               <Button 
@@ -226,7 +226,8 @@ export default function Home() {
                 className="text-white hover:bg-white hover:text-slate-900"
                 onClick={() => base44.auth.logout()}
               >
-                登出
+                <User className="w-5 h-5 md:mr-2" />
+                <span className="hidden md:inline">登出</span>
               </Button>
             </div>
           </div>
