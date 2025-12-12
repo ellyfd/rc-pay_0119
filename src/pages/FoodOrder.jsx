@@ -219,7 +219,7 @@ export default function FoodOrder() {
                     <SelectItem value={null}>不選</SelectItem>
                     {mealBoxes.map((box) => (
                       <SelectItem key={box.id} value={box.id}>
-                        {box.name} {box.is_flash && '⚡'} - ${box.price}
+                        {box.name} - ${box.price}
                       </SelectItem>
                     ))}
                   </SelectContent>
