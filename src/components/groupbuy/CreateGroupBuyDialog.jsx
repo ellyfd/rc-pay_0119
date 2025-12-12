@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
+import { Upload, Plus, Trash2 } from "lucide-react";
 
 export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
   const [formData, setFormData] = useState({
@@ -22,6 +22,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
     deadline: '',
     note: ''
   });
+  const [products, setProducts] = useState([{
+    product_name: '',
+    price: 0,
+    description: ''
+  }]);
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (e) => {
@@ -39,12 +44,40 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
     }
   };
 
+  const addProduct = () => {
+    setProducts([...products, {
+      product_name: '',
+      price: 0,
+      description: ''
+    }]);
+  };
+
+  const removeProduct = (index) => {
+    if (products.length > 1) {
+      setProducts(products.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateProduct = (index, field, value) => {
+    const newProducts = [...products];
+    newProducts[index][field] = value;
+    setProducts(newProducts);
+  };
+
   const handleSubmit = () => {
     if (!formData.title.trim()) {
       alert('請輸入團購標題！');
       return;
     }
-    onCreate(formData);
+    
+    // Filter valid products
+    const validProducts = products.filter(p => p.product_name && p.price > 0);
+    
+    onCreate({
+      ...formData,
+      products: validProducts
+    });
+    
     setFormData({
       title: '',
       description: '',
@@ -53,6 +86,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
       deadline: '',
       note: ''
     });
+    setProducts([{
+      product_name: '',
+      price: 0,
+      description: ''
+    }]);
   };
 
   return (
@@ -148,6 +186,77 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               placeholder="其他說明..."
             />
+          </div>
+
+          {/* Products */}
+          <div>
+            <Label className="mb-2 block">預設商品列表（選填）</Label>
+            <p className="text-xs text-slate-500 mb-3">新增商品讓參與者更方便選購，也可以稍後再新增</p>
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">商品名稱</th>
+                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-32">單價</th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">說明</th>
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {products.map((product, index) => (
+                    <tr key={index}>
+                      <td className="px-3 py-2">
+                        <Input
+                          value={product.product_name}
+                          onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
+                          placeholder="洋芋片、口紅..."
+                          className="h-9"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={product.price}
+                          onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="h-9 text-right"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <Input
+                          value={product.description}
+                          onChange={(e) => updateProduct(index, 'description', e.target.value)}
+                          placeholder="規格、說明..."
+                          className="h-9"
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {products.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeProduct(index)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button
+              type="button"
+              onClick={addProduct}
+              variant="outline"
+              className="w-full mt-2"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              新增商品
+            </Button>
           </div>
         </div>
 
