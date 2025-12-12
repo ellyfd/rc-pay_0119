@@ -213,7 +213,13 @@ export default function MemberManagement() {
                           {member.user_emails && member.user_emails.length > 0 ? (
                             <div className="space-y-0.5">
                               {member.user_emails.map((email, idx) => (
-                                <div key={idx}>{email}</div>
+                                <Link
+                                  key={idx}
+                                  to={createPageUrl('UserDetail') + '?email=' + encodeURIComponent(email)}
+                                  className="block text-purple-600 hover:text-purple-700 hover:underline"
+                                >
+                                  {email}
+                                </Link>
                               ))}
                             </div>
                           ) : (
