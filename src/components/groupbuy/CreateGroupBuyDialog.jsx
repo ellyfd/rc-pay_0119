@@ -5,8 +5,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogFooter } from
+"@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -111,15 +111,15 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
       alert('請輸入團購標題！');
       return;
     }
-    
+
     // Filter valid products
-    const validProducts = products.filter(p => p.product_name && p.price > 0);
-    
+    const validProducts = products.filter((p) => p.product_name && p.price > 0);
+
     onCreate({
       ...formData,
       products: validProducts
     });
-    
+
     setFormData({
       title: '',
       description: '',
@@ -149,8 +149,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="例：日本零食團購、韓國美妝團..."
-            />
+              placeholder="例：日本零食團購、韓國美妝團..." />
+
           </div>
 
           {/* Description */}
@@ -160,8 +160,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="說明團購內容、注意事項等..."
-              rows={3}
-            />
+              rows={3} />
+
           </div>
 
           {/* Product Link */}
@@ -171,20 +171,20 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
               value={formData.product_link}
               onChange={(e) => setFormData({ ...formData, product_link: e.target.value })}
               placeholder="https://..."
-              type="url"
-            />
+              type="url" />
+
           </div>
 
           {/* Image Upload */}
           <div>
-            <Label>商品圖片</Label>
+            <Label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">商品圖片
+(上傳圖片利用AI識別，快速新增商品列表)
+            </Label>
             <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="outline"
+              <Button type="button" variant="outline"
                 onClick={() => document.getElementById('groupbuy-image').click()}
-                disabled={uploading}
-              >
+                disabled={uploading}>
+
                 <Upload className="w-4 h-4 mr-2" />
                 {uploading ? '上傳中...' : '上傳圖片'}
               </Button>
@@ -193,32 +193,32 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
                 type="file"
                 accept="image/*"
                 onChange={handleFileUpload}
-                className="hidden"
-              />
-              {formData.image_url && (
-                <>
+                className="hidden" />
+
+              {formData.image_url &&
+              <>
                   <span className="text-sm text-green-600">✓ 已上傳</span>
                   <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAnalyzeImage}
-                    disabled={analyzing}
-                    className="ml-auto"
-                  >
+                  type="button"
+                  variant="outline"
+                  onClick={handleAnalyzeImage}
+                  disabled={analyzing}
+                  className="ml-auto">
+
                     {analyzing ? '分析中...' : '🤖 AI 識別產品'}
                   </Button>
                 </>
-              )}
+              }
             </div>
-            {formData.image_url && (
-              <div className="mt-3">
+            {formData.image_url &&
+            <div className="mt-3">
                 <img
-                  src={formData.image_url}
-                  alt="Preview"
-                  className="w-full max-w-xs rounded-lg border"
-                />
+                src={formData.image_url}
+                alt="Preview"
+                className="w-full max-w-xs rounded-lg border" />
+
               </div>
-            )}
+            }
           </div>
 
           {/* Deadline */}
@@ -227,8 +227,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
             <Input
               type="date"
               value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-            />
+              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
+
           </div>
 
           {/* Note */}
@@ -237,8 +237,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
             <Input
               value={formData.note}
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-              placeholder="其他說明..."
-            />
+              placeholder="其他說明..." />
+
           </div>
 
           {/* Products */}
@@ -256,48 +256,48 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {products.map((product, index) => (
-                    <tr key={index}>
+                  {products.map((product, index) =>
+                  <tr key={index}>
                       <td className="px-3 py-2">
                         <Input
-                          value={product.product_name}
-                          onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
-                          placeholder="洋芋片、口紅..."
-                          className="h-9"
-                        />
+                        value={product.product_name}
+                        onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
+                        placeholder="洋芋片、口紅..."
+                        className="h-9" />
+
                       </td>
                       <td className="px-3 py-2">
                         <Input
-                          type="number"
-                          min="0"
-                          value={product.price}
-                          onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="h-9 text-right"
-                        />
+                        type="number"
+                        min="0"
+                        value={product.price}
+                        onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="h-9 text-right" />
+
                       </td>
                       <td className="px-3 py-2">
                         <Input
-                          value={product.description}
-                          onChange={(e) => updateProduct(index, 'description', e.target.value)}
-                          placeholder="規格、說明..."
-                          className="h-9"
-                        />
+                        value={product.description}
+                        onChange={(e) => updateProduct(index, 'description', e.target.value)}
+                        placeholder="規格、說明..."
+                        className="h-9" />
+
                       </td>
                       <td className="px-3 py-2 text-center">
-                        {products.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeProduct(index)}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
-                          >
+                        {products.length > 1 &&
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeProduct(index)}
+                        className="h-8 w-8 text-red-500 hover:text-red-700">
+
                             <Trash2 className="w-4 h-4" />
                           </Button>
-                        )}
+                      }
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -305,8 +305,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
               type="button"
               onClick={addProduct}
               variant="outline"
-              className="w-full mt-2"
-            >
+              className="w-full mt-2">
+
               <Plus className="w-4 h-4 mr-2" />
               新增商品
             </Button>
@@ -320,12 +320,12 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
           <Button
             onClick={handleSubmit}
             disabled={!formData.title.trim()}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
+            className="bg-purple-600 hover:bg-purple-700">
+
             建立團購
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>);
+
 }
