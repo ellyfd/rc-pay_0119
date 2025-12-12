@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import AddItemDialog from "@/components/groupbuy/AddItemDialog";
 import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
 import { exportGroupBuyOrderSummary, exportGroupBuyPaymentRecord } from "@/components/utils/ExportCSV";
+import SelectMemberDialog from "@/components/SelectMemberDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,8 @@ export default function GroupBuyDetail() {
   const [deletingGroupBuy, setDeletingGroupBuy] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showSelectMember, setShowSelectMember] = useState(false);
+  const [userMember, setUserMember] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -49,6 +52,18 @@ export default function GroupBuyDetail() {
     };
     loadUser();
   }, []);
+
+  useEffect(() => {
+    if (currentUser && members.length > 0) {
+      const linkedMember = members.find(m => 
+        m.user_emails && m.user_emails.includes(currentUser.email)
+      );
+      setUserMember(linkedMember);
+      if (!linkedMember) {
+        setShowSelectMember(true);
+      }
+    }
+  }, [currentUser, members]);
 
   const { data: groupBuy, isLoading: groupBuyLoading } = useQuery({
     queryKey: ['groupBuy', groupBuyId],
@@ -119,6 +134,24 @@ export default function GroupBuyDetail() {
     mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
   });
+
+  const handleSelectMember = async (memberId) => {
+    const member = members.find(m => m.id === memberId);
+    if (!member || !currentUser) return;
+
+    const updatedEmails = member.user_emails || [];
+    if (!updatedEmails.includes(currentUser.email)) {
+      updatedEmails.push(currentUser.email);
+    }
+
+    await updateMember.mutateAsync({
+      id: memberId,
+      data: { user_emails: updatedEmails }
+    });
+
+    setUserMember(member);
+    setShowSelectMember(false);
+  };
 
   const handleAddItem = async (itemData) => {
     if (editingItem) {
@@ -832,6 +865,13 @@ export default function GroupBuyDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <SelectMemberDialog
+        open={showSelectMember}
+        onOpenChange={setShowSelectMember}
+        members={members}
+        onSelect={handleSelectMember}
+      />
     </div>
   );
 }
