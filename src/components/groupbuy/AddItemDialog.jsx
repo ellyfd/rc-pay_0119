@@ -221,7 +221,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{item ? '編輯項目' : '新增項目'}</DialogTitle>
+          <DialogTitle>{item ? '編輯項目' : '新增訂單'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
