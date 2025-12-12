@@ -317,36 +317,24 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                         <div className="flex flex-col items-center gap-1">
                           <Checkbox
                             checked={rowItem.split}
-                            onCheckedChange={(checked) => updateItem(index, 'split', checked)}
+                            onCheckedChange={(checked) => {
+                              updateItem(index, 'split', checked);
+                              if (!checked) {
+                                updateItem(index, 'splitMembers', []);
+                              }
+                            }}
                           />
                           {rowItem.split && (
-                            <div className="relative">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-xs px-2"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  const dropdown = e.currentTarget.nextElementSibling;
-                                  dropdown.classList.toggle('hidden');
-                                }}
-                              >
-                                <Users className="w-3 h-3 mr-1" />
-                                {(rowItem.splitMembers?.length || 0) + 1}人
-                              </Button>
-                              <div className="hidden absolute z-50 bg-white border-2 border-purple-300 rounded-lg shadow-2xl p-3 w-48 max-h-64 overflow-y-auto right-0 top-8">
-                                <div className="text-xs font-semibold text-slate-600 mb-2 pb-2 border-b">選擇平分成員</div>
-                                {members.filter(m => m.id !== selectedMember).map(m => (
-                                  <label key={m.id} className="flex items-center gap-2 px-2 py-2 hover:bg-purple-50 rounded cursor-pointer">
-                                    <Checkbox
-                                      checked={rowItem.splitMembers?.includes(m.id)}
-                                      onCheckedChange={() => toggleSplitMember(index, m.id)}
-                                    />
-                                    <span className="text-sm">{m.name}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
+                            <Input
+                              value={rowItem.splitMembers?.map(id => members.find(m => m.id === id)?.name).filter(Boolean).join(', ') || ''}
+                              onChange={(e) => {
+                                const names = e.target.value.split(',').map(n => n.trim()).filter(Boolean);
+                                const memberIds = names.map(name => members.find(m => m.name === name)?.id).filter(Boolean);
+                                updateItem(index, 'splitMembers', memberIds);
+                              }}
+                              placeholder="輸入成員名字，逗號分隔"
+                              className="h-8 text-xs mt-1 w-32"
+                            />
                           )}
                         </div>
                       </td>

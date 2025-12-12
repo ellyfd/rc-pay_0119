@@ -136,7 +136,27 @@ export default function GroupBuyDetail() {
 
   const handleDeleteItem = async () => {
     if (deletingItem) {
-      await deleteItem.mutateAsync(deletingItem.id);
+      // Check if this item is part of a split order
+      const isSplitItem = deletingItem.note && deletingItem.note.includes('平分');
+      
+      if (isSplitItem) {
+        // Find all items with the same product name and split note pattern
+        const relatedItems = items.filter(item => 
+          item.product_name === deletingItem.product_name &&
+          item.note && 
+          item.note.includes('平分') &&
+          item.note.includes(deletingItem.note.split('訂購')[0] + '訂購')
+        );
+        
+        // Delete all related split items
+        for (const item of relatedItems) {
+          await deleteItem.mutateAsync(item.id);
+        }
+      } else {
+        // Normal delete
+        await deleteItem.mutateAsync(deletingItem.id);
+      }
+      
       setDeletingItem(null);
     }
   };
