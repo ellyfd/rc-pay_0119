@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Circle, Wallet } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -82,10 +82,7 @@ export default function GroupBuyDetail() {
 
   const updateGroupBuy = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuy.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groupBuy'] });
-      queryClient.invalidateQueries({ queryKey: ['groupBuys'] });
-    }
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuy'] })
   });
 
   const createItem = useMutation({
@@ -170,42 +167,12 @@ export default function GroupBuyDetail() {
   const handleCompleteGroupBuy = async () => {
     if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
 
-    // Initialize payment tracking for all members
-    const paymentTracking = {};
-    memberSummary.forEach(summary => {
-      paymentTracking[summary.member_id] = {
-        paid: false,
-        paid_at: null
-      };
-    });
-
     await updateGroupBuy.mutateAsync({
       id: groupBuyId,
-      data: { 
-        status: 'completed',
-        payment_tracking: paymentTracking
-      }
+      data: { status: 'completed' }
     });
 
     alert('結單完成！請查看下方訂購彙總表。');
-  };
-
-  const handleTogglePayment = async (memberId) => {
-    const currentTracking = groupBuy.payment_tracking || {};
-    const isPaid = currentTracking[memberId]?.paid || false;
-
-    await updateGroupBuy.mutateAsync({
-      id: groupBuyId,
-      data: {
-        payment_tracking: {
-          ...currentTracking,
-          [memberId]: {
-            paid: !isPaid,
-            paid_at: !isPaid ? new Date().toISOString() : null
-          }
-        }
-      }
-    });
   };
 
   if (!currentUser || groupBuyLoading) {
@@ -235,14 +202,6 @@ export default function GroupBuyDetail() {
   const isOrganizer = currentUser && groupBuy.organizer_id === currentUser.id;
   const isOpen = groupBuy.status === 'open';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  
-  // Calculate payment stats
-  const paymentTracking = groupBuy.payment_tracking || {};
-  const paidCount = Object.values(paymentTracking).filter(p => p.paid).length;
-  const totalMembers = memberSummary.length;
-  const collectedAmount = memberSummary.reduce((sum, summary) => {
-    return sum + (paymentTracking[summary.member_id]?.paid ? summary.total : 0);
-  }, 0);
 
   // Group items by member
   const memberSummary = items.reduce((acc, item) => {
@@ -413,64 +372,6 @@ export default function GroupBuyDetail() {
 
           {/* Right: Items List */}
           <div className="lg:col-span-2 space-y-6">
-            {groupBuy.status === 'completed' && isOrganizer && (
-              <Card>
-                <div className="p-4 bg-blue-50 border-b">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-blue-800 flex items-center gap-2">
-                      <Wallet className="w-5 h-5" />
-                      收款追蹤
-                    </h3>
-                    <div className="text-sm text-blue-700">
-                      已收 {paidCount}/{totalMembers} 人 • ${collectedAmount.toLocaleString()}/${totalAmount.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b">
-                      <tr>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">成員</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">應付金額</th>
-                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">付款狀態</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {memberSummary.map((summary) => {
-                        const isPaid = paymentTracking[summary.member_id]?.paid || false;
-                        return (
-                          <tr key={summary.member_id} className="hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-slate-800">{summary.member_name}</td>
-                            <td className="px-4 py-3 text-right text-slate-700">${summary.total.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-center">
-                              <Button
-                                variant={isPaid ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleTogglePayment(summary.member_id)}
-                                className={isPaid ? "bg-green-600 hover:bg-green-700" : ""}
-                              >
-                                {isPaid ? (
-                                  <>
-                                    <CheckCircle className="w-4 h-4 mr-1" />
-                                    已付款
-                                  </>
-                                ) : (
-                                  <>
-                                    <Circle className="w-4 h-4 mr-1" />
-                                    未付款
-                                  </>
-                                )}
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-            )}
-
             {groupBuy.status === 'completed' && productSummary.length > 0 && (
               <Card>
                 <div className="p-4 bg-green-50 border-b">
