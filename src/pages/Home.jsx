@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User as UserIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -150,12 +150,20 @@ export default function Home() {
               </div>
               <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
             </div>
-            <Link to={createPageUrl('MemberManagement')}>
-              <Button variant="ghost" className="text-white hover:bg-slate-800">
-                <Settings className="w-5 h-5 mr-2" />
-                成員管理
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link to={createPageUrl('Profile')}>
+                <Button variant="ghost" className="text-white hover:bg-slate-800">
+                  <UserIcon className="w-5 h-5 mr-2" />
+                  個人設定
+                </Button>
+              </Link>
+              <Link to={createPageUrl('MemberManagement')}>
+                <Button variant="ghost" className="text-white hover:bg-slate-800">
+                  <Settings className="w-5 h-5 mr-2" />
+                  成員管理
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

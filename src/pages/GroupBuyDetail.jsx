@@ -3,13 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, ShoppingCart, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import AddItemDialog from "@/components/groupbuy/AddItemDialog";
 import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
+import CartDialog from "@/components/groupbuy/CartDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,9 @@ export default function GroupBuyDetail() {
   const [showEditGroupBuy, setShowEditGroupBuy] = useState(false);
   const [deletingGroupBuy, setDeletingGroupBuy] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [showCart, setShowCart] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -47,6 +51,12 @@ export default function GroupBuyDetail() {
     };
     loadUser();
   }, []);
+
+  useEffect(() => {
+    if (groupBuyId && favorites.length > 0) {
+      setIsFavorite(favorites.some(f => f.group_buy_id === groupBuyId));
+    }
+  }, [groupBuyId, favorites]);
 
   const { data: groupBuy, isLoading: groupBuyLoading } = useQuery({
     queryKey: ['groupBuy', groupBuyId],
@@ -69,6 +79,25 @@ export default function GroupBuyDetail() {
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('name')
+  });
+
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['favorites', currentUser?.id],
+    queryFn: async () => {
+      const allFavorites = await base44.entities.Favorite.list();
+      return allFavorites.filter(f => f.user_id === currentUser?.id);
+    },
+    enabled: !!currentUser
+  });
+
+  const createFavorite = useMutation({
+    mutationFn: (data) => base44.entities.Favorite.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
+  });
+
+  const deleteFavorite = useMutation({
+    mutationFn: (id) => base44.entities.Favorite.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] })
   });
 
   const updateGroupBuy = useMutation({
@@ -144,6 +173,51 @@ export default function GroupBuyDetail() {
     }
     // Then delete the group buy
     await deleteGroupBuy.mutateAsync(groupBuyId);
+  };
+
+  const handleToggleFavorite = async () => {
+    if (isFavorite) {
+      const favorite = favorites.find(f => f.group_buy_id === groupBuyId);
+      if (favorite) {
+        await deleteFavorite.mutateAsync(favorite.id);
+      }
+    } else {
+      await createFavorite.mutateAsync({
+        user_id: currentUser.id,
+        group_buy_id: groupBuyId
+      });
+    }
+  };
+
+  const handleAddToCart = (item) => {
+    setCart([...cart, item]);
+  };
+
+  const handleUpdateCartQuantity = (index, newQuantity) => {
+    if (newQuantity < 1) return;
+    const newCart = [...cart];
+    newCart[index].quantity = newQuantity;
+    setCart(newCart);
+  };
+
+  const handleRemoveFromCart = (index) => {
+    setCart(cart.filter((_, i) => i !== index));
+  };
+
+  const handleCartCheckout = async () => {
+    if (cart.length === 0) return;
+    
+    // Submit all cart items
+    for (const item of cart) {
+      await createItem.mutateAsync({
+        ...item,
+        group_buy_id: groupBuyId
+      });
+    }
+    
+    setCart([]);
+    setShowCart(false);
+    alert('已成功加入團購！');
   };
 
   const handleCloseGroupBuy = async () => {
@@ -271,12 +345,37 @@ ${itemsList}
       {/* Header */}
       <div className="bg-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <Link to={createPageUrl('GroupBuy')}>
-            <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回團購列表
-            </Button>
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link to={createPageUrl('GroupBuy')}>
+              <Button variant="ghost" className="text-white hover:bg-purple-500 -ml-2">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回團購列表
+              </Button>
+            </Link>
+            {isOpen && (
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  className="text-white hover:bg-purple-500 relative"
+                  onClick={() => setShowCart(true)}
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                      {cart.length}
+                    </span>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-white hover:bg-purple-500"
+                  onClick={handleToggleFavorite}
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -401,16 +500,26 @@ ${itemsList}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-slate-800">團購項目</h2>
               {isOpen && (
-                <Button
-                  onClick={() => {
-                    setEditingItem(null);
-                    setShowAddItem(true);
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  新增項目
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      setEditingItem(null);
+                      setShowAddItem(true);
+                    }}
+                    variant="outline"
+                    className="bg-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    直接新增
+                  </Button>
+                  <Button
+                    onClick={() => setShowCart(true)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    購物車 {cart.length > 0 && `(${cart.length})`}
+                  </Button>
+                </div>
               )}
             </div>
 
@@ -494,6 +603,15 @@ ${itemsList}
         onOpenChange={setShowEditGroupBuy}
         groupBuy={groupBuy}
         onSave={handleEditGroupBuy}
+      />
+
+      <CartDialog
+        open={showCart}
+        onOpenChange={setShowCart}
+        cart={cart}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemove={handleRemoveFromCart}
+        onCheckout={handleCartCheckout}
       />
 
       <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
