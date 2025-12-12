@@ -334,6 +334,7 @@ export default function MemberDetail() {
                       <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
                       <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">單價</th>
                       <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
+                      <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
                       <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付狀態</th>
                     </tr>
                   </thead>
@@ -377,6 +378,11 @@ export default function MemberDetail() {
                             ${(item.price * item.quantity).toLocaleString()}
                           </td>
                           {itemIdx === 0 && (
+                            <td className="px-4 py-3 text-right align-top font-semibold text-purple-600" rowSpan={groupBuy.items.length}>
+                              ${groupBuy.total.toLocaleString()}
+                            </td>
+                          )}
+                          {itemIdx === 0 && (
                             <td className="px-4 py-3 text-center align-top" rowSpan={groupBuy.items.length}>
                               <Badge className={allPaid ? 'bg-green-500' : 'bg-amber-500'}>
                                 {allPaid ? '已付款' : '未付款'}
@@ -387,7 +393,7 @@ export default function MemberDetail() {
                       ));
                     })}
                     <tr className="bg-slate-50 font-semibold">
-                      <td colSpan={5} className="px-4 py-3 text-right">總計</td>
+                      <td colSpan={6} className="px-4 py-3 text-right">總計</td>
                       <td className="px-4 py-3 text-right text-purple-600">
                         ${groupBuysByMember.reduce((sum, gb) => sum + gb.total, 0).toLocaleString()}
                       </td>
