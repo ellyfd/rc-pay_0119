@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -552,6 +552,7 @@ export default function GroupBuyDetail() {
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
+                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小結</th>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
@@ -590,6 +591,14 @@ export default function GroupBuyDetail() {
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
                               ${(item.price * item.quantity).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+                                {item.payment_method === 'rcpay' ? 'RC Pay' :
+                                 item.payment_method === 'linepay' ? 'Line Pay' :
+                                 item.payment_method === 'ipasspay' ? 'iPASS Pay' :
+                                 item.payment_method === 'cash' ? '現金' : 'RC Pay'}
+                              </span>
                             </td>
                             {itemIdx === 0 ? (
                               <td 
@@ -649,7 +658,7 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={5} className="px-4 py-3 text-right text-slate-700">總計</td>
+                        <td colSpan={6} className="px-4 py-3 text-right text-slate-700">總計</td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${totalAmount.toLocaleString()}
                         </td>
