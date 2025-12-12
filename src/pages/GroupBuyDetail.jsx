@@ -215,6 +215,58 @@ export default function GroupBuyDetail() {
     }
   };
 
+  const handleConfirmRcPay = async (summary) => {
+    // Check if all items have payment method selected
+    const allHavePaymentMethod = summary.items.every(item => item.payment_method);
+    if (!allHavePaymentMethod) {
+      alert('請先為所有項目選擇支付方式！');
+      return;
+    }
+
+    // Find the member
+    const member = members.find(m => m.member_id === summary.member_id || m.id === summary.member_id);
+    if (!member) {
+      alert('找不到成員資料！');
+      return;
+    }
+
+    // Check if member has enough balance
+    if (member.balance < summary.total) {
+      alert(`餘額不足！成員餘額：$${member.balance}，需支付：$${summary.total}`);
+      return;
+    }
+
+    if (!confirm(`確定要從 ${summary.member_name} 的錢包扣除 $${summary.total} 嗎？`)) {
+      return;
+    }
+
+    // Deduct balance
+    await updateMember.mutateAsync({
+      id: member.id,
+      data: { balance: member.balance - summary.total }
+    });
+
+    // Create transaction record
+    await createTransaction.mutateAsync({
+      type: 'withdraw',
+      amount: summary.total,
+      wallet_type: 'balance',
+      from_member_id: member.id,
+      from_member_name: member.name,
+      note: `團購付款：${groupBuy.title}`
+    });
+
+    // Mark all items as paid
+    for (const item of summary.items) {
+      await updateItem.mutateAsync({
+        id: item.id,
+        data: { paid: true }
+      });
+    }
+
+    alert('扣款成功！');
+  };
+
   if (!currentUser || groupBuyLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
@@ -251,13 +303,18 @@ export default function GroupBuyDetail() {
       existing.items.push(item);
       existing.total += itemTotal;
       existing.paid = existing.paid && item.paid;
+      // Check if any item uses RC Pay
+      if (item.payment_method === 'rcpay') {
+        existing.hasRcPay = true;
+      }
     } else {
       acc.push({
         member_id: item.member_id,
         member_name: item.member_name,
         items: [item],
         total: itemTotal,
-        paid: item.paid || false
+        paid: item.paid || false,
+        hasRcPay: item.payment_method === 'rcpay'
       });
     }
     return acc;
@@ -635,16 +692,27 @@ export default function GroupBuyDetail() {
                                 rowSpan={summary.items.length}
                               >
                                 <div className="flex items-center justify-center">
-                                  <button
-                                    onClick={() => handleTogglePaid(summary)}
-                                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                                      summary.paid 
-                                        ? 'bg-green-600 border-green-600' 
-                                        : 'border-slate-300 hover:border-slate-400'
-                                    }`}
-                                  >
-                                    {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
-                                  </button>
+                                  {summary.hasRcPay && !summary.paid ? (
+                                    <Button
+                                      onClick={() => handleConfirmRcPay(summary)}
+                                      size="sm"
+                                      className="bg-purple-600 hover:bg-purple-700 h-7 px-3"
+                                    >
+                                      <Wallet className="w-3 h-3 mr-1" />
+                                      確定
+                                    </Button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleTogglePaid(summary)}
+                                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                        summary.paid 
+                                          ? 'bg-green-600 border-green-600' 
+                                          : 'border-slate-300 hover:border-slate-400'
+                                      }`}
+                                    >
+                                      {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             )}
