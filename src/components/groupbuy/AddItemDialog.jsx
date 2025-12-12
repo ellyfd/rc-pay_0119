@@ -21,7 +21,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('rcpay');
   const [items, setItems] = useState([{
     product_name: '',
     quantity: 1,
@@ -49,7 +48,6 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         m.user_emails && m.user_emails.includes(currentUser.email)
       );
       setSelectedMember(userMember?.id || '');
-      setPaymentMethod('rcpay');
       setItems([{
         product_name: '',
         quantity: 1,
@@ -140,9 +138,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: itemData.product_name,
         quantity: itemData.quantity,
         price: itemData.price,
-        note: itemData.note,
-        payment_method: paymentMethod
-      });
+        note: itemData.note
+        });
     } else {
       // Batch add - call onAdd for each valid item
       validItems.forEach(validItem => {
@@ -170,9 +167,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                 product_name: validItem.product_name,
                 quantity: validItem.quantity,
                 price: Math.round(splitPrice * 100) / 100,
-                note: splitNote,
-                payment_method: paymentMethod
-              });
+                note: splitNote
+                });
             }
           });
         } else {
@@ -183,9 +179,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
             product_name: validItem.product_name,
             quantity: validItem.quantity,
             price: validItem.price,
-            note: validItem.note,
-            payment_method: paymentMethod
-          });
+            note: validItem.note
+            });
         }
       });
     }
@@ -195,7 +190,6 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
     );
     setSelectedMember(userMember?.id || '');
-    setPaymentMethod('rcpay');
     setItems([{
       product_name: '',
       quantity: 1,
@@ -220,36 +214,20 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
 
         <div className="space-y-4">
           {/* Member Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>跟團者 *</Label>
-              <Select value={selectedMember} onValueChange={setSelectedMember}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇成員" />
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map(member => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>支付方式 *</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rcpay">RC Pay</SelectItem>
-                  <SelectItem value="linepay">Line Pay</SelectItem>
-                  <SelectItem value="ipasspay">iPASS Pay</SelectItem>
-                  <SelectItem value="cash">現金</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label>跟團者 *</Label>
+            <Select value={selectedMember} onValueChange={setSelectedMember}>
+              <SelectTrigger>
+                <SelectValue placeholder="選擇成員" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map(member => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Items Table */}

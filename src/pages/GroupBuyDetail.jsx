@@ -198,6 +198,13 @@ export default function GroupBuyDetail() {
   };
 
   const handleTogglePaid = async (summary) => {
+    // Check if all items have payment method selected
+    const allHavePaymentMethod = summary.items.every(item => item.payment_method);
+    if (!allHavePaymentMethod) {
+      alert('請先為所有項目選擇支付方式！');
+      return;
+    }
+    
     const newPaidStatus = !summary.paid;
     // Update all items for this member
     for (const item of summary.items) {
@@ -552,7 +559,9 @@ export default function GroupBuyDetail() {
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
-                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
+                        {isOrganizer && groupBuy.status !== 'open' && (
+                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
+                        )}
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小結</th>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
@@ -592,14 +601,24 @@ export default function GroupBuyDetail() {
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
                               ${(item.price * item.quantity).toLocaleString()}
                             </td>
-                            <td className="px-4 py-3 text-center">
-                              <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700">
-                                {item.payment_method === 'rcpay' ? 'RC Pay' :
-                                 item.payment_method === 'linepay' ? 'Line Pay' :
-                                 item.payment_method === 'ipasspay' ? 'iPASS Pay' :
-                                 item.payment_method === 'cash' ? '現金' : 'RC Pay'}
-                              </span>
-                            </td>
+                            {isOrganizer && groupBuy.status !== 'open' && (
+                              <td className="px-4 py-3 text-center">
+                                <select
+                                  value={item.payment_method || ''}
+                                  onChange={(e) => updateItem.mutate({
+                                    id: item.id,
+                                    data: { payment_method: e.target.value }
+                                  })}
+                                  className="text-xs px-2 py-1 rounded border border-slate-300 bg-white text-slate-700"
+                                >
+                                  <option value="">請選擇</option>
+                                  <option value="rcpay">RC Pay</option>
+                                  <option value="linepay">Line Pay</option>
+                                  <option value="ipasspay">iPASS Pay</option>
+                                  <option value="cash">現金</option>
+                                </select>
+                              </td>
+                            )}
                             {itemIdx === 0 ? (
                               <td 
                                 className="px-4 py-3 text-right align-top"
@@ -658,7 +677,7 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={6} className="px-4 py-3 text-right text-slate-700">總計</td>
+                        <td colSpan={isOrganizer && groupBuy.status !== 'open' ? 6 : 5} className="px-4 py-3 text-right text-slate-700">總計</td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${totalAmount.toLocaleString()}
                         </td>
