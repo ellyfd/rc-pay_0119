@@ -29,53 +29,98 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
 
   useEffect(() => {
     if (item) {
-      setFormData({
-        member_id: item.member_id,
-        member_name: item.member_name,
+      // Editing single item mode
+      setSelectedMember(item.member_id);
+      setItems([{
         product_name: item.product_name,
         quantity: item.quantity,
         price: item.price,
         note: item.note || ''
-      });
+      }]);
     } else if (currentUser) {
       // Auto-select current user by default
-      setFormData({
-        member_id: currentUser.id,
-        member_name: currentUser.full_name || currentUser.email,
+      setSelectedMember(currentUser.id);
+      setItems([{
         product_name: '',
         quantity: 1,
         price: 0,
         note: ''
-      });
+      }]);
     }
   }, [item, currentUser, open]);
 
-  const handleMemberChange = (memberId) => {
-    const member = members.find(m => m.id === memberId);
-    if (member) {
-      setFormData({
-        ...formData,
-        member_id: member.id,
-        member_name: member.name
-      });
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!formData.member_id || !formData.product_name || !formData.price) {
-      alert('請填寫必填欄位！');
-      return;
-    }
-    onAdd(formData);
-    setFormData({
-      member_id: currentUser?.id || '',
-      member_name: currentUser?.full_name || currentUser?.email || '',
+  const addRow = () => {
+    setItems([...items, {
       product_name: '',
       quantity: 1,
       price: 0,
       note: ''
-    });
+    }]);
   };
+
+  const removeRow = (index) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateItem = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index][field] = value;
+    setItems(newItems);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedMember) {
+      alert('請選擇成員！');
+      return;
+    }
+
+    const member = members.find(m => m.id === selectedMember);
+    if (!member) return;
+
+    // Validate all items
+    const validItems = items.filter(item => 
+      item.product_name && item.price > 0
+    );
+
+    if (validItems.length === 0) {
+      alert('請至少新增一個有效的品項（需填寫商品名稱和單價）！');
+      return;
+    }
+
+    // If editing, only submit single item
+    if (item) {
+      onAdd({
+        member_id: member.id,
+        member_name: member.name,
+        ...validItems[0]
+      });
+    } else {
+      // Batch add - call onAdd for each valid item
+      validItems.forEach(validItem => {
+        onAdd({
+          member_id: member.id,
+          member_name: member.name,
+          ...validItem
+        });
+      });
+    }
+
+    // Reset form
+    setSelectedMember(currentUser?.id || '');
+    setItems([{
+      product_name: '',
+      quantity: 1,
+      price: 0,
+      note: ''
+    }]);
+    onOpenChange(false);
+  };
+
+  const totalAmount = items.reduce((sum, item) => 
+    sum + (item.price * item.quantity), 0
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
