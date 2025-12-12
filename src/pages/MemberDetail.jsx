@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import TransactionItem from "@/components/TransactionItem";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -28,6 +29,20 @@ export default function MemberDetail() {
   const { data: allTransactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-created_date', 100),
+  });
+
+  const { data: groupBuyItems = [], isLoading: groupBuyItemsLoading } = useQuery({
+    queryKey: ['groupBuyItems', memberId],
+    queryFn: async () => {
+      const allItems = await base44.entities.GroupBuyItem.list('-created_date');
+      return allItems.filter(item => item.member_id === memberId);
+    },
+    enabled: !!memberId,
+  });
+
+  const { data: allGroupBuys = [] } = useQuery({
+    queryKey: ['groupBuys'],
+    queryFn: () => base44.entities.GroupBuy.list('-created_date'),
   });
 
   if (!memberId || memberLoading) {
@@ -86,6 +101,26 @@ export default function MemberDetail() {
   };
 
   const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
+
+  // Group items by group buy
+  const groupBuysByMember = groupBuyItems.reduce((acc, item) => {
+    const existing = acc.find(g => g.group_buy_id === item.group_buy_id);
+    const itemTotal = item.price * item.quantity;
+    if (existing) {
+      existing.items.push(item);
+      existing.total += itemTotal;
+    } else {
+      const groupBuy = allGroupBuys.find(gb => gb.id === item.group_buy_id);
+      acc.push({
+        group_buy_id: item.group_buy_id,
+        group_buy_title: groupBuy?.title || '未知團購',
+        group_buy_status: groupBuy?.status || 'open',
+        items: [item],
+        total: itemTotal
+      });
+    }
+    return acc;
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -174,6 +209,70 @@ export default function MemberDetail() {
             </p>
           </Card>
         </div>
+
+        {/* Group Buy Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <ShoppingCart className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-semibold text-slate-800">團購紀錄</h2>
+            <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
+          </div>
+
+          {groupBuyItemsLoading ? (
+            <Card className="p-4 animate-pulse">
+              <div className="h-20 bg-slate-200 rounded" />
+            </Card>
+          ) : groupBuysByMember.length === 0 ? (
+            <Card className="p-8 text-center border-dashed">
+              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500">尚未參與任何團購</p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {groupBuysByMember.map((groupBuy) => (
+                <Card key={groupBuy.group_buy_id} className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <Link 
+                        to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
+                        className="font-semibold text-slate-800 hover:text-purple-600"
+                      >
+                        {groupBuy.group_buy_title}
+                      </Link>
+                      <Badge 
+                        className={`ml-2 ${
+                          groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
+                          groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
+                          'bg-slate-500'
+                        }`}
+                      >
+                        {groupBuy.group_buy_status === 'open' ? '進行中' :
+                         groupBuy.group_buy_status === 'closed' ? '已截止' :
+                         '已結單'}
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-purple-600">${groupBuy.total.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {groupBuy.items.map((item) => (
+                      <div key={item.id} className="flex justify-between text-sm bg-slate-50 rounded-lg px-3 py-2">
+                        <div className="flex-1">
+                          <span className="text-slate-700">{item.product_name}</span>
+                          {item.note && <span className="text-slate-400 ml-2">({item.note})</span>}
+                        </div>
+                        <div className="text-slate-600">
+                          × {item.quantity} @ ${item.price.toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Transaction History */}
         <section>
