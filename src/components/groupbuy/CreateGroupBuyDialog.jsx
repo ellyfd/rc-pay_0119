@@ -454,7 +454,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-row justify-center gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
