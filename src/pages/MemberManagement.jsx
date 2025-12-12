@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import AddMemberDialog from "@/components/AddMemberDialog";
+import EditMemberDialog from "@/components/EditMemberDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ const colorMap = {
 
 export default function MemberManagement() {
   const [showAddMember, setShowAddMember] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [deletingMember, setDeletingMember] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
@@ -76,6 +78,14 @@ export default function MemberManagement() {
   const handleAddMember = async (memberData) => {
     await createMember.mutateAsync(memberData);
     setShowAddMember(false);
+  };
+
+  const handleEditMember = async (memberData) => {
+    await updateMember.mutateAsync({
+      id: editingMember.id,
+      data: memberData
+    });
+    setEditingMember(null);
   };
 
   const handleToggleActive = async (member) => {
@@ -212,6 +222,15 @@ export default function MemberManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => setEditingMember(member)}
+                        className="h-8 w-8"
+                        title="編輯成員"
+                      >
+                        <Edit className="w-4 h-4 text-slate-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleToggleActive(member)}
                         className="h-8 w-8"
                         title={member.is_active ? '從首頁隱藏' : '在首頁顯示'}
@@ -243,6 +262,13 @@ export default function MemberManagement() {
         open={showAddMember}
         onOpenChange={setShowAddMember}
         onAdd={handleAddMember}
+      />
+
+      <EditMemberDialog
+        open={!!editingMember}
+        onOpenChange={() => setEditingMember(null)}
+        member={editingMember}
+        onSave={handleEditMember}
       />
 
       <AlertDialog open={!!deletingMember} onOpenChange={() => setDeletingMember(null)}>
