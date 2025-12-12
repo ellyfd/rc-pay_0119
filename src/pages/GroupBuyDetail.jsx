@@ -305,7 +305,12 @@ export default function GroupBuyDetail() {
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="text-slate-500">開團者：</span>
-                    <span className="font-medium text-slate-800">{groupBuy.organizer_name}</span>
+                    <Link 
+                      to={createPageUrl('MemberDetail') + '?id=' + groupBuy.organizer_id}
+                      className="font-medium text-purple-600 hover:text-purple-700 hover:underline"
+                    >
+                      {groupBuy.organizer_name}
+                    </Link>
                   </div>
                   {groupBuy.deadline && (
                     <div className="flex items-center gap-2">
