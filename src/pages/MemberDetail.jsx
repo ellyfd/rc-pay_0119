@@ -129,7 +129,7 @@ export default function MemberDetail() {
   }, []);
 
   // Group buys organized by this member
-  const organizedGroupBuys = allGroupBuys.filter(gb => gb.organizer_id === memberId).map(gb => {
+  const organizedGroupBuys = allGroupBuys.filter(gb => gb.organizer_member_id === memberId).map(gb => {
     const items = allGroupBuyItems.filter(item => item.group_buy_id === gb.id);
     const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const participantCount = new Set(items.map(item => item.member_id)).size;
