@@ -555,7 +555,6 @@ export default function GroupBuyDetail() {
                               {product.members.map((member, idx) => (
                                 <div key={idx} className="text-slate-600">
                                   • {member.name} × {member.quantity}
-                                  {member.note && <span className="text-slate-400 ml-2">({member.note})</span>}
                                 </div>
                               ))}
                             </div>
@@ -649,9 +648,6 @@ export default function GroupBuyDetail() {
                             )}
                             <td className="px-4 py-3">
                               <div className="text-slate-700">{item.product_name}</div>
-                              {item.note && (
-                                <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>
-                              )}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
