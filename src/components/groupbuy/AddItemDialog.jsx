@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 
-export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd }) {
+export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
   const [items, setItems] = useState([{
     product_name: '',
@@ -68,6 +68,20 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     const newItems = [...items];
     newItems[index][field] = value;
     setItems(newItems);
+  };
+
+  const handleSelectPresetProduct = (index, productId) => {
+    const product = presetProducts.find(p => p.id === productId);
+    if (product) {
+      const newItems = [...items];
+      newItems[index] = {
+        product_name: product.product_name,
+        quantity: 1,
+        price: product.price,
+        note: product.description || ''
+      };
+      setItems(newItems);
+    }
   };
 
   const handleSubmit = () => {
@@ -166,12 +180,38 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                 {items.map((rowItem, index) => (
                   <tr key={index}>
                     <td className="px-3 py-2">
-                      <Input
-                        value={rowItem.product_name}
-                        onChange={(e) => updateItem(index, 'product_name', e.target.value)}
-                        placeholder="洋芋片、口紅..."
-                        className="h-9"
-                      />
+                      {presetProducts.length > 0 && !item ? (
+                        <div className="flex gap-2">
+                          <Select
+                            value=""
+                            onValueChange={(value) => handleSelectPresetProduct(index, value)}
+                          >
+                            <SelectTrigger className="h-9 w-[140px]">
+                              <SelectValue placeholder="選擇商品" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {presetProducts.map(p => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.product_name} - ${p.price}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            value={rowItem.product_name}
+                            onChange={(e) => updateItem(index, 'product_name', e.target.value)}
+                            placeholder="或自行輸入..."
+                            className="h-9 flex-1"
+                          />
+                        </div>
+                      ) : (
+                        <Input
+                          value={rowItem.product_name}
+                          onChange={(e) => updateItem(index, 'product_name', e.target.value)}
+                          placeholder="洋芋片、口紅..."
+                          className="h-9"
+                        />
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <Input

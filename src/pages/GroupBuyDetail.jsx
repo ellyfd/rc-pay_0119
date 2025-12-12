@@ -71,6 +71,15 @@ export default function GroupBuyDetail() {
     queryFn: () => base44.entities.Member.list('name')
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['groupBuyProducts', groupBuyId],
+    queryFn: async () => {
+      const allProducts = await base44.entities.GroupBuyProduct.list('-created_date');
+      return allProducts.filter(p => p.group_buy_id === groupBuyId);
+    },
+    enabled: !!groupBuyId
+  });
+
   const updateGroupBuy = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuy.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuy'] })
@@ -517,6 +526,7 @@ ${itemsList}
         currentUser={currentUser}
         item={editingItem}
         onAdd={handleAddItem}
+        presetProducts={products}
       />
 
       <EditGroupBuyDialog
