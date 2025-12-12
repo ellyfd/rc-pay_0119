@@ -3,15 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Download } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { exportMemberTransactions, exportMemberGroupBuys, exportMemberSummary } from "@/components/utils/ExportCSV";
+
 import TransactionItem from "@/components/TransactionItem";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -137,37 +131,12 @@ export default function MemberDetail() {
       {/* Header */}
       <div className="bg-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" className="text-white hover:bg-slate-800 -ml-2">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                返回
-              </Button>
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-white hover:bg-slate-800">
-                  <Download className="w-4 h-4 mr-2" />
-                  匯出報表
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => exportMemberSummary(member, memberTransactions, groupBuysByMember, organizedGroupBuys)}>
-                  匯出完整報表
-                </DropdownMenuItem>
-                {memberTransactions.length > 0 && (
-                  <DropdownMenuItem onClick={() => exportMemberTransactions(memberTransactions, member.name)}>
-                    匯出交易明細
-                  </DropdownMenuItem>
-                )}
-                {groupBuysByMember.length > 0 && (
-                  <DropdownMenuItem onClick={() => exportMemberGroupBuys(groupBuysByMember, member.name)}>
-                    匯出團購紀錄
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <Link to={createPageUrl('Home')}>
+            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4 -ml-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              返回
+            </Button>
+          </Link>
           
           <div className="flex items-center gap-4 mb-6">
             <div className={`w-16 h-16 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-2xl`}>
