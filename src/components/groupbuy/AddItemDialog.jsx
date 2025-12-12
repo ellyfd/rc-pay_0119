@@ -354,6 +354,24 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                       </td>
                     )}
                   </tr>
+                  {!item && rowItem.split && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-3 bg-purple-50">
+                        <div className="text-xs font-medium text-slate-700 mb-2">選擇平分成員：</div>
+                        <div className="flex flex-wrap gap-2">
+                          {members.filter(m => m.id !== selectedMember).map(m => (
+                            <label key={m.id} className="flex items-center gap-1 px-2 py-1 bg-white rounded border cursor-pointer hover:bg-purple-100">
+                              <Checkbox
+                                checked={rowItem.splitMembers?.includes(m.id)}
+                                onCheckedChange={() => toggleSplitMember(index, m.id)}
+                              />
+                              <span className="text-xs">{m.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 ))}
               </tbody>
               <tfoot className="bg-slate-50 border-t">
