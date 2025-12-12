@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
+import { Upload, Plus, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSave }) {
   const [formData, setFormData] = useState({
@@ -23,6 +24,17 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
     note: ''
   });
   const [uploading, setUploading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const queryClient = useQueryClient();
+
+  const { data: existingProducts = [] } = useQuery({
+    queryKey: ['groupBuyProducts', groupBuy?.id],
+    queryFn: async () => {
+      const allProducts = await base44.entities.GroupBuyProduct.list('-created_date');
+      return allProducts.filter(p => p.group_buy_id === groupBuy?.id);
+    },
+    enabled: !!groupBuy?.id && open
+  });
 
   useEffect(() => {
     if (groupBuy) {
@@ -36,6 +48,19 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
       });
     }
   }, [groupBuy]);
+
+  useEffect(() => {
+    if (existingProducts.length > 0) {
+      setProducts(existingProducts.map(p => ({
+        id: p.id,
+        product_name: p.product_name,
+        price: p.price,
+        description: p.description || ''
+      })));
+    } else {
+      setProducts([]);
+    }
+  }, [existingProducts]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -52,12 +77,65 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
     }
   };
 
-  const handleSubmit = () => {
+  const addProduct = () => {
+    setProducts([...products, {
+      product_name: '',
+      price: 0,
+      description: ''
+    }]);
+  };
+
+  const removeProduct = (index) => {
+    setProducts(products.filter((_, i) => i !== index));
+  };
+
+  const updateProduct = (index, field, value) => {
+    const newProducts = [...products];
+    newProducts[index][field] = value;
+    setProducts(newProducts);
+  };
+
+  const handleSubmit = async () => {
     if (!formData.title.trim()) {
       alert('請輸入團購標題！');
       return;
     }
-    onSave(formData);
+
+    // Save group buy data
+    await onSave(formData);
+
+    // Handle products
+    const validProducts = products.filter(p => p.product_name && p.price > 0);
+    
+    // Delete removed products
+    for (const existingProduct of existingProducts) {
+      const stillExists = validProducts.find(p => p.id === existingProduct.id);
+      if (!stillExists) {
+        await base44.entities.GroupBuyProduct.delete(existingProduct.id);
+      }
+    }
+
+    // Update or create products
+    for (const product of validProducts) {
+      if (product.id) {
+        // Update existing
+        await base44.entities.GroupBuyProduct.update(product.id, {
+          product_name: product.product_name,
+          price: product.price,
+          description: product.description
+        });
+      } else {
+        // Create new
+        await base44.entities.GroupBuyProduct.create({
+          group_buy_id: groupBuy.id,
+          product_name: product.product_name,
+          price: product.price,
+          description: product.description
+        });
+      }
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['groupBuyProducts'] });
   };
 
   return (
@@ -153,6 +231,76 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               placeholder="其他說明..."
             />
+          </div>
+
+          {/* Products */}
+          <div>
+            <Label className="mb-2 block">商品列表</Label>
+            {products.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">商品名稱</th>
+                      <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-32">單價</th>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">說明</th>
+                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {products.map((product, index) => (
+                      <tr key={index}>
+                        <td className="px-3 py-2">
+                          <Input
+                            value={product.product_name}
+                            onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
+                            placeholder="洋芋片、口紅..."
+                            className="h-9"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={product.price}
+                            onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="h-9 text-right"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            value={product.description}
+                            onChange={(e) => updateProduct(index, 'description', e.target.value)}
+                            placeholder="規格、說明..."
+                            className="h-9"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeProduct(index)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+            <Button
+              type="button"
+              onClick={addProduct}
+              variant="outline"
+              className="w-full mt-2"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              新增商品
+            </Button>
           </div>
         </div>
 
