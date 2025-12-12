@@ -54,10 +54,17 @@ export default function GroupBuy() {
     
     const { products, ...groupBuyData } = data;
     
+    // Find member by matching email or name
+    const organizerMember = members.find(m => 
+      m.name === currentUser.full_name || 
+      m.name === (currentUser.full_name || currentUser.email)
+    );
+    
     // Create group buy
     const groupBuy = await createGroupBuy.mutateAsync({
       ...groupBuyData,
       organizer_id: currentUser.id,
+      organizer_member_id: organizerMember?.id || null,
       organizer_name: currentUser.full_name || currentUser.email
     });
     
