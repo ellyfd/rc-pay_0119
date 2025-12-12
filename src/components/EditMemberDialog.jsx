@@ -23,18 +23,40 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
   const [formData, setFormData] = useState({
     name: '',
     avatar_color: 'blue',
-    user_email: ''
+    user_emails: []
   });
+  const [newEmail, setNewEmail] = useState('');
 
   useEffect(() => {
     if (member) {
       setFormData({
         name: member.name || '',
         avatar_color: member.avatar_color || 'blue',
-        user_email: member.user_email || ''
+        user_emails: member.user_emails || []
       });
     }
   }, [member]);
+
+  const handleAddEmail = () => {
+    if (!newEmail.trim()) return;
+    if (!newEmail.includes('@')) {
+      alert('請輸入有效的 email 格式');
+      return;
+    }
+    if (formData.user_emails.includes(newEmail)) {
+      alert('此 email 已存在');
+      return;
+    }
+    setFormData({ ...formData, user_emails: [...formData.user_emails, newEmail] });
+    setNewEmail('');
+  };
+
+  const handleRemoveEmail = (email) => {
+    setFormData({
+      ...formData,
+      user_emails: formData.user_emails.filter(e => e !== email)
+    });
+  };
 
   const handleSubmit = () => {
     if (!formData.name.trim()) {
@@ -63,13 +85,37 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
 
           <div>
             <Label>關聯系統帳號（選填）</Label>
-            <Input
-              type="email"
-              value={formData.user_email}
-              onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
-              placeholder="例：user@example.com"
-            />
-            <p className="text-xs text-slate-500 mt-1">填入系統登入的 email，可將該帳號與此成員綁定</p>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddEmail()}
+                placeholder="例：user@example.com"
+              />
+              <Button type="button" onClick={handleAddEmail} variant="outline">
+                新增
+              </Button>
+            </div>
+            {formData.user_emails.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {formData.user_emails.map((email, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded">
+                    <span className="text-sm text-slate-700">{email}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveEmail(email)}
+                      className="h-6 text-red-500 hover:text-red-700"
+                    >
+                      移除
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-slate-500 mt-1">可綁定多個系統登入帳號</p>
           </div>
 
           <div>

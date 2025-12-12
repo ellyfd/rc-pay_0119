@@ -210,7 +210,15 @@ export default function MemberManagement() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-slate-600 text-sm">
-                          {member.user_email || <span className="text-slate-400">未綁定</span>}
+                          {member.user_emails && member.user_emails.length > 0 ? (
+                            <div className="space-y-0.5">
+                              {member.user_emails.map((email, idx) => (
+                                <div key={idx}>{email}</div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400">未綁定</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className={`font-semibold ${member.balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
