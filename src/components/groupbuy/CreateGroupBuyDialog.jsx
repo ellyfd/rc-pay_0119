@@ -30,6 +30,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     note: '',
     organizer_id: ''
   });
+  const [imageUrls, setImageUrls] = useState([]);
   const [products, setProducts] = useState([{
     product_name: '',
     price: 0,
@@ -51,13 +52,24 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   }, [currentUser, members]);
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setUploading(true);
     try {
-      const result = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, image_url: result.file_url });
+      const uploadedUrls = [];
+      for (const file of files) {
+        const result = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(result.file_url);
+      }
+      
+      const newImageUrls = [...imageUrls, ...uploadedUrls];
+      setImageUrls(newImageUrls);
+      
+      // Keep the first image as the main image_url for backward compatibility
+      if (!formData.image_url && uploadedUrls.length > 0) {
+        setFormData({ ...formData, image_url: uploadedUrls[0] });
+      }
     } catch (error) {
       alert('上傳失敗：' + error.message);
     } finally {
@@ -65,14 +77,26 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     }
   };
 
+  const removeImage = (index) => {
+    const newImageUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newImageUrls);
+    
+    // Update main image_url
+    if (newImageUrls.length > 0) {
+      setFormData({ ...formData, image_url: newImageUrls[0] });
+    } else {
+      setFormData({ ...formData, image_url: '' });
+    }
+  };
+
   const handleAnalyzeImage = async () => {
-    if (!formData.image_url) return;
+    if (imageUrls.length === 0) return;
 
     setAnalyzing(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `請分析這張圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
-        file_urls: [formData.image_url],
+        prompt: `請分析這些圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
+        file_urls: imageUrls,
         response_json_schema: {
           type: "object",
           properties: {
@@ -154,6 +178,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       note: '',
       organizer_id: ''
     });
+    setImageUrls([]);
     setProducts([{
       product_name: '',
       price: 0,
@@ -218,12 +243,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                 id="groupbuy-image"
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileUpload}
                 className="hidden" />
 
-              {formData.image_url &&
+              {imageUrls.length > 0 &&
               <>
-                  <span className="text-sm text-green-600">✓ 已上傳</span>
+                  <span className="text-sm text-green-600">✓ 已上傳 {imageUrls.length} 張</span>
                   <Button
                   type="button"
                   variant="outline"
@@ -236,13 +262,22 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                 </>
               }
             </div>
-            {formData.image_url &&
-            <div className="mt-3">
-                <img
-                src={formData.image_url}
-                alt="Preview"
-                className="w-full max-w-xs rounded-lg border" />
-
+            {imageUrls.length > 0 &&
+            <div className="mt-3 grid grid-cols-3 gap-2">
+                {imageUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full aspect-square object-cover rounded-lg border" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
             }
           </div>
