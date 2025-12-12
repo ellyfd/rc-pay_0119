@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -21,6 +21,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 export default function GroupBuyDetail() {
   const [groupBuyId, setGroupBuyId] = useState(null);
@@ -30,6 +34,7 @@ export default function GroupBuyDetail() {
   const [showEditGroupBuy, setShowEditGroupBuy] = useState(false);
   const [deletingGroupBuy, setDeletingGroupBuy] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showImageDialog, setShowImageDialog] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -274,12 +279,28 @@ export default function GroupBuyDetail() {
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-6">
               {groupBuy.image_url && (
-                <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden mb-4">
-                  <img
-                    src={groupBuy.image_url}
-                    alt={groupBuy.title}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative mb-4 group">
+                  <div 
+                    className="aspect-video bg-slate-100 rounded-lg overflow-hidden cursor-pointer"
+                    onClick={() => setShowImageDialog(true)}
+                  >
+                    <img
+                      src={groupBuy.image_url}
+                      alt={groupBuy.title}
+                      className="w-full h-full object-contain hover:opacity-90 transition-opacity"
+                    />
+                  </div>
+                  {isOrganizer && (isOpen || groupBuy.status === 'closed') && (
+                    <Button
+                      onClick={() => setShowEditGroupBuy(true)}
+                      size="sm"
+                      variant="secondary"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      編輯
+                    </Button>
+                  )}
                 </div>
               )}
               
@@ -655,6 +676,16 @@ export default function GroupBuyDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] p-2">
+          <img
+            src={groupBuy?.image_url}
+            alt={groupBuy?.title}
+            className="w-full h-full object-contain"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
