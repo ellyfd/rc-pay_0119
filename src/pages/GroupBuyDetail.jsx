@@ -392,6 +392,42 @@ ${itemsList}
                     </Button>
                   </div>
                 )}
+
+                {/* Payment Status for Organizer */}
+                {isOrganizer && memberSummary.length > 0 && groupBuy.status !== 'completed' && (
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold text-slate-700 mb-3">收款進度</h3>
+                    <div className="space-y-2">
+                      {memberSummary.map(summary => {
+                        const member = members.find(m => m.id === summary.member_id);
+                        const balance = member?.balance || 0;
+                        const isEnough = balance >= summary.total;
+                        
+                        return (
+                          <div key={summary.member_id} className="flex items-center justify-between text-sm bg-slate-50 rounded-lg p-2">
+                            <span className="text-slate-700">{summary.member_name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={isEnough ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>
+                                ${balance.toLocaleString()} / ${summary.total.toLocaleString()}
+                              </span>
+                              {isEnough ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <X className="w-4 h-4 text-red-500" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div className="text-xs text-slate-500 mt-2">
+                        {memberSummary.filter(s => {
+                          const m = members.find(mem => mem.id === s.member_id);
+                          return (m?.balance || 0) >= s.total;
+                        }).length} / {memberSummary.length} 人餘額足夠
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
