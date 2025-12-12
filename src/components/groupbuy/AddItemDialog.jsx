@@ -411,7 +411,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
             disabled={!selectedMember}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {item ? '更新' : `新增 ${items.filter(i => i.product_name && i.price > 0).length} 個項目`}
+            {item ? '更新' : '送出'}
           </Button>
         </DialogFooter>
       </DialogContent>
