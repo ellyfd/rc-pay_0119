@@ -16,16 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd }) {
-  const [formData, setFormData] = useState({
-    member_id: '',
-    member_name: '',
+  const [selectedMember, setSelectedMember] = useState('');
+  const [items, setItems] = useState([{
     product_name: '',
     quantity: 1,
     price: 0,
     note: ''
-  });
+  }]);
 
   useEffect(() => {
     if (item) {
