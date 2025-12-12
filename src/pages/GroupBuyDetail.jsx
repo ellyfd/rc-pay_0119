@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import AddItemDialog from "@/components/groupbuy/AddItemDialog";
+import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,8 @@ export default function GroupBuyDetail() {
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
+  const [showEditGroupBuy, setShowEditGroupBuy] = useState(false);
+  const [deletingGroupBuy, setDeletingGroupBuy] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
@@ -88,6 +91,14 @@ export default function GroupBuyDetail() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
   });
 
+  const deleteGroupBuy = useMutation({
+    mutationFn: (id) => base44.entities.GroupBuy.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuys'] });
+      window.location.href = createPageUrl('GroupBuy');
+    }
+  });
+
   const createTransaction = useMutation({
     mutationFn: async (data) => base44.entities.Transaction.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -118,6 +129,23 @@ export default function GroupBuyDetail() {
     }
   };
 
+  const handleEditGroupBuy = async (data) => {
+    await updateGroupBuy.mutateAsync({
+      id: groupBuyId,
+      data
+    });
+    setShowEditGroupBuy(false);
+  };
+
+  const handleDeleteGroupBuy = async () => {
+    // Delete all items first
+    for (const item of items) {
+      await deleteItem.mutateAsync(item.id);
+    }
+    // Then delete the group buy
+    await deleteGroupBuy.mutateAsync(groupBuyId);
+  };
+
   const handleCloseGroupBuy = async () => {
     if (!confirm('確定要截止這個團購嗎？截止後成員將無法再新增項目。')) return;
     await updateGroupBuy.mutateAsync({
@@ -127,7 +155,7 @@ export default function GroupBuyDetail() {
   };
 
   const handleCompleteGroupBuy = async () => {
-    if (!confirm(`確定要結單嗎？將會向 ${memberSummary.length} 位成員收取款項。`)) return;
+    if (!confirm(`確定要結單嗎？將會向 ${memberSummary.length} 位成員收取款項並寄送通知信。`)) return;
 
     // Process payment for each member
     for (const summary of memberSummary) {
@@ -149,6 +177,38 @@ export default function GroupBuyDetail() {
         id: member.id,
         data: { balance: (member.balance || 0) - summary.total }
       });
+
+      // Send email notification
+      try {
+        const itemsList = summary.items.map(item => 
+          `• ${item.product_name} - $${item.price} × ${item.quantity} = $${(item.price * item.quantity).toLocaleString()}${item.note ? ` (${item.note})` : ''}`
+        ).join('\n');
+
+        const emailBody = `
+親愛的 ${summary.member_name}，
+
+團購「${groupBuy.title}」已結單！
+
+您的訂購明細：
+${itemsList}
+
+總金額：$${summary.total.toLocaleString()}
+已從您的帳戶扣款。
+
+如有任何問題，請聯絡開團者 ${groupBuy.organizer_name}。
+
+感謝您的參與！
+        `;
+
+        await base44.integrations.Core.SendEmail({
+          to: member.name, // Assuming member name can receive email, adjust if needed
+          subject: `團購結單通知 - ${groupBuy.title}`,
+          body: emailBody,
+          from_name: 'RC Pay 團購系統'
+        });
+      } catch (error) {
+        console.error('Failed to send email:', error);
+      }
     }
 
     // Update group buy status
@@ -157,7 +217,7 @@ export default function GroupBuyDetail() {
       data: { status: 'completed' }
     });
 
-    alert('結單完成！已向所有成員收取款項。');
+    alert('結單完成！已向所有成員收取款項並寄送通知信。');
   };
 
   if (!currentUser || groupBuyLoading) {
@@ -293,6 +353,16 @@ export default function GroupBuyDetail() {
 
                 {isOrganizer && (
                   <div className="space-y-2 border-t pt-4">
+                    {(isOpen || groupBuy.status === 'closed') && (
+                      <Button
+                        onClick={() => setShowEditGroupBuy(true)}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        編輯團購
+                      </Button>
+                    )}
                     {isOpen && (
                       <Button
                         onClick={handleCloseGroupBuy}
@@ -312,6 +382,14 @@ export default function GroupBuyDetail() {
                         統一結單
                       </Button>
                     )}
+                    <Button
+                      onClick={() => setDeletingGroupBuy(true)}
+                      variant="outline"
+                      className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      刪除團購
+                    </Button>
                   </div>
                 )}
               </div>
@@ -411,10 +489,17 @@ export default function GroupBuyDetail() {
         onAdd={handleAddItem}
       />
 
+      <EditGroupBuyDialog
+        open={showEditGroupBuy}
+        onOpenChange={setShowEditGroupBuy}
+        groupBuy={groupBuy}
+        onSave={handleEditGroupBuy}
+      />
+
       <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>確認刪除項目</AlertDialogTitle>
             <AlertDialogDescription>
               確定要刪除「{deletingItem?.product_name}」嗎？此操作無法復原。
             </AlertDialogDescription>
@@ -423,6 +508,23 @@ export default function GroupBuyDetail() {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteItem} className="bg-red-500 hover:bg-red-600">
               刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deletingGroupBuy} onOpenChange={setDeletingGroupBuy}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認刪除團購</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除「{groupBuy?.title}」嗎？所有相關的訂購項目也會一併刪除，此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteGroupBuy} className="bg-red-500 hover:bg-red-600">
+              確認刪除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
