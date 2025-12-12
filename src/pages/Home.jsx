@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -167,6 +167,12 @@ export default function Home() {
             <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
               <UtensilsCrossed className="w-5 h-5 mr-2" />
               七分飽訂餐
+            </Button>
+          </Link>
+          <Link to={createPageUrl('GroupBuy')} className="col-span-2 md:col-span-1">
+            <Button className="w-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-purple-700">
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              團購專區
             </Button>
           </Link>
           <Button

@@ -4,6 +4,8 @@ import FoodOrder from './pages/FoodOrder';
 import ProductManagement from './pages/ProductManagement';
 import MemberManagement from './pages/MemberManagement';
 import AdminOrders from './pages/AdminOrders';
+import GroupBuy from './pages/GroupBuy';
+import GroupBuyDetail from './pages/GroupBuyDetail';
 
 
 export const PAGES = {
@@ -13,6 +15,8 @@ export const PAGES = {
     "ProductManagement": ProductManagement,
     "MemberManagement": MemberManagement,
     "AdminOrders": AdminOrders,
+    "GroupBuy": GroupBuy,
+    "GroupBuyDetail": GroupBuyDetail,
 }
 
 export const pagesConfig = {

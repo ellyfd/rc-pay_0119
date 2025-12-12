@@ -1,0 +1,432 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
+import AddItemDialog from "@/components/groupbuy/AddItemDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+export default function GroupBuyDetail() {
+  const [groupBuyId, setGroupBuyId] = useState(null);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setGroupBuyId(params.get('id'));
+  }, []);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const { data: groupBuy, isLoading: groupBuyLoading } = useQuery({
+    queryKey: ['groupBuy', groupBuyId],
+    queryFn: async () => {
+      const allGroupBuys = await base44.entities.GroupBuy.list();
+      return allGroupBuys.find(gb => gb.id === groupBuyId);
+    },
+    enabled: !!groupBuyId
+  });
+
+  const { data: items = [], isLoading: itemsLoading } = useQuery({
+    queryKey: ['groupBuyItems', groupBuyId],
+    queryFn: async () => {
+      const allItems = await base44.entities.GroupBuyItem.list('-created_date');
+      return allItems.filter(item => item.group_buy_id === groupBuyId);
+    },
+    enabled: !!groupBuyId
+  });
+
+  const { data: members = [] } = useQuery({
+    queryKey: ['members'],
+    queryFn: () => base44.entities.Member.list('name')
+  });
+
+  const updateGroupBuy = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.GroupBuy.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuy'] })
+  });
+
+  const createItem = useMutation({
+    mutationFn: (data) => base44.entities.GroupBuyItem.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
+  });
+
+  const updateItem = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.GroupBuyItem.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
+  });
+
+  const deleteItem = useMutation({
+    mutationFn: (id) => base44.entities.GroupBuyItem.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
+  });
+
+  const createTransaction = useMutation({
+    mutationFn: async (data) => base44.entities.Transaction.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
+  });
+
+  const updateMember = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
+  });
+
+  const handleAddItem = async (itemData) => {
+    if (editingItem) {
+      await updateItem.mutateAsync({ id: editingItem.id, data: itemData });
+    } else {
+      await createItem.mutateAsync({
+        ...itemData,
+        group_buy_id: groupBuyId
+      });
+    }
+    setShowAddItem(false);
+    setEditingItem(null);
+  };
+
+  const handleDeleteItem = async () => {
+    if (deletingItem) {
+      await deleteItem.mutateAsync(deletingItem.id);
+      setDeletingItem(null);
+    }
+  };
+
+  const handleCloseGroupBuy = async () => {
+    if (!confirm('確定要截止這個團購嗎？截止後成員將無法再新增項目。')) return;
+    await updateGroupBuy.mutateAsync({
+      id: groupBuyId,
+      data: { status: 'closed' }
+    });
+  };
+
+  const handleCompleteGroupBuy = async () => {
+    if (!confirm(`確定要結單嗎？將會向 ${memberSummary.length} 位成員收取款項。`)) return;
+
+    // Process payment for each member
+    for (const summary of memberSummary) {
+      const member = members.find(m => m.id === summary.member_id);
+      if (!member) continue;
+
+      // Create transaction
+      await createTransaction.mutateAsync({
+        type: 'withdraw',
+        amount: summary.total,
+        wallet_type: 'balance',
+        from_member_id: member.id,
+        from_member_name: member.name,
+        note: `團購：${groupBuy.title}`
+      });
+
+      // Update member balance
+      await updateMember.mutateAsync({
+        id: member.id,
+        data: { balance: (member.balance || 0) - summary.total }
+      });
+    }
+
+    // Update group buy status
+    await updateGroupBuy.mutateAsync({
+      id: groupBuyId,
+      data: { status: 'completed' }
+    });
+
+    alert('結單完成！已向所有成員收取款項。');
+  };
+
+  if (!currentUser || groupBuyLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-500 mt-4">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!groupBuy) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500">找不到此團購</p>
+          <Link to={createPageUrl('GroupBuy')}>
+            <Button className="mt-4">返回團購列表</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  const isOrganizer = currentUser && groupBuy.organizer_id === currentUser.id;
+  const isOpen = groupBuy.status === 'open';
+  const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  // Group items by member
+  const memberSummary = items.reduce((acc, item) => {
+    const existing = acc.find(m => m.member_id === item.member_id);
+    const itemTotal = item.price * item.quantity;
+    if (existing) {
+      existing.items.push(item);
+      existing.total += itemTotal;
+    } else {
+      acc.push({
+        member_id: item.member_id,
+        member_name: item.member_name,
+        items: [item],
+        total: itemTotal
+      });
+    }
+    return acc;
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      {/* Header */}
+      <div className="bg-purple-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <Link to={createPageUrl('GroupBuy')}>
+            <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              返回團購列表
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Group Buy Info */}
+          <div className="lg:col-span-1">
+            <Card className="p-6 sticky top-6">
+              {groupBuy.image_url && (
+                <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden mb-4">
+                  <img
+                    src={groupBuy.image_url}
+                    alt={groupBuy.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-start justify-between mb-2">
+                    <h1 className="text-xl font-bold text-slate-800">{groupBuy.title}</h1>
+                    <Badge className={
+                      groupBuy.status === 'open' ? 'bg-green-500' :
+                      groupBuy.status === 'closed' ? 'bg-amber-500' :
+                      'bg-slate-500'
+                    }>
+                      {groupBuy.status === 'open' ? '進行中' :
+                       groupBuy.status === 'closed' ? '已截止' :
+                       '已結單'}
+                    </Badge>
+                  </div>
+                  {groupBuy.description && (
+                    <p className="text-sm text-slate-600">{groupBuy.description}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="text-slate-500">開團者：</span>
+                    <span className="font-medium text-slate-800">{groupBuy.organizer_name}</span>
+                  </div>
+                  {groupBuy.deadline && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      <span className="text-slate-600">
+                        截止：{format(new Date(groupBuy.deadline), 'yyyy/MM/dd')}
+                      </span>
+                    </div>
+                  )}
+                  {groupBuy.product_link && (
+                    <a
+                      href={groupBuy.product_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-purple-600 hover:text-purple-700"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>查看商品連結</span>
+                    </a>
+                  )}
+                </div>
+
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-600">參與人數</span>
+                    <span className="text-lg font-bold text-purple-600">{memberSummary.length} 人</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">總金額</span>
+                    <span className="text-2xl font-bold text-slate-800">${totalAmount.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {isOrganizer && (
+                  <div className="space-y-2 border-t pt-4">
+                    {isOpen && (
+                      <Button
+                        onClick={handleCloseGroupBuy}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        截止團購
+                      </Button>
+                    )}
+                    {groupBuy.status === 'closed' && items.length > 0 && (
+                      <Button
+                        onClick={handleCompleteGroupBuy}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        統一結單
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Right: Items List */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-slate-800">團購項目</h2>
+              {isOpen && (
+                <Button
+                  onClick={() => {
+                    setEditingItem(null);
+                    setShowAddItem(true);
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  新增項目
+                </Button>
+              )}
+            </div>
+
+            {itemsLoading ? (
+              <Card className="p-8 text-center">
+                <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
+                <p className="text-slate-500 mt-4">載入中...</p>
+              </Card>
+            ) : memberSummary.length === 0 ? (
+              <Card className="p-12 text-center border-dashed">
+                <p className="text-slate-500 text-lg mb-2">還沒有人跟團</p>
+                {isOpen && <p className="text-slate-400 text-sm">點擊「新增項目」開始跟團！</p>}
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {memberSummary.map(summary => (
+                  <Card key={summary.member_id} className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-semibold text-slate-800">{summary.member_name}</h3>
+                      <span className="text-lg font-bold text-purple-600">
+                        ${summary.total.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {summary.items.map(item => (
+                        <div key={item.id} className="flex items-start justify-between bg-slate-50 rounded-lg p-3">
+                          <div className="flex-1">
+                            <div className="font-medium text-slate-700">{item.product_name}</div>
+                            <div className="text-sm text-slate-500">
+                              ${item.price} × {item.quantity} = ${(item.price * item.quantity).toLocaleString()}
+                            </div>
+                            {item.note && (
+                              <div className="text-xs text-slate-400 mt-1">備註：{item.note}</div>
+                            )}
+                          </div>
+                          {(isOrganizer || (currentUser && item.member_id === currentUser.id)) && isOpen && (
+                            <div className="flex gap-1 ml-3">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setShowAddItem(true);
+                                }}
+                                className="h-8 w-8"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeletingItem(item)}
+                                className="h-8 w-8 text-red-500"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <AddItemDialog
+        open={showAddItem}
+        onOpenChange={setShowAddItem}
+        members={members}
+        currentUser={currentUser}
+        item={editingItem}
+        onAdd={handleAddItem}
+      />
+
+      <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除「{deletingItem?.product_name}」嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteItem} className="bg-red-500 hover:bg-red-600">
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
