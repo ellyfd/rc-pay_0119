@@ -165,69 +165,14 @@ export default function GroupBuyDetail() {
   };
 
   const handleCompleteGroupBuy = async () => {
-    if (!confirm(`確定要結單嗎？將會向 ${memberSummary.length} 位成員收取款項並寄送通知信。`)) return;
+    if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
 
-    // Process payment for each member
-    for (const summary of memberSummary) {
-      const member = members.find(m => m.id === summary.member_id);
-      if (!member) continue;
-
-      // Create transaction
-      await createTransaction.mutateAsync({
-        type: 'withdraw',
-        amount: summary.total,
-        wallet_type: 'balance',
-        from_member_id: member.id,
-        from_member_name: member.name,
-        note: `團購：${groupBuy.title}`
-      });
-
-      // Update member balance
-      await updateMember.mutateAsync({
-        id: member.id,
-        data: { balance: (member.balance || 0) - summary.total }
-      });
-
-      // Send email notification
-      try {
-        const itemsList = summary.items.map(item => 
-          `• ${item.product_name} - $${item.price} × ${item.quantity} = $${(item.price * item.quantity).toLocaleString()}${item.note ? ` (${item.note})` : ''}`
-        ).join('\n');
-
-        const emailBody = `
-親愛的 ${summary.member_name}，
-
-團購「${groupBuy.title}」已結單！
-
-您的訂購明細：
-${itemsList}
-
-總金額：$${summary.total.toLocaleString()}
-已從您的帳戶扣款。
-
-如有任何問題，請聯絡開團者 ${groupBuy.organizer_name}。
-
-感謝您的參與！
-        `;
-
-        await base44.integrations.Core.SendEmail({
-          to: member.name, // Assuming member name can receive email, adjust if needed
-          subject: `團購結單通知 - ${groupBuy.title}`,
-          body: emailBody,
-          from_name: 'RC Pay 團購系統'
-        });
-      } catch (error) {
-        console.error('Failed to send email:', error);
-      }
-    }
-
-    // Update group buy status
     await updateGroupBuy.mutateAsync({
       id: groupBuyId,
       data: { status: 'completed' }
     });
 
-    alert('結單完成！已向所有成員收取款項並寄送通知信。');
+    alert('結單完成！請查看下方訂購彙總表。');
   };
 
   if (!currentUser || groupBuyLoading) {
@@ -271,6 +216,25 @@ ${itemsList}
         member_name: item.member_name,
         items: [item],
         total: itemTotal
+      });
+    }
+    return acc;
+  }, []);
+
+  // Group items by product for order summary
+  const productSummary = items.reduce((acc, item) => {
+    const key = `${item.product_name}_${item.price}`;
+    const existing = acc.find(p => p.key === key);
+    if (existing) {
+      existing.quantity += item.quantity;
+      existing.members.push({ name: item.member_name, quantity: item.quantity, note: item.note });
+    } else {
+      acc.push({
+        key,
+        product_name: item.product_name,
+        price: item.price,
+        quantity: item.quantity,
+        members: [{ name: item.member_name, quantity: item.quantity, note: item.note }]
       });
     }
     return acc;
@@ -389,7 +353,7 @@ ${itemsList}
                         className="w-full bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        統一結單
+                        產生訂購表單
                       </Button>
                     )}
                     <Button
@@ -407,9 +371,55 @@ ${itemsList}
           </div>
 
           {/* Right: Items List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
+            {groupBuy.status === 'completed' && productSummary.length > 0 && (
+              <Card>
+                <div className="p-4 bg-green-50 border-b">
+                  <h3 className="font-semibold text-green-800 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    訂購彙總表（按產品統計）
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b">
+                      <tr>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品名稱</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">單價</th>
+                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">總數量</th>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購明細</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {productSummary.map((product) => (
+                        <tr key={product.key} className="hover:bg-slate-50">
+                          <td className="px-4 py-3 font-medium text-slate-800">{product.product_name}</td>
+                          <td className="px-4 py-3 text-right text-slate-700">${product.price.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-block bg-purple-100 text-purple-800 font-semibold px-3 py-1 rounded">
+                              {product.quantity}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm space-y-1">
+                              {product.members.map((member, idx) => (
+                                <div key={idx} className="text-slate-600">
+                                  • {member.name} × {member.quantity}
+                                  {member.note && <span className="text-slate-400 ml-2">({member.note})</span>}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-800">團購項目</h2>
+              <h2 className="text-xl font-semibold text-slate-800">團購項目（按成員）</h2>
               {isOpen && (
                 <Button
                   onClick={() => {
