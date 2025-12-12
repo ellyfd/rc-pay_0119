@@ -332,6 +332,7 @@ export default function MemberDetail() {
                       <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">狀態</th>
                       <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購項目</th>
                       <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付狀態</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -375,6 +376,11 @@ export default function MemberDetail() {
                           <td className="px-4 py-3 text-right text-slate-700">
                             ${(item.price * item.quantity).toLocaleString()}
                           </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge className={item.paid ? 'bg-green-500' : 'bg-amber-500'}>
+                              {item.paid ? '已付款' : '未付款'}
+                            </Badge>
+                          </td>
                         </tr>
                       ))
                     ))}
@@ -383,6 +389,7 @@ export default function MemberDetail() {
                       <td className="px-4 py-3 text-right text-purple-600">
                         ${groupBuysByMember.reduce((sum, gb) => sum + gb.total, 0).toLocaleString()}
                       </td>
+                      <td></td>
                     </tr>
                   </tbody>
                 </table>
