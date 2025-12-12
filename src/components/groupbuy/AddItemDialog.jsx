@@ -250,7 +250,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
               </thead>
               <tbody className="divide-y">
                 {items.map((rowItem, index) => (
-                  <tr key={index}>
+                  <React.Fragment key={index}>
+                    <tr>
                     <td className="px-3 py-2">
                       {presetProducts.length > 0 && !item ? (
                         <div className="flex gap-2">
@@ -353,25 +354,26 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                         )}
                       </td>
                     )}
-                  </tr>
-                  {!item && rowItem.split && (
-                    <tr>
-                      <td colSpan={7} className="px-3 py-3 bg-purple-50">
-                        <div className="text-xs font-medium text-slate-700 mb-2">選擇平分成員：</div>
-                        <div className="flex flex-wrap gap-2">
-                          {members.filter(m => m.id !== selectedMember).map(m => (
-                            <label key={m.id} className="flex items-center gap-1 px-2 py-1 bg-white rounded border cursor-pointer hover:bg-purple-100">
-                              <Checkbox
-                                checked={rowItem.splitMembers?.includes(m.id)}
-                                onCheckedChange={() => toggleSplitMember(index, m.id)}
-                              />
-                              <span className="text-xs">{m.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </td>
                     </tr>
-                  )}
+                    {!item && rowItem.split && (
+                      <tr>
+                        <td colSpan={7} className="px-3 py-3 bg-purple-50">
+                          <div className="text-xs font-medium text-slate-700 mb-2">選擇平分成員：</div>
+                          <div className="flex flex-wrap gap-2">
+                            {members.filter(m => m.id !== selectedMember).map(m => (
+                              <label key={m.id} className="flex items-center gap-1 px-2 py-1 bg-white rounded border cursor-pointer hover:bg-purple-100">
+                                <Checkbox
+                                  checked={rowItem.splitMembers?.includes(m.id)}
+                                  onCheckedChange={() => toggleSplitMember(index, m.id)}
+                                />
+                                <span className="text-xs">{m.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
               <tfoot className="bg-slate-50 border-t">
