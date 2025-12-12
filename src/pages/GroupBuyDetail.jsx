@@ -526,10 +526,15 @@ export default function GroupBuyDetail() {
                             {itemIdx === 0 && (
                               <>
                                 <td 
-                                  className="px-4 py-3 font-medium text-slate-800 align-top"
+                                  className="px-4 py-3 font-medium align-top"
                                   rowSpan={summary.items.length}
                                 >
-                                  {summary.member_name}
+                                  <Link
+                                    to={createPageUrl('MemberDetail') + '?id=' + summary.member_id}
+                                    className="text-purple-600 hover:text-purple-700 hover:underline"
+                                  >
+                                    {summary.member_name}
+                                  </Link>
                                 </td>
                               </>
                             )}
