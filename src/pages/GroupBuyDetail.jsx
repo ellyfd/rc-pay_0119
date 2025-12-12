@@ -175,6 +175,17 @@ export default function GroupBuyDetail() {
     alert('結單完成！請查看下方訂購彙總表。');
   };
 
+  const handleTogglePaid = async (summary) => {
+    const newPaidStatus = !summary.paid;
+    // Update all items for this member
+    for (const item of summary.items) {
+      await updateItem.mutateAsync({
+        id: item.id,
+        data: { paid: newPaidStatus }
+      });
+    }
+  };
+
   if (!currentUser || groupBuyLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
@@ -210,12 +221,14 @@ export default function GroupBuyDetail() {
     if (existing) {
       existing.items.push(item);
       existing.total += itemTotal;
+      existing.paid = existing.paid && item.paid;
     } else {
       acc.push({
         member_id: item.member_id,
         member_name: item.member_name,
         items: [item],
-        total: itemTotal
+        total: itemTotal,
+        paid: item.paid || false
       });
     }
     return acc;
@@ -319,10 +332,18 @@ export default function GroupBuyDetail() {
                     <span className="text-slate-600">參與人數</span>
                     <span className="text-lg font-bold text-purple-600">{memberSummary.length} 人</span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center mb-2">
                     <span className="text-slate-600">總金額</span>
                     <span className="text-2xl font-bold text-slate-800">${totalAmount.toLocaleString()}</span>
                   </div>
+                  {isOrganizer && groupBuy.status !== 'open' && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-600">已付款</span>
+                      <span className="font-semibold text-green-600">
+                        {memberSummary.filter(m => m.paid).length} / {memberSummary.length}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {isOrganizer && (
@@ -455,6 +476,9 @@ export default function GroupBuyDetail() {
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
+                        {isOrganizer && groupBuy.status !== 'open' && (
+                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
+                        )}
                         {((isOrganizer || items.some(i => i.member_id === currentUser?.id)) && isOpen) && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">操作</th>
                         )}
@@ -465,12 +489,14 @@ export default function GroupBuyDetail() {
                         summary.items.map((item, itemIdx) => (
                           <tr key={item.id} className="hover:bg-slate-50">
                             {itemIdx === 0 && (
-                              <td 
-                                className="px-4 py-3 font-medium text-slate-800 align-top"
-                                rowSpan={summary.items.length}
-                              >
-                                {summary.member_name}
-                              </td>
+                              <>
+                                <td 
+                                  className="px-4 py-3 font-medium text-slate-800 align-top"
+                                  rowSpan={summary.items.length}
+                                >
+                                  {summary.member_name}
+                                </td>
+                              </>
                             )}
                             <td className="px-4 py-3">
                               <div className="text-slate-700">{item.product_name}</div>
@@ -483,6 +509,24 @@ export default function GroupBuyDetail() {
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
                               ${(item.price * item.quantity).toLocaleString()}
                             </td>
+                            {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
+                              <td 
+                                className="px-4 py-3 align-top"
+                                rowSpan={summary.items.length}
+                              >
+                                <div className="flex items-center justify-center">
+                                  <Button
+                                    variant={summary.paid ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => handleTogglePaid(summary)}
+                                    className={summary.paid ? "bg-green-600 hover:bg-green-700" : ""}
+                                  >
+                                    {summary.paid ? <CheckCircle className="w-4 h-4 mr-1" /> : <X className="w-4 h-4 mr-1" />}
+                                    {summary.paid ? '已收款' : '未收款'}
+                                  </Button>
+                                </div>
+                              </td>
+                            )}
                             {((isOrganizer || (currentUser && item.member_id === currentUser.id)) && isOpen) && (
                               <td className="px-4 py-3">
                                 <div className="flex gap-1 justify-center">
@@ -516,6 +560,9 @@ export default function GroupBuyDetail() {
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${totalAmount.toLocaleString()}
                         </td>
+                        {isOrganizer && groupBuy.status !== 'open' && (
+                          <td></td>
+                        )}
                         {((isOrganizer || items.some(i => i.member_id === currentUser?.id)) && isOpen) && (
                           <td></td>
                         )}
