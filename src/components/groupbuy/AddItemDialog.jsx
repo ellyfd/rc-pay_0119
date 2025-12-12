@@ -397,7 +397,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" />
-              新增一行
+              新增商品
             </Button>
           )}
         </div>
