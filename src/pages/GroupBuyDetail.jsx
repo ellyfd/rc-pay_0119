@@ -689,23 +689,21 @@ export default function GroupBuyDetail() {
       {/* Image Modal */}
       {showImageModal && (
         <div 
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/90 overflow-auto p-4"
           onClick={() => setShowImageModal(false)}
         >
-          <div className="relative max-w-7xl max-h-[90vh] w-full">
-            <button
-              onClick={() => setShowImageModal(false)}
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
-            >
-              <X className="w-6 h-6 text-white" />
-            </button>
-            <img
-              src={groupBuy.image_url}
-              alt={groupBuy.title}
-              className="w-full h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
+          <button
+            onClick={() => setShowImageModal(false)}
+            className="sticky top-4 left-full bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors z-10 mb-4"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          <img
+            src={groupBuy.image_url}
+            alt={groupBuy.title}
+            className="w-full h-auto max-w-7xl mx-auto"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 
