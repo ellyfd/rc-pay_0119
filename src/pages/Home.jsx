@@ -63,7 +63,7 @@ export default function Home() {
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 20)
+    queryFn: () => base44.entities.Transaction.list('-created_date', 10)
   });
 
   const createMember = useMutation({
@@ -296,9 +296,16 @@ export default function Home() {
 
         {/* Transactions Section */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <History className="w-5 h-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-slate-800">最近交易</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <History className="w-5 h-5 text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-800">最近交易</h2>
+            </div>
+            <Link to={createPageUrl('TransactionHistory')}>
+              <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
+                查看全部 →
+              </Button>
+            </Link>
           </div>
           
           {transactionsLoading ?

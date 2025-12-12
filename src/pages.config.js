@@ -7,6 +7,7 @@ import AdminOrders from './pages/AdminOrders';
 import GroupBuy from './pages/GroupBuy';
 import GroupBuyDetail from './pages/GroupBuyDetail';
 import ProductCatalog from './pages/ProductCatalog';
+import TransactionHistory from './pages/TransactionHistory';
 
 
 export const PAGES = {
@@ -19,6 +20,7 @@ export const PAGES = {
     "GroupBuy": GroupBuy,
     "GroupBuyDetail": GroupBuyDetail,
     "ProductCatalog": ProductCatalog,
+    "TransactionHistory": TransactionHistory,
 }
 
 export const pagesConfig = {
