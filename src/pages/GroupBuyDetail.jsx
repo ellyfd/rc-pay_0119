@@ -552,6 +552,7 @@ export default function GroupBuyDetail() {
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小結</th>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
                         )}
@@ -590,6 +591,16 @@ export default function GroupBuyDetail() {
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
                               ${(item.price * item.quantity).toLocaleString()}
                             </td>
+                            {itemIdx === 0 ? (
+                              <td 
+                                className="px-4 py-3 text-right align-top"
+                                rowSpan={summary.items.length}
+                              >
+                                <span className="text-lg font-bold text-purple-600">
+                                  ${summary.total.toLocaleString()}
+                                </span>
+                              </td>
+                            ) : null}
                             {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
                               <td 
                                 className="px-4 py-3 align-top"
@@ -638,7 +649,7 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={4} className="px-4 py-3 text-right text-slate-700">總計</td>
+                        <td colSpan={5} className="px-4 py-3 text-right text-slate-700">總計</td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${totalAmount.toLocaleString()}
                         </td>
