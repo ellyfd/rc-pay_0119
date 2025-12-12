@@ -6,6 +6,7 @@ import MemberManagement from './pages/MemberManagement';
 import AdminOrders from './pages/AdminOrders';
 import GroupBuy from './pages/GroupBuy';
 import GroupBuyDetail from './pages/GroupBuyDetail';
+import ProductCatalog from './pages/ProductCatalog';
 
 
 export const PAGES = {
@@ -17,6 +18,7 @@ export const PAGES = {
     "AdminOrders": AdminOrders,
     "GroupBuy": GroupBuy,
     "GroupBuyDetail": GroupBuyDetail,
+    "ProductCatalog": ProductCatalog,
 }
 
 export const pagesConfig = {
