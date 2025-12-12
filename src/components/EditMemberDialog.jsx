@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const colors = [
   { name: "blue", bg: "bg-blue-500" },
@@ -25,7 +34,13 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
     avatar_color: 'blue',
     user_emails: []
   });
-  const [newEmail, setNewEmail] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list('email'),
+    enabled: open
+  });
 
   useEffect(() => {
     if (member) {
@@ -37,18 +52,16 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
     }
   }, [member]);
 
-  const handleAddEmail = () => {
-    if (!newEmail.trim()) return;
-    if (!newEmail.includes('@')) {
-      alert('請輸入有效的 email 格式');
+  const handleAddUser = () => {
+    if (!selectedUserId) return;
+    const user = users.find(u => u.id === selectedUserId);
+    if (!user) return;
+    if (formData.user_emails.includes(user.email)) {
+      alert('此帳號已綁定');
       return;
     }
-    if (formData.user_emails.includes(newEmail)) {
-      alert('此 email 已存在');
-      return;
-    }
-    setFormData({ ...formData, user_emails: [...formData.user_emails, newEmail] });
-    setNewEmail('');
+    setFormData({ ...formData, user_emails: [...formData.user_emails, user.email] });
+    setSelectedUserId('');
   };
 
   const handleRemoveEmail = (email) => {
@@ -86,14 +99,21 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
           <div>
             <Label>關聯系統帳號（選填）</Label>
             <div className="flex gap-2">
-              <Input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddEmail()}
-                placeholder="例：user@example.com"
-              />
-              <Button type="button" onClick={handleAddEmail} variant="outline">
+              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="選擇系統帳號" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users
+                    .filter(user => !formData.user_emails.includes(user.email))
+                    .map(user => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.full_name} ({user.email})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <Button type="button" onClick={handleAddUser} variant="outline" disabled={!selectedUserId}>
                 新增
               </Button>
             </div>
