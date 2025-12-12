@@ -3,14 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import AddItemDialog from "@/components/groupbuy/AddItemDialog";
 import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
-import BatchImportDialog from "@/components/groupbuy/BatchImportDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +28,6 @@ export default function GroupBuyDetail() {
   const [deletingItem, setDeletingItem] = useState(null);
   const [showEditGroupBuy, setShowEditGroupBuy] = useState(false);
   const [deletingGroupBuy, setDeletingGroupBuy] = useState(false);
-  const [showBatchImport, setShowBatchImport] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
@@ -146,13 +144,6 @@ export default function GroupBuyDetail() {
     }
     // Then delete the group buy
     await deleteGroupBuy.mutateAsync(groupBuyId);
-  };
-
-  const handleBatchImport = async (importedItems) => {
-    for (const itemData of importedItems) {
-      await createItem.mutateAsync(itemData);
-    }
-    alert(`成功匯入 ${importedItems.length} 個產品！`);
   };
 
   const handleCloseGroupBuy = async () => {
@@ -410,26 +401,16 @@ ${itemsList}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-slate-800">團購項目</h2>
               {isOpen && (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setShowBatchImport(true)}
-                    variant="outline"
-                    className="border-purple-600 text-purple-600 hover:bg-purple-50"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    批量匯入
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setEditingItem(null);
-                      setShowAddItem(true);
-                    }}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    新增項目
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => {
+                    setEditingItem(null);
+                    setShowAddItem(true);
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  新增項目
+                </Button>
               )}
             </div>
 
@@ -513,14 +494,6 @@ ${itemsList}
         onOpenChange={setShowEditGroupBuy}
         groupBuy={groupBuy}
         onSave={handleEditGroupBuy}
-      />
-
-      <BatchImportDialog
-        open={showBatchImport}
-        onOpenChange={setShowBatchImport}
-        groupBuyId={groupBuyId}
-        members={members}
-        onImport={handleBatchImport}
       />
 
       <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
