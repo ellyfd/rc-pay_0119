@@ -112,14 +112,15 @@ export default function GroupBuyDetail() {
   const handleAddItem = async (itemData) => {
     if (editingItem) {
       await updateItem.mutateAsync({ id: editingItem.id, data: itemData });
+      setShowAddItem(false);
+      setEditingItem(null);
     } else {
+      // Single item is passed from the dialog
       await createItem.mutateAsync({
         ...itemData,
         group_buy_id: groupBuyId
       });
     }
-    setShowAddItem(false);
-    setEditingItem(null);
   };
 
   const handleDeleteItem = async () => {
