@@ -48,7 +48,7 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2 text-slate-600">
             <Users className="w-4 h-4" />
-            <span>開團者：{groupBuy.organizer_name}</span>
+            <span>開團者：{groupBuy.organizer_name} (ID: {groupBuy.organizer_id})</span>
           </div>
           {groupBuy.deadline && (
             <div className="flex items-center gap-2 text-slate-600">
