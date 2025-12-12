@@ -562,93 +562,80 @@ export default function GroupBuyDetail() {
                     </thead>
                     <tbody className="divide-y">
                       {memberSummary.map((summary, summaryIdx) => (
-                        <React.Fragment key={summary.member_id}>
-                          {summary.items.map((item, itemIdx) => (
-                            <tr key={item.id} className="hover:bg-slate-50">
-                              {itemIdx === 0 && (
-                                <>
-                                  <td 
-                                    className="px-4 py-3 font-medium align-top"
-                                    rowSpan={summary.items.length + 1}
-                                  >
-                                    <Link
-                                      to={createPageUrl('MemberDetail') + '?id=' + summary.member_id}
-                                      className="text-purple-600 hover:text-purple-700 hover:underline"
-                                    >
-                                      {summary.member_name}
-                                    </Link>
-                                  </td>
-                                </>
-                              )}
-                              <td className="px-4 py-3">
-                                <div className="text-slate-700">{item.product_name}</div>
-                                {item.note && (
-                                  <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
-                              <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
-                              <td className="px-4 py-3 text-right font-medium text-slate-800">
-                                ${(item.price * item.quantity).toLocaleString()}
-                              </td>
-                              {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
+                        summary.items.map((item, itemIdx) => (
+                          <tr key={item.id} className="hover:bg-slate-50">
+                            {itemIdx === 0 && (
+                              <>
                                 <td 
-                                  className="px-4 py-3 align-top"
-                                  rowSpan={summary.items.length + 1}
+                                  className="px-4 py-3 font-medium align-top"
+                                  rowSpan={summary.items.length}
                                 >
-                                  <div className="flex items-center justify-center">
-                                    <button
-                                      onClick={() => handleTogglePaid(summary)}
-                                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                                        summary.paid 
-                                          ? 'bg-green-600 border-green-600' 
-                                          : 'border-slate-300 hover:border-slate-400'
-                                      }`}
-                                    >
-                                      {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
-                                    </button>
-                                  </div>
+                                  <Link
+                                    to={createPageUrl('MemberDetail') + '?id=' + summary.member_id}
+                                    className="text-purple-600 hover:text-purple-700 hover:underline"
+                                  >
+                                    {summary.member_name}
+                                  </Link>
                                 </td>
+                              </>
+                            )}
+                            <td className="px-4 py-3">
+                              <div className="text-slate-700">{item.product_name}</div>
+                              {item.note && (
+                                <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>
                               )}
-                              {((isOrganizer || (currentUser && item.created_by === currentUser.email)) && isOpen) && (
-                                <td className="px-4 py-3">
-                                  <div className="flex gap-1 justify-center">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => {
-                                        setEditingItem(item);
-                                        setShowAddItem(true);
-                                      }}
-                                      className="h-8 w-8"
-                                    >
-                                      <Edit className="w-3 h-3" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => setDeletingItem(item)}
-                                      className="h-8 w-8 text-red-500 hover:text-red-700"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              )}
-                            </tr>
-                          ))}
-                          <tr className="bg-purple-50">
-                            <td colSpan="4" className="px-4 py-2 text-right text-sm font-semibold text-slate-700">
-                              {summary.member_name} 小計
                             </td>
-                            <td className="px-4 py-2 text-right font-bold text-purple-700">
-                              ${summary.total.toLocaleString()}
+                            <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
+                            <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-medium text-slate-800">
+                              ${(item.price * item.quantity).toLocaleString()}
                             </td>
-                            {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
-                              <td></td>
+                            {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
+                              <td 
+                                className="px-4 py-3 align-top"
+                                rowSpan={summary.items.length}
+                              >
+                                <div className="flex items-center justify-center">
+                                  <button
+                                    onClick={() => handleTogglePaid(summary)}
+                                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                      summary.paid 
+                                        ? 'bg-green-600 border-green-600' 
+                                        : 'border-slate-300 hover:border-slate-400'
+                                    }`}
+                                  >
+                                    {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                            {((isOrganizer || (currentUser && item.created_by === currentUser.email)) && isOpen) && (
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1 justify-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setEditingItem(item);
+                                      setShowAddItem(true);
+                                    }}
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setDeletingItem(item)}
+                                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </td>
                             )}
                           </tr>
-                        </React.Fragment>
+                        ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
                         <td colSpan={4} className="px-4 py-3 text-right text-slate-700">總計</td>
