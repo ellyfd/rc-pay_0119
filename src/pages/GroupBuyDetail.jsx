@@ -3,13 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import AddItemDialog from "@/components/groupbuy/AddItemDialog";
 import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
+import { exportGroupBuyOrderSummary, exportGroupBuyPaymentRecord } from "@/components/utils/ExportCSV";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -395,11 +396,22 @@ export default function GroupBuyDetail() {
           <div className="lg:col-span-2 space-y-6">
             {groupBuy.status === 'completed' && productSummary.length > 0 && (
               <Card>
-                <div className="p-4 bg-green-50 border-b">
+                <div className="p-4 bg-green-50 border-b flex items-center justify-between">
                   <h3 className="font-semibold text-green-800 flex items-center gap-2">
                     <CheckCircle className="w-5 h-5" />
                     訂購彙總表（按產品統計）
                   </h3>
+                  {isOrganizer && (
+                    <Button
+                      onClick={() => exportGroupBuyOrderSummary(productSummary, groupBuy.title)}
+                      size="sm"
+                      variant="outline"
+                      className="bg-white"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      匯出訂購表
+                    </Button>
+                  )}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -441,18 +453,29 @@ export default function GroupBuyDetail() {
 
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-slate-800">團購項目（按成員）</h2>
-              {isOpen && (
-                <Button
-                  onClick={() => {
-                    setEditingItem(null);
-                    setShowAddItem(true);
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  新增項目
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {isOrganizer && groupBuy.status !== 'open' && memberSummary.length > 0 && (
+                  <Button
+                    onClick={() => exportGroupBuyPaymentRecord(memberSummary, groupBuy.title)}
+                    variant="outline"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    匯出收款紀錄
+                  </Button>
+                )}
+                {isOpen && (
+                  <Button
+                    onClick={() => {
+                      setEditingItem(null);
+                      setShowAddItem(true);
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    新增項目
+                  </Button>
+                )}
+              </div>
             </div>
 
             {itemsLoading ? (
