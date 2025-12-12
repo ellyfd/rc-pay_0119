@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
@@ -24,7 +25,9 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     product_name: '',
     quantity: 1,
     price: 0,
-    note: ''
+    note: '',
+    split: false,
+    splitMembers: []
   }]);
 
   useEffect(() => {
@@ -35,26 +38,35 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: item.product_name,
         quantity: item.quantity,
         price: item.price,
-        note: item.note || ''
+        note: item.note || '',
+        split: false,
+        splitMembers: []
       }]);
     } else if (currentUser) {
       // Auto-select current user by default
-      setSelectedMember(currentUser.id);
+      const userMember = members.find(m => 
+        m.user_emails && m.user_emails.includes(currentUser.email)
+      );
+      setSelectedMember(userMember?.id || '');
       setItems([{
         product_name: '',
         quantity: 1,
         price: 0,
-        note: ''
+        note: '',
+        split: false,
+        splitMembers: []
       }]);
     }
-  }, [item, currentUser, open]);
+  }, [item, currentUser, open, members]);
 
   const addRow = () => {
     setItems([...items, {
       product_name: '',
       quantity: 1,
       price: 0,
-      note: ''
+      note: '',
+      split: false,
+      splitMembers: []
     }]);
   };
 
@@ -78,10 +90,24 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: product.product_name,
         quantity: 1,
         price: product.price,
-        note: product.description || ''
+        note: product.description || '',
+        split: newItems[index].split || false,
+        splitMembers: newItems[index].splitMembers || []
       };
       setItems(newItems);
     }
+  };
+
+  const toggleSplitMember = (itemIndex, memberId) => {
+    const newItems = [...items];
+    const splitMembers = newItems[itemIndex].splitMembers || [];
+    
+    if (splitMembers.includes(memberId)) {
+      newItems[itemIndex].splitMembers = splitMembers.filter(id => id !== memberId);
+    } else {
+      newItems[itemIndex].splitMembers = [...splitMembers, memberId];
+    }
+    setItems(newItems);
   };
 
   const handleSubmit = () => {
@@ -105,29 +131,62 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
 
     // If editing, only submit single item
     if (item) {
+      const itemData = validItems[0];
       onAdd({
         member_id: member.id,
         member_name: member.name,
-        ...validItems[0]
+        product_name: itemData.product_name,
+        quantity: itemData.quantity,
+        price: itemData.price,
+        note: itemData.note
       });
     } else {
       // Batch add - call onAdd for each valid item
       validItems.forEach(validItem => {
-        onAdd({
-          member_id: member.id,
-          member_name: member.name,
-          ...validItem
-        });
+        if (validItem.split && validItem.splitMembers && validItem.splitMembers.length > 0) {
+          // Split mode: create item for each selected member
+          const splitCount = validItem.splitMembers.length;
+          const splitPrice = validItem.price / splitCount;
+          
+          validItem.splitMembers.forEach(splitMemberId => {
+            const splitMember = members.find(m => m.id === splitMemberId);
+            if (splitMember) {
+              onAdd({
+                member_id: splitMember.id,
+                member_name: splitMember.name,
+                product_name: validItem.product_name,
+                quantity: validItem.quantity,
+                price: Math.round(splitPrice * 100) / 100,
+                note: validItem.note ? `${validItem.note}（${splitCount}人平分）` : `（${splitCount}人平分）`
+              });
+            }
+          });
+        } else {
+          // Normal mode: add to selected member
+          onAdd({
+            member_id: member.id,
+            member_name: member.name,
+            product_name: validItem.product_name,
+            quantity: validItem.quantity,
+            price: validItem.price,
+            note: validItem.note
+          });
+        }
       });
     }
 
     // Reset form
-    setSelectedMember(currentUser?.id || '');
+    const userMember = members.find(m => 
+      m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+    );
+    setSelectedMember(userMember?.id || '');
     setItems([{
       product_name: '',
       quantity: 1,
       price: 0,
-      note: ''
+      note: '',
+      split: false,
+      splitMembers: []
     }]);
     onOpenChange(false);
   };
@@ -170,6 +229,9 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                   <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-24">數量 *</th>
                   <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-28">單價 *</th>
                   <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">備註</th>
+                  {!item && (
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-20">平分</th>
+                  )}
                   <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-28">小計</th>
                   {!item && (
                     <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
@@ -240,8 +302,51 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                         className="h-9"
                       />
                     </td>
+                    {!item && (
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <Checkbox
+                            checked={rowItem.split}
+                            onCheckedChange={(checked) => updateItem(index, 'split', checked)}
+                          />
+                          {rowItem.split && (
+                            <div className="relative">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-xs px-2"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  const dropdown = e.currentTarget.nextElementSibling;
+                                  dropdown.classList.toggle('hidden');
+                                }}
+                              >
+                                <Users className="w-3 h-3 mr-1" />
+                                {rowItem.splitMembers?.length || 0}人
+                              </Button>
+                              <div className="hidden absolute z-10 bg-white border rounded-lg shadow-lg p-2 w-40 max-h-48 overflow-y-auto">
+                                {members.map(m => (
+                                  <label key={m.id} className="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer">
+                                    <Checkbox
+                                      checked={rowItem.splitMembers?.includes(m.id)}
+                                      onCheckedChange={() => toggleSplitMember(index, m.id)}
+                                    />
+                                    <span className="text-sm">{m.name}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    )}
                     <td className="px-3 py-2 text-right font-medium text-slate-700">
                       ${(rowItem.price * rowItem.quantity).toLocaleString()}
+                      {!item && rowItem.split && rowItem.splitMembers?.length > 0 && (
+                        <div className="text-xs text-slate-500">
+                          (每人 ${Math.round((rowItem.price / rowItem.splitMembers.length) * 100) / 100})
+                        </div>
+                      )}
                     </td>
                     {!item && (
                       <td className="px-3 py-2 text-center">
@@ -262,7 +367,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
               </tbody>
               <tfoot className="bg-slate-50 border-t">
                 <tr>
-                  <td colSpan={item ? 4 : 5} className="px-3 py-2 text-right font-semibold text-slate-700">
+                  <td colSpan={item ? 4 : 6} className="px-3 py-2 text-right font-semibold text-slate-700">
                     總計
                   </td>
                   <td className="px-3 py-2 text-right text-lg font-bold text-purple-600">
