@@ -211,7 +211,7 @@ export default function GroupBuyDetail() {
     );
   }
 
-  const isOrganizer = currentUser && groupBuy.organizer_id === currentUser.id;
+  const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
   const isOpen = groupBuy.status === 'open';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -507,7 +507,7 @@ export default function GroupBuyDetail() {
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
                         )}
-                        {((isOrganizer || items.some(i => i.member_id === currentUser?.id)) && isOpen) && (
+                        {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">操作</th>
                         )}
                       </tr>
@@ -556,7 +556,7 @@ export default function GroupBuyDetail() {
                                 </div>
                               </td>
                             )}
-                            {((isOrganizer || (currentUser && item.member_id === currentUser.id)) && isOpen) && (
+                            {((isOrganizer || (currentUser && item.created_by === currentUser.email)) && isOpen) && (
                               <td className="px-4 py-3">
                                 <div className="flex gap-1 justify-center">
                                   <Button
@@ -592,7 +592,7 @@ export default function GroupBuyDetail() {
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <td></td>
                         )}
-                        {((isOrganizer || items.some(i => i.member_id === currentUser?.id)) && isOpen) && (
+                        {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
                           <td></td>
                         )}
                       </tr>
