@@ -219,7 +219,12 @@ export default function FoodOrder() {
                     <SelectItem value={null}>不選</SelectItem>
                     {mealBoxes.map((box) => (
                       <SelectItem key={box.id} value={box.id}>
-                        {box.name} - ${box.price}
+                        <div className="flex items-center gap-2">
+                          <span>{box.name} - ${box.price}</span>
+                          {box.is_flash && (
+                            <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">快閃</span>
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
