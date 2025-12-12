@@ -102,7 +102,7 @@ export default function MemberDetail() {
 
   const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
 
-  // Group items by group buy
+  // Group items by group buy (as participant)
   const groupBuysByMember = groupBuyItems.reduce((acc, item) => {
     const existing = acc.find(g => g.group_buy_id === item.group_buy_id);
     const itemTotal = item.price * item.quantity;
@@ -121,6 +121,9 @@ export default function MemberDetail() {
     }
     return acc;
   }, []);
+
+  // Group buys organized by this member
+  const organizedGroupBuys = allGroupBuys.filter(gb => gb.organizer_id === memberId);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -210,11 +213,65 @@ export default function MemberDetail() {
           </Card>
         </div>
 
+        {/* Organized Group Buys */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Package className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-semibold text-slate-800">開團紀錄</h2>
+            <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
+          </div>
+
+          {organizedGroupBuys.length === 0 ? (
+            <Card className="p-8 text-center border-dashed">
+              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500">尚未開過團購</p>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {organizedGroupBuys.map((gb) => {
+                const allItems = groupBuyItems.filter(item => item.group_buy_id === gb.id);
+                const totalAmount = allItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const participantCount = new Set(allItems.map(item => item.member_id)).size;
+                
+                return (
+                  <Card key={gb.id} className="p-4 bg-amber-50 border-amber-200">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Link 
+                          to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
+                          className="font-semibold text-slate-800 hover:text-purple-600"
+                        >
+                          {gb.title}
+                        </Link>
+                        <Badge 
+                          className={`ml-2 ${
+                            gb.status === 'open' ? 'bg-green-500' :
+                            gb.status === 'closed' ? 'bg-amber-500' :
+                            'bg-slate-500'
+                          }`}
+                        >
+                          {gb.status === 'open' ? '進行中' :
+                           gb.status === 'closed' ? '已截止' :
+                           '已結單'}
+                        </Badge>
+                        <div className="flex gap-4 mt-2 text-sm text-slate-600">
+                          <span>參與人數：{participantCount} 人</span>
+                          <span>總金額：${totalAmount.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         {/* Group Buy Section */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <ShoppingCart className="w-5 h-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-slate-800">團購紀錄</h2>
+            <h2 className="text-lg font-semibold text-slate-800">跟團紀錄</h2>
             <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
           </div>
 
