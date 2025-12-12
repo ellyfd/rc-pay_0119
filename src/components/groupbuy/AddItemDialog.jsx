@@ -27,7 +27,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     price: 0,
     note: '',
     split: false,
-    splitMembers: []
+    splitMembers: [],
+    splitExpanded: false
   }]);
 
   useEffect(() => {
@@ -40,7 +41,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         price: item.price,
         note: item.note || '',
         split: false,
-        splitMembers: []
+        splitMembers: [],
+        splitExpanded: false
       }]);
     } else if (currentUser) {
       // Auto-select current user by default
@@ -54,16 +56,17 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         price: 0,
         note: '',
         split: false,
-        splitMembers: []
+        splitMembers: [],
+        splitExpanded: false
       }]);
     }
   }, [item, currentUser, open, members]);
 
   const addRow = () => {
-    // 收起所有現有行的平分選項
+    // 收起所有現有行的平分名單
     const updatedItems = items.map(item => ({
       ...item,
-      split: false
+      splitExpanded: false
     }));
 
     setItems([...updatedItems, {
@@ -72,7 +75,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       price: 0,
       note: '',
       split: false,
-      splitMembers: []
+      splitMembers: [],
+      splitExpanded: false
     }]);
   };
 
@@ -98,7 +102,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         price: product.price,
         note: product.description || '',
         split: newItems[index].split || false,
-        splitMembers: newItems[index].splitMembers || []
+        splitMembers: newItems[index].splitMembers || [],
+        splitExpanded: newItems[index].splitExpanded || false
       };
       setItems(newItems);
     }
@@ -202,7 +207,8 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       price: 0,
       note: '',
       split: false,
-      splitMembers: []
+      splitMembers: [],
+      splitExpanded: false
     }]);
     onOpenChange(false);
     };
@@ -325,6 +331,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                           checked={rowItem.split}
                           onCheckedChange={(checked) => {
                             updateItem(index, 'split', checked);
+                            updateItem(index, 'splitExpanded', checked);
                             if (!checked) {
                               updateItem(index, 'splitMembers', []);
                             }
