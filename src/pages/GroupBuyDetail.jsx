@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -129,6 +129,14 @@ export default function GroupBuyDetail() {
     }
   };
 
+  const handleTogglePaymentStatus = async (item) => {
+    const newStatus = item.payment_status === 'paid' ? 'pending' : 'paid';
+    await updateItem.mutateAsync({
+      id: item.id,
+      data: { payment_status: newStatus }
+    });
+  };
+
   const handleEditGroupBuy = async (data) => {
     await updateGroupBuy.mutateAsync({
       id: groupBuyId,
@@ -246,21 +254,27 @@ ${itemsList}
 
   const isOrganizer = currentUser && groupBuy.organizer_id === currentUser.id;
   const isOpen = groupBuy.status === 'open';
+  const isClosed = groupBuy.status === 'closed';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   // Group items by member
   const memberSummary = items.reduce((acc, item) => {
     const existing = acc.find(m => m.member_id === item.member_id);
     const itemTotal = item.price * item.quantity;
+    const isPaid = item.payment_status === 'paid';
     if (existing) {
       existing.items.push(item);
       existing.total += itemTotal;
+      existing.paidAmount += isPaid ? itemTotal : 0;
+      existing.allPaid = existing.allPaid && isPaid;
     } else {
       acc.push({
         member_id: item.member_id,
         member_name: item.member_name,
         items: [item],
-        total: itemTotal
+        total: itemTotal,
+        paidAmount: isPaid ? itemTotal : 0,
+        allPaid: isPaid
       });
     }
     return acc;
@@ -429,7 +443,14 @@ ${itemsList}
                 {memberSummary.map(summary => (
                   <Card key={summary.member_id} className="p-4">
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-slate-800">{summary.member_name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-slate-800">{summary.member_name}</h3>
+                        {isClosed && isOrganizer && (
+                          <Badge className={summary.allPaid ? 'bg-green-500' : 'bg-amber-500'}>
+                            {summary.allPaid ? '已付款' : '待付款'}
+                          </Badge>
+                        )}
+                      </div>
                       <span className="text-lg font-bold text-purple-600">
                         ${summary.total.toLocaleString()}
                       </span>
@@ -438,7 +459,24 @@ ${itemsList}
                       {summary.items.map(item => (
                         <div key={item.id} className="flex items-start justify-between bg-slate-50 rounded-lg p-3">
                           <div className="flex-1">
-                            <div className="font-medium text-slate-700">{item.product_name}</div>
+                            <div className="flex items-center gap-2">
+                              <div className="font-medium text-slate-700">{item.product_name}</div>
+                              {isClosed && isOrganizer && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleTogglePaymentStatus(item)}
+                                  className={`h-6 px-2 text-xs ${
+                                    item.payment_status === 'paid' 
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                      : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                  }`}
+                                >
+                                  <DollarSign className="w-3 h-3 mr-1" />
+                                  {item.payment_status === 'paid' ? '已付' : '未付'}
+                                </Button>
+                              )}
+                            </div>
                             <div className="text-sm text-slate-500">
                               ${item.price} × {item.quantity} = ${(item.price * item.quantity).toLocaleString()}
                             </div>
