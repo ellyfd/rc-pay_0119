@@ -58,8 +58,11 @@ export default function Home() {
     }
   }, [currentUser, allMembers]);
 
-  // Filter active members for display
-  const members = allMembers.filter(m => m.is_active !== false);
+  // Filter active members with non-zero balance for display
+  const members = allMembers.filter(m => 
+    m.is_active !== false && 
+    ((m.balance || 0) !== 0 || (m.cash_balance || 0) !== 0)
+  );
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
