@@ -265,30 +265,89 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
           </div>
 
-          {/* URL Analysis */}
-          <div>
-            <Label className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-              AI 網址辨識 - 快速新增商品列表
-            </Label>
-            <p className="text-xs text-slate-500 mb-2">輸入網頁或 UberEats 連結，AI 自動識別商品</p>
-            <div className="flex gap-2">
-              <Input
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="貼上網址，例如：https://ubereats.com/..."
-                type="url"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                onClick={handleAnalyzeUrl}
-                disabled={analyzingUrl || !urlInput.trim()}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                <LinkIcon className="w-4 h-4 mr-2" />
-                {analyzingUrl ? '分析中...' : 'AI 辨識'}
-              </Button>
+          {/* AI Analysis Section */}
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <h3 className="font-semibold text-purple-900">AI 快速辨識商品</h3>
+            </div>
+            
+            {/* URL Analysis */}
+            <div>
+              <Label className="text-sm">方法一：貼上網址</Label>
+              <p className="text-xs text-slate-500 mb-2">貼上餐廳或商品網頁連結，AI 自動識別</p>
+              <div className="flex gap-2">
+                <Input
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://..."
+                  type="url"
+                  className="flex-1 bg-white"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAnalyzeUrl}
+                  disabled={analyzingUrl || !urlInput.trim()}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  {analyzingUrl ? '分析中...' : 'AI 辨識'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <Label className="text-sm">方法二：上傳圖片（可多張）</Label>
+              <p className="text-xs text-slate-500 mb-2">上傳菜單或商品圖片，AI 自動識別</p>
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="outline"
+                  onClick={() => document.getElementById('groupbuy-image').click()}
+                  disabled={uploading}
+                  className="bg-white">
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploading ? '上傳中...' : '上傳圖片'}
+                </Button>
+                <input
+                  id="groupbuy-image"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden" />
+
+                {imageUrls.length > 0 &&
+                <>
+                    <span className="text-sm text-green-600">✓ 已上傳 {imageUrls.length} 張</span>
+                    <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAnalyzeImage}
+                    disabled={analyzing}
+                    className="ml-auto bg-white">
+                      {analyzing ? '分析中...' : '🤖 AI 識別產品'}
+                    </Button>
+                  </>
+                }
+              </div>
+              {imageUrls.length > 0 &&
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full aspect-square object-cover rounded-lg border" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              }
             </div>
           </div>
 
@@ -301,61 +360,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               placeholder="https://..."
               type="url" />
 
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <Label>商品圖片（選填）</Label>
-            <p className="text-xs text-slate-500 mb-2">上傳圖片利用 AI 識別商品</p>
-            <div className="flex items-center gap-3">
-              <Button type="button" variant="outline"
-                onClick={() => document.getElementById('groupbuy-image').click()}
-                disabled={uploading}>
-
-                <Upload className="w-4 h-4 mr-2" />
-                {uploading ? '上傳中...' : '上傳圖片'}
-              </Button>
-              <input
-                id="groupbuy-image"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden" />
-
-              {imageUrls.length > 0 &&
-              <>
-                  <span className="text-sm text-green-600">✓ 已上傳 {imageUrls.length} 張</span>
-                  <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAnalyzeImage}
-                  disabled={analyzing}
-                  className="ml-auto">
-
-                    {analyzing ? '分析中...' : '🤖 AI 識別產品'}
-                  </Button>
-                </>
-              }
-            </div>
-            {imageUrls.length > 0 &&
-            <div className="mt-3 grid grid-cols-3 gap-2">
-                {imageUrls.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full aspect-square object-cover rounded-lg border" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            }
           </div>
 
           {/* Deadline */}
