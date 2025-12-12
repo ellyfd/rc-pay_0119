@@ -589,7 +589,7 @@ export default function GroupBuyDetail() {
                     className="bg-purple-600 hover:bg-purple-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    新增項目
+                    新增訂單
                   </Button>
                 )}
               </div>
