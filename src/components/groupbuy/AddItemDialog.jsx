@@ -124,16 +124,16 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{item ? '編輯項目' : '新增項目'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Member */}
+          {/* Member Selection */}
           <div>
             <Label>跟團者 *</Label>
-            <Select value={formData.member_id} onValueChange={handleMemberChange}>
+            <Select value={selectedMember} onValueChange={setSelectedMember}>
               <SelectTrigger>
                 <SelectValue placeholder="選擇成員" />
               </SelectTrigger>
@@ -147,58 +147,103 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
             </Select>
           </div>
 
-          {/* Product Name */}
-          <div>
-            <Label>商品名稱 *</Label>
-            <Input
-              value={formData.product_name}
-              onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
-              placeholder="例：洋芋片、口紅..."
-            />
+          {/* Items Table */}
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">商品名稱 *</th>
+                  <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-24">數量 *</th>
+                  <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-28">單價 *</th>
+                  <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">備註</th>
+                  <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-28">小計</th>
+                  {!item && (
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {items.map((rowItem, index) => (
+                  <tr key={index}>
+                    <td className="px-3 py-2">
+                      <Input
+                        value={rowItem.product_name}
+                        onChange={(e) => updateItem(index, 'product_name', e.target.value)}
+                        placeholder="洋芋片、口紅..."
+                        className="h-9"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={rowItem.quantity}
+                        onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                        className="h-9 text-center"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={rowItem.price}
+                        onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="h-9 text-right"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        value={rowItem.note}
+                        onChange={(e) => updateItem(index, 'note', e.target.value)}
+                        placeholder="規格、顏色..."
+                        className="h-9"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-right font-medium text-slate-700">
+                      ${(rowItem.price * rowItem.quantity).toLocaleString()}
+                    </td>
+                    {!item && (
+                      <td className="px-3 py-2 text-center">
+                        {items.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeRow(index)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-slate-50 border-t">
+                <tr>
+                  <td colSpan={item ? 4 : 5} className="px-3 py-2 text-right font-semibold text-slate-700">
+                    總計
+                  </td>
+                  <td className="px-3 py-2 text-right text-lg font-bold text-purple-600">
+                    ${totalAmount.toLocaleString()}
+                  </td>
+                  {!item && <td></td>}
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
-          {/* Quantity */}
-          <div>
-            <Label>數量 *</Label>
-            <Input
-              type="number"
-              min="1"
-              value={formData.quantity}
-              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-            />
-          </div>
-
-          {/* Price */}
-          <div>
-            <Label>單價 *</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-              placeholder="0"
-            />
-          </div>
-
-          {/* Note */}
-          <div>
-            <Label>備註</Label>
-            <Input
-              value={formData.note}
-              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-              placeholder="規格、顏色等..."
-            />
-          </div>
-
-          {/* Total */}
-          <div className="bg-slate-50 rounded-lg p-3">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-600">小計</span>
-              <span className="text-xl font-bold text-purple-600">
-                ${(formData.price * formData.quantity).toLocaleString()}
-              </span>
-            </div>
-          </div>
+          {!item && (
+            <Button
+              onClick={addRow}
+              variant="outline"
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              新增一行
+            </Button>
+          )}
         </div>
 
         <DialogFooter>
@@ -207,10 +252,10 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!formData.member_id || !formData.product_name || !formData.price}
+            disabled={!selectedMember}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {item ? '更新' : '新增'}
+            {item ? '更新' : `新增 ${items.filter(i => i.product_name && i.price > 0).length} 個項目`}
           </Button>
         </DialogFooter>
       </DialogContent>
