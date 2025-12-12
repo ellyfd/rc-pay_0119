@@ -314,29 +314,21 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                     </td>
                     {!item && (
                       <td className="px-3 py-2 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <Checkbox
-                            checked={rowItem.split}
-                            onCheckedChange={(checked) => {
-                              updateItem(index, 'split', checked);
-                              if (!checked) {
-                                updateItem(index, 'splitMembers', []);
-                              }
-                            }}
-                          />
-                          {rowItem.split && (
-                            <Input
-                              value={rowItem.splitMembers?.map(id => members.find(m => m.id === id)?.name).filter(Boolean).join(', ') || ''}
-                              onChange={(e) => {
-                                const names = e.target.value.split(',').map(n => n.trim()).filter(Boolean);
-                                const memberIds = names.map(name => members.find(m => m.name === name)?.id).filter(Boolean);
-                                updateItem(index, 'splitMembers', memberIds);
-                              }}
-                              placeholder="輸入成員名字，逗號分隔"
-                              className="h-8 text-xs mt-1 w-32"
-                            />
-                          )}
-                        </div>
+                        <Checkbox
+                          checked={rowItem.split}
+                          onCheckedChange={(checked) => {
+                            updateItem(index, 'split', checked);
+                            if (!checked) {
+                              updateItem(index, 'splitMembers', []);
+                            }
+                          }}
+                        />
+                        {rowItem.split && (
+                          <div className="text-xs text-purple-600 mt-1">
+                            <Users className="w-3 h-3 inline mr-1" />
+                            {(rowItem.splitMembers?.length || 0) + 1}人
+                          </div>
+                        )}
                       </td>
                     )}
                     <td className="px-3 py-2 text-right font-medium text-slate-700">
