@@ -328,7 +328,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
             {/* URL Analysis */}
             <div>
-              <Label className="text-sm">方法二：貼上網址</Label>
+              <Label className="text-sm">方法二：貼上網址（成功率較低）</Label>
               <p className="text-xs text-slate-500 mb-2">貼上餐廳或商品網頁連結，AI 自動識別</p>
               <div className="flex gap-2">
                 <Input
