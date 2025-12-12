@@ -368,7 +368,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                       </td>
                     )}
                     </tr>
-                    {!item && rowItem.split && (
+                    {!item && rowItem.split && rowItem.splitExpanded && (
                       <tr>
                         <td colSpan={7} className="px-3 py-3 bg-purple-50">
                           <div className="text-xs font-medium text-slate-700 mb-2">選擇平分成員：</div>
