@@ -45,14 +45,31 @@ export default function GroupBuy() {
     }
   });
 
+  const createGroupBuyProduct = useMutation({
+    mutationFn: (data) => base44.entities.GroupBuyProduct.create(data)
+  });
+
   const handleCreate = async (data) => {
     if (!currentUser) return;
     
-    await createGroupBuy.mutateAsync({
-      ...data,
+    const { products, ...groupBuyData } = data;
+    
+    // Create group buy
+    const groupBuy = await createGroupBuy.mutateAsync({
+      ...groupBuyData,
       organizer_id: currentUser.id,
       organizer_name: currentUser.full_name || currentUser.email
     });
+    
+    // Create products if any
+    if (products && products.length > 0) {
+      for (const product of products) {
+        await createGroupBuyProduct.mutateAsync({
+          ...product,
+          group_buy_id: groupBuy.id
+        });
+      }
+    }
   };
 
   const openGroupBuys = groupBuys.filter(gb => gb.status === 'open');
