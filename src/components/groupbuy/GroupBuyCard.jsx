@@ -92,5 +92,17 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
         </div>
       </div>
     </Card>
+
+    {/* Image Dialog */}
+    <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+      <DialogContent className="max-w-4xl">
+        <img
+          src={groupBuy.image_url}
+          alt={groupBuy.title}
+          className="w-full h-auto"
+        />
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
