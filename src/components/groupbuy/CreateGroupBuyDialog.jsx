@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, members = [] }) {
+export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, members = [], currentUser }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -37,6 +37,18 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   }]);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+
+  // Auto-select organizer based on current user
+  React.useEffect(() => {
+    if (currentUser && members.length > 0 && !formData.organizer_id) {
+      const linkedMember = members.find(m => 
+        m.user_emails && m.user_emails.includes(currentUser.email)
+      );
+      if (linkedMember) {
+        setFormData(prev => ({ ...prev, organizer_id: linkedMember.id }));
+      }
+    }
+  }, [currentUser, members]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -157,26 +169,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Organizer */}
-          <div>
-            <Label>開團者 *</Label>
-            <Select 
-              value={formData.organizer_id} 
-              onValueChange={(value) => setFormData({ ...formData, organizer_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="選擇開團者" />
-              </SelectTrigger>
-              <SelectContent>
-                {members.map(member => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Title */}
           <div>
             <Label>團購標題 *</Label>

@@ -191,6 +191,7 @@ export default function GroupBuy() {
         onOpenChange={setShowCreate}
         onCreate={handleCreate}
         members={members}
+        currentUser={currentUser}
       />
     </div>
   );
