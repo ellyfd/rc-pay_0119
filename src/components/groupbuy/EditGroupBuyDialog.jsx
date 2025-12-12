@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2 } from "lucide-react";
+import { Upload, Plus, Trash2, ZoomIn, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSave }) {
@@ -25,6 +25,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
   });
   const [uploading, setUploading] = useState(false);
   const [products, setProducts] = useState([]);
+  const [showImageModal, setShowImageModal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: existingProducts = [] } = useQuery({
@@ -203,12 +204,18 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
               )}
             </div>
             {formData.image_url && (
-              <div className="mt-3">
+              <div 
+                className="mt-3 relative bg-slate-100 rounded-lg overflow-hidden cursor-pointer group h-48 max-w-xs"
+                onClick={() => setShowImageModal(true)}
+              >
                 <img
                   src={formData.image_url}
                   alt="Preview"
-                  className="w-full max-w-xs rounded-lg border"
+                  className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center">
+                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
             )}
           </div>
@@ -314,9 +321,30 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
             className="bg-purple-600 hover:bg-purple-700"
           >
             儲存變更
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+            </Button>
+            </DialogFooter>
+
+            {/* Image Modal */}
+            {showImageModal && formData.image_url && (
+            <div 
+            className="fixed inset-0 z-50 bg-black/90 overflow-auto p-4"
+            onClick={() => setShowImageModal(false)}
+            >
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="sticky top-4 left-full bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors z-10 mb-4"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+            <img
+              src={formData.image_url}
+              alt="Preview"
+              className="w-full h-auto max-w-7xl mx-auto"
+              onClick={(e) => e.stopPropagation()}
+            />
+            </div>
+            )}
+            </DialogContent>
+            </Dialog>
+            );
 }
