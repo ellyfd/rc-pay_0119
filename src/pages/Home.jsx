@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, LogIn, LogOut } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -17,25 +17,7 @@ export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const authenticated = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      if (authenticated) {
-        try {
-          const user = await base44.auth.me();
-          setCurrentUser(user);
-        } catch (error) {
-          console.error('Failed to load user:', error);
-        }
-      }
-    };
-    checkAuth();
-  }, []);
 
   const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
@@ -168,42 +150,12 @@ export default function Home() {
               </div>
               <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
             </div>
-            <div className="flex items-center gap-2">
-              {isAuthenticated ? (
-                <>
-                  {currentUser && (
-                    <span className="text-sm text-slate-300 mr-2">
-                      {currentUser.full_name}
-                    </span>
-                  )}
-                  {currentUser?.role === 'admin' && (
-                    <Link to={createPageUrl('MemberManagement')}>
-                      <Button variant="ghost" className="text-white hover:bg-slate-800">
-                        <Settings className="w-5 h-5 mr-2" />
-                        成員管理
-                      </Button>
-                    </Link>
-                  )}
-                  <Button
-                    variant="ghost"
-                    className="text-white hover:bg-slate-800"
-                    onClick={() => base44.auth.logout()}
-                  >
-                    <LogOut className="w-5 h-5 mr-2" />
-                    登出
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="text-white hover:bg-slate-800"
-                  onClick={() => base44.auth.redirectToLogin()}
-                >
-                  <LogIn className="w-5 h-5 mr-2" />
-                  登入
-                </Button>
-              )}
-            </div>
+            <Link to={createPageUrl('MemberManagement')}>
+              <Button variant="ghost" className="text-white hover:bg-slate-800">
+                <Settings className="w-5 h-5 mr-2" />
+                成員管理
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
