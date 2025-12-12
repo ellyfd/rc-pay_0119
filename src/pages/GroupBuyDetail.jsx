@@ -317,13 +317,13 @@ export default function GroupBuyDetail() {
             <Card className="p-6 sticky top-6">
               {groupBuy.image_url && (
                 <div 
-                  className="relative bg-slate-100 rounded-lg overflow-hidden mb-4 cursor-pointer group"
+                  className="relative bg-slate-100 rounded-lg overflow-hidden mb-4 cursor-pointer group h-48"
                   onClick={() => setShowImageModal(true)}
                 >
                   <img
                     src={groupBuy.image_url}
                     alt={groupBuy.title}
-                    className="w-full h-auto object-contain"
+                    className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center">
                     <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
