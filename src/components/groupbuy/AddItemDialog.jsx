@@ -149,6 +149,15 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
           const splitCount = allSplitMembers.length;
           const splitPrice = validItem.price / splitCount;
           
+          // Build split note
+          const splitMemberNames = allSplitMembers
+            .map(id => members.find(m => m.id === id)?.name)
+            .filter(Boolean)
+            .join('、');
+          const splitNote = validItem.note 
+            ? `${validItem.note}（${member.name}訂購，與${splitMemberNames}平分）` 
+            : `${member.name}訂購，與${splitMemberNames}平分`;
+          
           allSplitMembers.forEach(splitMemberId => {
             const splitMember = members.find(m => m.id === splitMemberId);
             if (splitMember) {
@@ -158,7 +167,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                 product_name: validItem.product_name,
                 quantity: validItem.quantity,
                 price: Math.round(splitPrice * 100) / 100,
-                note: validItem.note ? `${validItem.note}（${splitCount}人平分）` : `（${splitCount}人平分）`
+                note: splitNote
               });
             }
           });
@@ -325,9 +334,10 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                                 <Users className="w-3 h-3 mr-1" />
                                 {(rowItem.splitMembers?.length || 0) + 1}人
                               </Button>
-                              <div className="hidden absolute z-10 bg-white border rounded-lg shadow-lg p-2 w-40 max-h-48 overflow-y-auto">
-                                {members.map(m => (
-                                  <label key={m.id} className="flex items-center gap-2 px-2 py-1 hover:bg-slate-50 rounded cursor-pointer">
+                              <div className="hidden absolute z-50 bg-white border-2 border-purple-300 rounded-lg shadow-2xl p-3 w-48 max-h-64 overflow-y-auto right-0 top-8">
+                                <div className="text-xs font-semibold text-slate-600 mb-2 pb-2 border-b">選擇平分成員</div>
+                                {members.filter(m => m.id !== selectedMember).map(m => (
+                                  <label key={m.id} className="flex items-center gap-2 px-2 py-2 hover:bg-purple-50 rounded cursor-pointer">
                                     <Checkbox
                                       checked={rowItem.splitMembers?.includes(m.id)}
                                       onCheckedChange={() => toggleSplitMember(index, m.id)}
