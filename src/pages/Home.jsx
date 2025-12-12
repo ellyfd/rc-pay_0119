@@ -63,7 +63,7 @@ export default function Home() {
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 10)
+    queryFn: () => base44.entities.Transaction.list('-created_date', 5)
   });
 
   const createMember = useMutation({
@@ -302,7 +302,7 @@ export default function Home() {
               <h2 className="text-lg font-semibold text-slate-800">最近交易</h2>
             </div>
             <Link to={createPageUrl('TransactionHistory')}>
-              <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
+              <Button variant="ghost" size="sm" className="text-slate-800 hover:text-slate-900">
                 查看全部 →
               </Button>
             </Link>
