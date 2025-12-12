@@ -402,7 +402,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-row justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
