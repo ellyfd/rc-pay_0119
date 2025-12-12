@@ -209,29 +209,33 @@ export default function Home() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
-        {/* Primary Action - Food Order */}
-        <Link to={createPageUrl('FoodOrder')}>
-          <Button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white h-16 rounded-2xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
-            <UtensilsCrossed className="w-6 h-6 mr-3" />
-            七分飽訂餐
-          </Button>
-        </Link>
-
-        {/* Transaction Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Link to={createPageUrl('FoodOrder')} className="col-span-2 md:col-span-1">
+            <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
+              <UtensilsCrossed className="w-5 h-5 mr-2" />
+              七分飽訂餐
+            </Button>
+          </Link>
+          <Link to={createPageUrl('GroupBuy')} className="col-span-2 md:col-span-1">
+            <Button className="w-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-purple-700">
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              團購專區
+            </Button>
+          </Link>
           <Button
-            onClick={() => setShowTransaction(true)}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-900 h-14 rounded-xl font-semibold shadow"
-            disabled={allMembers.length === 0}
-          >
+            onClick={() => setShowTransaction(true)} className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
+
+            disabled={allMembers.length === 0}>
+
             <Plus className="w-5 h-5 mr-2" />
             新增交易（單筆）
           </Button>
           <Button
-            onClick={() => setShowBatchTransaction(true)}
-            className="bg-slate-700 hover:bg-slate-800 text-white h-14 rounded-xl font-semibold shadow"
-            disabled={allMembers.length === 0}
-          >
+            onClick={() => setShowBatchTransaction(true)} className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
+
+            disabled={allMembers.length === 0}>
+
             <Users className="w-5 h-5 mr-2" />
             新增交易（多筆）
           </Button>
@@ -292,17 +296,9 @@ export default function Home() {
 
         {/* Transactions Section */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-slate-400" />
-              <h2 className="text-lg font-semibold text-slate-800">最近交易</h2>
-            </div>
-            <Link to={createPageUrl('GroupBuy')}>
-              <Button variant="outline" size="sm" className="text-purple-600 border-purple-200 hover:bg-purple-50">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                團購專區
-              </Button>
-            </Link>
+          <div className="flex items-center gap-2 mb-4">
+            <History className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-semibold text-slate-800">最近交易</h2>
           </div>
           
           {transactionsLoading ?
