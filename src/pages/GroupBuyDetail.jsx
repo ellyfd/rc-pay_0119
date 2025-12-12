@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -30,6 +30,7 @@ export default function GroupBuyDetail() {
   const [showEditGroupBuy, setShowEditGroupBuy] = useState(false);
   const [deletingGroupBuy, setDeletingGroupBuy] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -274,12 +275,18 @@ export default function GroupBuyDetail() {
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-6">
               {groupBuy.image_url && (
-                <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden mb-4">
+                <div 
+                  className="relative bg-slate-100 rounded-lg overflow-hidden mb-4 cursor-pointer group"
+                  onClick={() => setShowImageModal(true)}
+                >
                   <img
                     src={groupBuy.image_url}
                     alt={groupBuy.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto object-contain"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center">
+                    <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </div>
               )}
               
@@ -621,6 +628,29 @@ export default function GroupBuyDetail() {
         groupBuy={groupBuy}
         onSave={handleEditGroupBuy}
       />
+
+      {/* Image Modal */}
+      {showImageModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh] w-full">
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+            <img
+              src={groupBuy.image_url}
+              alt={groupBuy.title}
+              className="w-full h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
 
       <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
         <AlertDialogContent>
