@@ -144,11 +144,12 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       // Batch add - call onAdd for each valid item
       validItems.forEach(validItem => {
         if (validItem.split && validItem.splitMembers && validItem.splitMembers.length > 0) {
-          // Split mode: create item for each selected member
-          const splitCount = validItem.splitMembers.length;
+          // Split mode: create item for each selected member including the main member
+          const allSplitMembers = [member.id, ...validItem.splitMembers.filter(id => id !== member.id)];
+          const splitCount = allSplitMembers.length;
           const splitPrice = validItem.price / splitCount;
           
-          validItem.splitMembers.forEach(splitMemberId => {
+          allSplitMembers.forEach(splitMemberId => {
             const splitMember = members.find(m => m.id === splitMemberId);
             if (splitMember) {
               onAdd({
@@ -322,7 +323,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                                 }}
                               >
                                 <Users className="w-3 h-3 mr-1" />
-                                {rowItem.splitMembers?.length || 0}人
+                                {(rowItem.splitMembers?.length || 0) + 1}人
                               </Button>
                               <div className="hidden absolute z-10 bg-white border rounded-lg shadow-lg p-2 w-40 max-h-48 overflow-y-auto">
                                 {members.map(m => (
@@ -344,7 +345,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                       ${(rowItem.price * rowItem.quantity).toLocaleString()}
                       {!item && rowItem.split && rowItem.splitMembers?.length > 0 && (
                         <div className="text-xs text-slate-500">
-                          (每人 ${Math.round((rowItem.price / rowItem.splitMembers.length) * 100) / 100})
+                          (每人 ${Math.round((rowItem.price / (rowItem.splitMembers.length + 1)) * 100) / 100})
                         </div>
                       )}
                     </td>
