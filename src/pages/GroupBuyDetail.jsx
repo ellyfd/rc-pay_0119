@@ -112,14 +112,19 @@ export default function GroupBuyDetail() {
   const handleAddItem = async (itemData) => {
     if (editingItem) {
       await updateItem.mutateAsync({ id: editingItem.id, data: itemData });
+      setShowAddItem(false);
+      setEditingItem(null);
     } else {
+      // itemData could be a single item or callback will be called multiple times
       await createItem.mutateAsync({
         ...itemData,
         group_buy_id: groupBuyId
       });
+      // Don't close dialog here, let the component handle it after all items are added
+      if (!createItem.isPending) {
+        setShowAddItem(false);
+      }
     }
-    setShowAddItem(false);
-    setEditingItem(null);
   };
 
   const handleDeleteItem = async () => {
