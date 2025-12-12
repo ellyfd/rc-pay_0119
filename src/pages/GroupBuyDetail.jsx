@@ -216,23 +216,49 @@ export default function GroupBuyDetail() {
   const isOpen = groupBuy.status === 'open';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  // Group items by member
+  // Group items by member (including split items)
   const memberSummary = items.reduce((acc, item) => {
-    const existing = acc.find(m => m.member_id === item.member_id);
     const itemTotal = item.price * item.quantity;
+    const splitCount = item.split_count || 1;
+    const splitAmount = itemTotal / splitCount;
+    
+    // Add to main member
+    const existing = acc.find(m => m.member_id === item.member_id);
     if (existing) {
-      existing.items.push(item);
-      existing.total += itemTotal;
+      existing.items.push({ ...item, splitAmount });
+      existing.total += splitAmount;
       existing.paid = existing.paid && item.paid;
     } else {
       acc.push({
         member_id: item.member_id,
         member_name: item.member_name,
-        items: [item],
-        total: itemTotal,
+        items: [{ ...item, splitAmount }],
+        total: splitAmount,
         paid: item.paid || false
       });
     }
+    
+    // Add to split members if any
+    if (item.split_members && item.split_members.length > 0) {
+      item.split_members.forEach(splitMember => {
+        if (splitMember.member_id !== item.member_id) {
+          const existingSplit = acc.find(m => m.member_id === splitMember.member_id);
+          if (existingSplit) {
+            existingSplit.items.push({ ...item, splitAmount, isSplit: true });
+            existingSplit.total += splitAmount;
+          } else {
+            acc.push({
+              member_id: splitMember.member_id,
+              member_name: splitMember.member_name,
+              items: [{ ...item, splitAmount, isSplit: true }],
+              total: splitAmount,
+              paid: item.paid || false
+            });
+          }
+        }
+      });
+    }
+    
     return acc;
   }, []);
 
@@ -539,15 +565,32 @@ export default function GroupBuyDetail() {
                               </>
                             )}
                             <td className="px-4 py-3">
-                              <div className="text-slate-700">{item.product_name}</div>
+                              <div className="text-slate-700">
+                                {item.product_name}
+                                {item.split_count > 1 && (
+                                  <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                                    {item.split_count}人平分
+                                  </span>
+                                )}
+                                {item.isSplit && (
+                                  <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                    分攤
+                                  </span>
+                                )}
+                              </div>
                               {item.note && (
                                 <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>
+                              )}
+                              {item.split_members && item.split_members.length > 0 && (
+                                <div className="text-xs text-slate-500 mt-1">
+                                  與 {item.split_members.map(m => m.member_name).join(', ')} 平分
+                                </div>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
-                              ${(item.price * item.quantity).toLocaleString()}
+                              ${item.splitAmount ? item.splitAmount.toLocaleString() : (item.price * item.quantity).toLocaleString()}
                             </td>
                             {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
                               <td 

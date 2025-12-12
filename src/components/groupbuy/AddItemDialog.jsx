@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
@@ -26,6 +27,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     price: 0,
     note: ''
   }]);
+  const [splitMembers, setSplitMembers] = useState([]);
 
   useEffect(() => {
     if (item) {
@@ -37,6 +39,12 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         price: item.price,
         note: item.note || ''
       }]);
+      // Load split members if exists
+      if (item.split_members && item.split_members.length > 0) {
+        setSplitMembers(item.split_members.map(m => m.member_id));
+      } else {
+        setSplitMembers([]);
+      }
     } else if (currentUser) {
       // Auto-select current user by default
       setSelectedMember(currentUser.id);
@@ -46,6 +54,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         price: 0,
         note: ''
       }]);
+      setSplitMembers([]);
     }
   }, [item, currentUser, open]);
 
@@ -103,12 +112,22 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       return;
     }
 
+    // Build split members array
+    const splitMembersData = splitMembers.length > 0 
+      ? splitMembers.map(memberId => {
+          const m = members.find(mem => mem.id === memberId);
+          return { member_id: m.id, member_name: m.name };
+        })
+      : [];
+
     // If editing, only submit single item
     if (item) {
       onAdd({
         member_id: member.id,
         member_name: member.name,
-        ...validItems[0]
+        ...validItems[0],
+        split_members: splitMembersData,
+        split_count: splitMembersData.length
       });
     } else {
       // Batch add - call onAdd for each valid item
@@ -116,7 +135,9 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         onAdd({
           member_id: member.id,
           member_name: member.name,
-          ...validItem
+          ...validItem,
+          split_members: splitMembersData,
+          split_count: splitMembersData.length
         });
       });
     }
@@ -129,12 +150,21 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       price: 0,
       note: ''
     }]);
+    setSplitMembers([]);
     onOpenChange(false);
   };
 
   const totalAmount = items.reduce((sum, item) => 
     sum + (item.price * item.quantity), 0
   );
+
+  const toggleSplitMember = (memberId) => {
+    if (splitMembers.includes(memberId)) {
+      setSplitMembers(splitMembers.filter(id => id !== memberId));
+    } else {
+      setSplitMembers([...splitMembers, memberId]);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -159,6 +189,36 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Split Members Selection */}
+          <div className="border rounded-lg p-4 bg-slate-50">
+            <Label className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4" />
+              多人平分（可選）
+            </Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {members.map(member => (
+                <div key={member.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`split-${member.id}`}
+                    checked={splitMembers.includes(member.id)}
+                    onCheckedChange={() => toggleSplitMember(member.id)}
+                  />
+                  <label
+                    htmlFor={`split-${member.id}`}
+                    className="text-sm font-medium leading-none cursor-pointer"
+                  >
+                    {member.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+            {splitMembers.length > 0 && (
+              <p className="text-xs text-slate-600 mt-3">
+                已選 {splitMembers.length} 人，每人平均付款：${(totalAmount / splitMembers.length).toFixed(0)}
+              </p>
+            )}
           </div>
 
           {/* Items Table */}
