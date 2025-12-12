@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet, Share2 } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -151,17 +151,6 @@ export default function GroupBuyDetail() {
 
     setUserMember(member);
     setShowSelectMember(false);
-  };
-
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}${createPageUrl('GroupBuyDetail')}?id=${groupBuyId}`;
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      alert('團購連結已複製到剪貼簿！');
-    } catch (error) {
-      // Fallback: show URL in prompt
-      prompt('複製此連結：', shareUrl);
-    }
   };
 
   const handleAddItem = async (itemData) => {
@@ -506,17 +495,6 @@ export default function GroupBuyDetail() {
                       </span>
                     </div>
                   )}
-                </div>
-
-                <div className="border-t pt-4">
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    分享團購連結
-                  </Button>
                 </div>
 
                 {isOrganizer && (
