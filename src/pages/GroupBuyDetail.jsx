@@ -261,13 +261,13 @@ export default function GroupBuyDetail() {
     // For split items, extract original price from note
     const isSplitItem = item.note && item.note.includes('平分');
     let actualPrice = item.price;
-    
+
     if (isSplitItem) {
-      // Find the orderer's name from note (format: "XXX訂購，與YYY、ZZZ平分")
-      const noteMatch = item.note.match(/(.+?)訂購，與(.+)平分/);
+      // Find the orderer's name from note (format: "XXX訂購，和YYY平分")
+      const noteMatch = item.note.match(/(.+?)訂購，和(.+)平分/);
       if (noteMatch) {
-        const allNames = noteMatch[2].split('、');
-        const splitCount = allNames.length;
+        const otherNames = noteMatch[2].split('、');
+        const splitCount = otherNames.length + 1; // +1 for the orderer
         actualPrice = item.price * splitCount; // Restore original total price
       }
     }
