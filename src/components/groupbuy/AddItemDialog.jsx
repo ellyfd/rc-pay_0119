@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, isCartMode = false }) {
+export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd }) {
   const [formData, setFormData] = useState({
     member_id: '',
     member_name: '',
@@ -165,7 +165,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
             disabled={!formData.member_id || !formData.product_name || !formData.price}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {isCartMode ? '加入購物車' : (item ? '更新' : '新增')}
+            {item ? '更新' : '新增'}
           </Button>
         </DialogFooter>
       </DialogContent>
