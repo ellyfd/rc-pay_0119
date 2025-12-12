@@ -149,14 +149,14 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
           const splitCount = allSplitMembers.length;
           const splitPrice = validItem.price / splitCount;
           
-          // Build split note - only show other members (exclude the purchaser)
-          const otherMemberNames = validItem.splitMembers
+          // Build split note
+          const splitMemberNames = allSplitMembers
             .map(id => members.find(m => m.id === id)?.name)
             .filter(Boolean)
             .join('、');
           const splitNote = validItem.note 
-            ? `${validItem.note}（${member.name}訂購，和${otherMemberNames}平分）` 
-            : `${member.name}訂購，和${otherMemberNames}平分`;
+            ? `${validItem.note}（${member.name}訂購，與${splitMemberNames}平分）` 
+            : `${member.name}訂購，與${splitMemberNames}平分`;
           
           allSplitMembers.forEach(splitMemberId => {
             const splitMember = members.find(m => m.id === splitMemberId);
