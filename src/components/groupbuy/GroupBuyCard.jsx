@@ -2,20 +2,26 @@ import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Package, Users, Calendar, ExternalLink, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function GroupBuyCard({ groupBuy, currentUser, members }) {
+  const [showImageDialog, setShowImageDialog] = useState(false);
   const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
   const isOpen = groupBuy.status === 'open';
 
   return (
+    <>
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       {/* Image */}
       {groupBuy.image_url && (
-        <div className="aspect-video bg-slate-100 overflow-hidden">
+        <div 
+          className="aspect-video bg-slate-100 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => setShowImageDialog(true)}
+        >
           <img
             src={groupBuy.image_url}
             alt={groupBuy.title}
