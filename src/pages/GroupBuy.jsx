@@ -50,22 +50,17 @@ export default function GroupBuy() {
   });
 
   const handleCreate = async (data) => {
-    if (!currentUser) return;
+    const { products, organizer_id, ...groupBuyData } = data;
     
-    const { products, ...groupBuyData } = data;
-    
-    // Find member by matching email or name
-    const organizerMember = members.find(m => 
-      m.name === currentUser.full_name || 
-      m.name === (currentUser.full_name || currentUser.email)
-    );
+    // Find organizer member
+    const organizerMember = members.find(m => m.id === organizer_id);
+    if (!organizerMember) return;
     
     // Create group buy
     const groupBuy = await createGroupBuy.mutateAsync({
       ...groupBuyData,
-      organizer_id: currentUser.id,
-      organizer_member_id: organizerMember?.id || null,
-      organizer_name: currentUser.full_name || currentUser.email
+      organizer_id: organizer_id,
+      organizer_name: organizerMember.name
     });
     
     // Create products if any
@@ -195,6 +190,7 @@ export default function GroupBuy() {
         open={showCreate}
         onOpenChange={setShowCreate}
         onCreate={handleCreate}
+        members={members}
       />
     </div>
   );

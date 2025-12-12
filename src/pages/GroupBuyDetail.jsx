@@ -141,14 +141,9 @@ export default function GroupBuyDetail() {
   };
 
   const handleEditGroupBuy = async (data) => {
-    // Preserve organizer_member_id when editing
-    const { organizer_member_id } = groupBuy;
     await updateGroupBuy.mutateAsync({
       id: groupBuyId,
-      data: {
-        ...data,
-        organizer_member_id
-      }
+      data
     });
     setShowEditGroupBuy(false);
   };

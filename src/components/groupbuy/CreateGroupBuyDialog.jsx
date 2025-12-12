@@ -12,15 +12,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Upload, Plus, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
+export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, members = [] }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     product_link: '',
     image_url: '',
     deadline: '',
-    note: ''
+    note: '',
+    organizer_id: ''
   });
   const [products, setProducts] = useState([{
     product_name: '',
@@ -112,6 +120,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
       return;
     }
 
+    if (!formData.organizer_id) {
+      alert('請選擇開團者！');
+      return;
+    }
+
     // Filter valid products
     const validProducts = products.filter((p) => p.product_name && p.price > 0);
 
@@ -126,7 +139,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
       product_link: '',
       image_url: '',
       deadline: '',
-      note: ''
+      note: '',
+      organizer_id: ''
     });
     setProducts([{
       product_name: '',
@@ -143,6 +157,26 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Organizer */}
+          <div>
+            <Label>開團者 *</Label>
+            <Select 
+              value={formData.organizer_id} 
+              onValueChange={(value) => setFormData({ ...formData, organizer_id: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="選擇開團者" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map(member => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Title */}
           <div>
             <Label>團購標題 *</Label>
@@ -319,7 +353,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate }) {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!formData.title.trim()}
+            disabled={!formData.title.trim() || !formData.organizer_id}
             className="bg-purple-600 hover:bg-purple-700">
 
             建立團購
