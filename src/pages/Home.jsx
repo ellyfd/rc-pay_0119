@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,28 @@ import TransactionItem from "@/components/TransactionItem";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import TransactionDialog from "@/components/TransactionDialog";
 import BatchTransactionDialog from "@/components/BatchTransactionDialog";
+import SelectMemberDialog from "@/components/SelectMemberDialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
+  const [showSelectMember, setShowSelectMember] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    };
+    loadUser();
+  }, []);
 
   const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
@@ -30,6 +45,18 @@ export default function Home() {
       });
     }
   });
+
+  // Check if current user is linked to any member
+  useEffect(() => {
+    if (currentUser && allMembers.length > 0) {
+      const isLinked = allMembers.some(member => 
+        member.user_emails && member.user_emails.includes(currentUser.email)
+      );
+      if (!isLinked) {
+        setShowSelectMember(true);
+      }
+    }
+  }, [currentUser, allMembers]);
 
   // Filter active members for display
   const members = allMembers.filter(m => m.is_active !== false);
@@ -131,6 +158,18 @@ export default function Home() {
         data: { [balanceField]: newBalance }
       });
     }
+  };
+
+  const handleSelectMember = async (memberId) => {
+    const member = allMembers.find(m => m.id === memberId);
+    if (!member || !currentUser) return;
+
+    const updatedEmails = [...(member.user_emails || []), currentUser.email];
+    await updateMember.mutateAsync({
+      id: memberId,
+      data: { user_emails: updatedEmails }
+    });
+    setShowSelectMember(false);
   };
 
   const totalBalance = allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
@@ -325,6 +364,12 @@ export default function Home() {
         members={allMembers}
         onBatchTransaction={handleBatchTransaction} />
 
-    </div>);
+      <SelectMemberDialog
+        open={showSelectMember}
+        members={allMembers}
+        currentUserEmail={currentUser?.email}
+        onSelect={handleSelectMember} />
 
-}
+      </div>);
+
+      }
