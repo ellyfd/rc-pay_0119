@@ -53,18 +53,6 @@ export default function GroupBuyDetail() {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    if (currentUser && members.length > 0) {
-      const linkedMember = members.find(m => 
-        m.user_emails && m.user_emails.includes(currentUser.email)
-      );
-      setUserMember(linkedMember);
-      if (!linkedMember) {
-        setShowSelectMember(true);
-      }
-    }
-  }, [currentUser, members]);
-
   const { data: groupBuy, isLoading: groupBuyLoading } = useQuery({
     queryKey: ['groupBuy', groupBuyId],
     queryFn: async () => {
@@ -87,6 +75,18 @@ export default function GroupBuyDetail() {
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('name')
   });
+
+  useEffect(() => {
+    if (currentUser && members.length > 0) {
+      const linkedMember = members.find(m => 
+        m.user_emails && m.user_emails.includes(currentUser.email)
+      );
+      setUserMember(linkedMember);
+      if (!linkedMember) {
+        setShowSelectMember(true);
+      }
+    }
+  }, [currentUser, members]);
 
   const { data: products = [] } = useQuery({
     queryKey: ['groupBuyProducts', groupBuyId],
