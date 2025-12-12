@@ -258,19 +258,40 @@ export default function GroupBuyDetail() {
 
   // Group items by product for order summary
   const productSummary = items.reduce((acc, item) => {
-    const key = `${item.product_name}_${item.price}`;
+    // For split items, extract original price from note
+    const isSplitItem = item.note && item.note.includes('平分');
+    let actualPrice = item.price;
+    
+    if (isSplitItem) {
+      // Find the orderer's name from note (format: "XXX訂購，與YYY、ZZZ平分")
+      const noteMatch = item.note.match(/(.+?)訂購，與(.+)平分/);
+      if (noteMatch) {
+        const allNames = noteMatch[2].split('、');
+        const splitCount = allNames.length;
+        actualPrice = item.price * splitCount; // Restore original total price
+      }
+    }
+    
+    const key = `${item.product_name}_${actualPrice}`;
     const existing = acc.find(p => p.key === key);
+    
     if (existing) {
-      existing.quantity += item.quantity;
-      existing.members.push({ name: item.member_name, quantity: item.quantity, note: item.note });
+      // For split items, only count once (use orderer's entry)
+      if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
+        existing.quantity += item.quantity;
+        existing.members.push({ name: item.member_name, quantity: item.quantity, note: item.note });
+      }
     } else {
-      acc.push({
-        key,
-        product_name: item.product_name,
-        price: item.price,
-        quantity: item.quantity,
-        members: [{ name: item.member_name, quantity: item.quantity, note: item.note }]
-      });
+      // Only create entry if not split, or if this is the orderer
+      if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
+        acc.push({
+          key,
+          product_name: item.product_name,
+          price: actualPrice,
+          quantity: item.quantity,
+          members: [{ name: item.member_name, quantity: item.quantity, note: item.note }]
+        });
+      }
     }
     return acc;
   }, []);
