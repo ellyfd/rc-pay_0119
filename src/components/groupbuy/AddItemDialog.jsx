@@ -16,13 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Users } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [splitMode, setSplitMode] = useState(false);
   const [items, setItems] = useState([{
     product_name: '',
     quantity: 1,
@@ -34,8 +31,6 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     if (item) {
       // Editing single item mode
       setSelectedMember(item.member_id);
-      setSplitMode(false);
-      setSelectedMembers([]);
       setItems([{
         product_name: item.product_name,
         quantity: item.quantity,
@@ -45,8 +40,6 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     } else if (currentUser) {
       // Auto-select current user by default
       setSelectedMember(currentUser.id);
-      setSplitMode(false);
-      setSelectedMembers([]);
       setItems([{
         product_name: '',
         quantity: 1,
@@ -92,18 +85,13 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
   };
 
   const handleSubmit = () => {
-    // Validate members
-    if (splitMode) {
-      if (selectedMembers.length === 0) {
-        alert('請選擇至少一位成員進行平分！');
-        return;
-      }
-    } else {
-      if (!selectedMember) {
-        alert('請選擇成員！');
-        return;
-      }
+    if (!selectedMember) {
+      alert('請選擇成員！');
+      return;
     }
+
+    const member = members.find(m => m.id === selectedMember);
+    if (!member) return;
 
     // Validate all items
     const validItems = items.filter(item => 
@@ -117,52 +105,24 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
 
     // If editing, only submit single item
     if (item) {
-      const member = members.find(m => m.id === selectedMember);
-      if (!member) return;
-      
       onAdd({
         member_id: member.id,
         member_name: member.name,
         ...validItems[0]
       });
     } else {
-      // Split mode: divide items among selected members
-      if (splitMode) {
-        const splitMembers = members.filter(m => selectedMembers.includes(m.id));
-        const numMembers = splitMembers.length;
-        
-        validItems.forEach(validItem => {
-          const pricePerPerson = validItem.price / numMembers;
-          splitMembers.forEach(member => {
-            onAdd({
-              member_id: member.id,
-              member_name: member.name,
-              product_name: validItem.product_name,
-              quantity: validItem.quantity,
-              price: Math.round(pricePerPerson * 100) / 100, // Round to 2 decimal places
-              note: validItem.note ? `${validItem.note} (平分 ${numMembers} 人)` : `平分 ${numMembers} 人`
-            });
-          });
+      // Batch add - call onAdd for each valid item
+      validItems.forEach(validItem => {
+        onAdd({
+          member_id: member.id,
+          member_name: member.name,
+          ...validItem
         });
-      } else {
-        // Normal mode: single member
-        const member = members.find(m => m.id === selectedMember);
-        if (!member) return;
-        
-        validItems.forEach(validItem => {
-          onAdd({
-            member_id: member.id,
-            member_name: member.name,
-            ...validItem
-          });
-        });
-      }
+      });
     }
 
     // Reset form
     setSelectedMember(currentUser?.id || '');
-    setSelectedMembers([]);
-    setSplitMode(false);
     setItems([{
       product_name: '',
       quantity: 1,
@@ -184,76 +144,22 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Split Mode Toggle */}
-          {!item && (
-            <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-lg">
-              <Checkbox
-                id="splitMode"
-                checked={splitMode}
-                onCheckedChange={(checked) => {
-                  setSplitMode(checked);
-                  if (checked) {
-                    setSelectedMembers([]);
-                  }
-                }}
-              />
-              <label
-                htmlFor="splitMode"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
-              >
-                <Users className="w-4 h-4" />
-                多人平分模式（單價將自動平均分配給選擇的成員）
-              </label>
-            </div>
-          )}
-
           {/* Member Selection */}
-          {!splitMode ? (
-            <div>
-              <Label>跟團者 *</Label>
-              <Select value={selectedMember} onValueChange={setSelectedMember}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇成員" />
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map(member => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <div>
-              <Label>選擇平分成員 * (已選 {selectedMembers.length} 人)</Label>
-              <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
-                <div className="grid grid-cols-2 gap-2">
-                  {members.map(member => (
-                    <div key={member.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`member-${member.id}`}
-                        checked={selectedMembers.includes(member.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedMembers([...selectedMembers, member.id]);
-                          } else {
-                            setSelectedMembers(selectedMembers.filter(id => id !== member.id));
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={`member-${member.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {member.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          <div>
+            <Label>跟團者 *</Label>
+            <Select value={selectedMember} onValueChange={setSelectedMember}>
+              <SelectTrigger>
+                <SelectValue placeholder="選擇成員" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map(member => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Items Table */}
           <div className="border rounded-lg overflow-hidden">
@@ -386,12 +292,10 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={splitMode ? selectedMembers.length === 0 : !selectedMember}
+            disabled={!selectedMember}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {item ? '更新' : splitMode ? 
-              `平分給 ${selectedMembers.length} 人` : 
-              `新增 ${items.filter(i => i.product_name && i.price > 0).length} 個項目`}
+            {item ? '更新' : `新增 ${items.filter(i => i.product_name && i.price > 0).length} 個項目`}
           </Button>
         </DialogFooter>
       </DialogContent>
