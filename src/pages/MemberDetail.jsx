@@ -253,49 +253,63 @@ export default function MemberDetail() {
             <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
           </div>
 
-          {organizedGroupBuys.length === 0 ? (
+{organizedGroupBuys.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500">尚未開過團購</p>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {organizedGroupBuys.map((gb) => {
-                const allItems = groupBuyItems.filter(item => item.group_buy_id === gb.id);
-                const totalAmount = allItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const participantCount = new Set(allItems.map(item => item.member_id)).size;
-                
-                return (
-                  <Card key={gb.id} className="p-4 bg-amber-50 border-amber-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <Link 
-                          to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                          className="font-semibold text-slate-800 hover:text-purple-600"
-                        >
-                          {gb.title}
-                        </Link>
-                        <Badge 
-                          className={`ml-2 ${
-                            gb.status === 'open' ? 'bg-green-500' :
-                            gb.status === 'closed' ? 'bg-amber-500' :
-                            'bg-slate-500'
-                          }`}
-                        >
-                          {gb.status === 'open' ? '進行中' :
-                           gb.status === 'closed' ? '已截止' :
-                           '已結單'}
-                        </Badge>
-                        <div className="flex gap-4 mt-2 text-sm text-slate-600">
-                          <span>參與人數：{participantCount} 人</span>
-                          <span>總金額：${totalAmount.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">團購名稱</th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">狀態</th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">參與人數</th>
+                      <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">總金額</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {organizedGroupBuys.map((gb) => {
+                      const allItems = groupBuyItems.filter(item => item.group_buy_id === gb.id);
+                      const totalAmount = allItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                      const participantCount = new Set(allItems.map(item => item.member_id)).size;
+                      
+                      return (
+                        <tr key={gb.id} className="hover:bg-slate-50">
+                          <td className="px-4 py-3">
+                            <Link 
+                              to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
+                              className="font-medium text-slate-800 hover:text-purple-600"
+                            >
+                              {gb.title}
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge 
+                              className={`${
+                                gb.status === 'open' ? 'bg-green-500' :
+                                gb.status === 'closed' ? 'bg-amber-500' :
+                                'bg-slate-500'
+                              }`}
+                            >
+                              {gb.status === 'open' ? '進行中' :
+                               gb.status === 'closed' ? '已截止' :
+                               '已結單'}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center text-slate-700">{participantCount}</td>
+                          <td className="px-4 py-3 text-right font-semibold text-purple-600">
+                            ${totalAmount.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           )}
         </section>
 
@@ -307,7 +321,7 @@ export default function MemberDetail() {
             <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
           </div>
 
-          {groupBuyItemsLoading ? (
+{groupBuyItemsLoading ? (
             <Card className="p-4 animate-pulse">
               <div className="h-20 bg-slate-200 rounded" />
             </Card>
@@ -317,49 +331,71 @@ export default function MemberDetail() {
               <p className="text-slate-500">尚未參與任何團購</p>
             </Card>
           ) : (
-            <div className="space-y-4">
-              {groupBuysByMember.map((groupBuy) => (
-                <Card key={groupBuy.group_buy_id} className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <Link 
-                        to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
-                        className="font-semibold text-slate-800 hover:text-purple-600"
-                      >
-                        {groupBuy.group_buy_title}
-                      </Link>
-                      <Badge 
-                        className={`ml-2 ${
-                          groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
-                          groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
-                          'bg-slate-500'
-                        }`}
-                      >
-                        {groupBuy.group_buy_status === 'open' ? '進行中' :
-                         groupBuy.group_buy_status === 'closed' ? '已截止' :
-                         '已結單'}
-                      </Badge>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-purple-600">${groupBuy.total.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {groupBuy.items.map((item) => (
-                      <div key={item.id} className="flex justify-between text-sm bg-slate-50 rounded-lg px-3 py-2">
-                        <div className="flex-1">
-                          <span className="text-slate-700">{item.product_name}</span>
-                          {item.note && <span className="text-slate-400 ml-2">({item.note})</span>}
-                        </div>
-                        <div className="text-slate-600">
-                          × {item.quantity} @ ${item.price.toLocaleString()}
-                        </div>
-                      </div>
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">團購名稱</th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">狀態</th>
+                      <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購項目</th>
+                      <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {groupBuysByMember.map((groupBuy) => (
+                      groupBuy.items.map((item, itemIdx) => (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          {itemIdx === 0 && (
+                            <>
+                              <td className="px-4 py-3 align-top" rowSpan={groupBuy.items.length}>
+                                <Link 
+                                  to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
+                                  className="font-medium text-slate-800 hover:text-purple-600"
+                                >
+                                  {groupBuy.group_buy_title}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-3 text-center align-top" rowSpan={groupBuy.items.length}>
+                                <Badge 
+                                  className={`${
+                                    groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
+                                    groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
+                                    'bg-slate-500'
+                                  }`}
+                                >
+                                  {groupBuy.group_buy_status === 'open' ? '進行中' :
+                                   groupBuy.group_buy_status === 'closed' ? '已截止' :
+                                   '已結單'}
+                                </Badge>
+                              </td>
+                            </>
+                          )}
+                          <td className="px-4 py-3">
+                            <div className="text-slate-700">
+                              {item.product_name}
+                              {item.note && <span className="text-slate-400 ml-2">({item.note})</span>}
+                            </div>
+                            <div className="text-sm text-slate-500">
+                              × {item.quantity} @ ${item.price.toLocaleString()}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right text-slate-700">
+                            ${(item.price * item.quantity).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))
                     ))}
-                  </div>
-                </Card>
-              ))}
-            </div>
+                    <tr className="bg-slate-50 font-semibold">
+                      <td colSpan={3} className="px-4 py-3 text-right">總計</td>
+                      <td className="px-4 py-3 text-right text-purple-600">
+                        ${groupBuysByMember.reduce((sum, gb) => sum + gb.total, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           )}
         </section>
 
