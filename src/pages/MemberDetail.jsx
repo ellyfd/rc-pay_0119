@@ -126,12 +126,6 @@ export default function MemberDetail() {
   // Group buys organized by this member
   const organizedGroupBuys = allGroupBuys.filter(gb => gb.organizer_id === memberId);
 
-  // Get all group buy items for calculating payment status
-  const { data: allGroupBuyItems = [] } = useQuery({
-    queryKey: ['allGroupBuyItems'],
-    queryFn: () => base44.entities.GroupBuyItem.list('-created_date'),
-  });
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
@@ -219,104 +213,6 @@ export default function MemberDetail() {
             </p>
           </Card>
         </div>
-
-        {/* Organized Group Buys */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Package className="w-5 h-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-slate-800">開團紀錄</h2>
-            <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
-          </div>
-
-          {organizedGroupBuys.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
-              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚未開過團購</p>
-            </Card>
-          ) : (
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">團購名稱</th>
-                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">狀態</th>
-                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">參與人數</th>
-                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款進度</th>
-                      <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">總金額</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {organizedGroupBuys.map((gb) => {
-                      const items = allGroupBuyItems.filter(item => item.group_buy_id === gb.id);
-                      const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                      
-                      // Group by member to count unique participants and payment status
-                      const memberGroups = items.reduce((acc, item) => {
-                        const existing = acc.find(m => m.member_id === item.member_id);
-                        if (existing) {
-                          existing.items.push(item);
-                          existing.allPaid = existing.allPaid && item.paid;
-                        } else {
-                          acc.push({
-                            member_id: item.member_id,
-                            items: [item],
-                            allPaid: item.paid || false
-                          });
-                        }
-                        return acc;
-                      }, []);
-                      
-                      const participantCount = memberGroups.length;
-                      const paidCount = memberGroups.filter(m => m.allPaid).length;
-                      const allPaid = paidCount === participantCount && participantCount > 0;
-                      
-                      return (
-                        <tr key={gb.id} className="hover:bg-slate-50">
-                          <td className="px-4 py-3">
-                            <Link 
-                              to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                              className="font-medium text-slate-800 hover:text-purple-600"
-                            >
-                              {gb.title}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge 
-                              className={`${
-                                gb.status === 'open' ? 'bg-green-500' :
-                                gb.status === 'closed' ? 'bg-amber-500' :
-                                'bg-slate-500'
-                              }`}
-                            >
-                              {gb.status === 'open' ? '進行中' :
-                               gb.status === 'closed' ? '已截止' :
-                               '已結單'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-700">{participantCount}</td>
-                          <td className="px-4 py-3 text-center">
-                            {gb.status === 'open' ? (
-                              <span className="text-slate-400 text-sm">-</span>
-                            ) : (
-                              <span className={`font-medium ${allPaid ? 'text-green-600' : 'text-amber-600'}`}>
-                                {paidCount} / {participantCount}
-                                {allPaid && ' ✓'}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold text-purple-600">
-                            ${totalAmount.toLocaleString()}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-        </section>
 
         {/* Group Buy Section */}
         <section>
