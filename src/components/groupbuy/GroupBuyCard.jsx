@@ -48,7 +48,13 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2 text-slate-600">
             <Users className="w-4 h-4" />
-            <span>開團者：{groupBuy.organizer_name} (ID: {groupBuy.organizer_id})</span>
+            <span>開團者：</span>
+            <Link 
+              to={createPageUrl('MemberDetail') + '?id=' + groupBuy.organizer_id}
+              className="text-purple-600 hover:text-purple-700 hover:underline"
+            >
+              {groupBuy.organizer_name}
+            </Link>
           </div>
           {groupBuy.deadline && (
             <div className="flex items-center gap-2 text-slate-600">
