@@ -391,15 +391,8 @@ export default function MemberDetail() {
                           )}
                         </tr>
                       ));
-                    })}
-                    <tr className="bg-slate-50 font-semibold">
-                      <td colSpan={6} className="px-4 py-3 text-right">總計</td>
-                      <td className="px-4 py-3 text-right text-purple-600">
-                        ${groupBuysByMember.reduce((sum, gb) => sum + gb.total, 0).toLocaleString()}
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tbody>
+                      })}
+                      </tbody>
                 </table>
               </div>
             </Card>
