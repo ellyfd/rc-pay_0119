@@ -206,6 +206,60 @@ export default function GroupBuyDetail() {
     }
     
     const newPaidStatus = !summary.paid;
+    
+    // If marking as paid and using RC Pay, deduct from member balance
+    if (newPaidStatus) {
+      const rcpayItems = summary.items.filter(item => item.payment_method === 'rcpay');
+      if (rcpayItems.length > 0) {
+        const rcpayTotal = rcpayItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const member = members.find(m => m.id === summary.member_id);
+        
+        if (member && member.balance < rcpayTotal) {
+          alert(`${member.name} 的錢包餘額不足！需要 $${rcpayTotal}，目前餘額 $${member.balance}`);
+          return;
+        }
+        
+        // Create transaction and update member balance
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: rcpayTotal,
+          wallet_type: 'balance',
+          from_member_id: summary.member_id,
+          from_member_name: summary.member_name,
+          note: `團購付款：${groupBuy.title}`
+        });
+        
+        await updateMember.mutateAsync({
+          id: summary.member_id,
+          data: { balance: member.balance - rcpayTotal }
+        });
+      }
+    }
+    
+    // If marking as unpaid and was RC Pay, refund to member balance
+    if (!newPaidStatus) {
+      const rcpayItems = summary.items.filter(item => item.payment_method === 'rcpay');
+      if (rcpayItems.length > 0) {
+        const rcpayTotal = rcpayItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const member = members.find(m => m.id === summary.member_id);
+        
+        // Create transaction and update member balance
+        await createTransaction.mutateAsync({
+          type: 'deposit',
+          amount: rcpayTotal,
+          wallet_type: 'balance',
+          to_member_id: summary.member_id,
+          to_member_name: summary.member_name,
+          note: `團購退款：${groupBuy.title}`
+        });
+        
+        await updateMember.mutateAsync({
+          id: summary.member_id,
+          data: { balance: member.balance + rcpayTotal }
+        });
+      }
+    }
+    
     // Update all items for this member
     for (const item of summary.items) {
       await updateItem.mutateAsync({
