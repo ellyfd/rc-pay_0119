@@ -16,8 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Users } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
@@ -25,9 +24,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     product_name: '',
     quantity: 1,
     price: 0,
-    note: '',
-    split: false,
-    splitMembers: []
+    note: ''
   }]);
 
   useEffect(() => {
@@ -38,9 +35,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: item.product_name,
         quantity: item.quantity,
         price: item.price,
-        note: item.note || '',
-        split: false,
-        splitMembers: []
+        note: item.note || ''
       }]);
     } else if (currentUser) {
       // Auto-select current user by default
@@ -49,9 +44,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: '',
         quantity: 1,
         price: 0,
-        note: '',
-        split: false,
-        splitMembers: []
+        note: ''
       }]);
     }
   }, [item, currentUser, open]);
@@ -61,9 +54,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       product_name: '',
       quantity: 1,
       price: 0,
-      note: '',
-      split: false,
-      splitMembers: []
+      note: ''
     }]);
   };
 
@@ -87,50 +78,10 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: product.product_name,
         quantity: 1,
         price: product.price,
-        note: product.description || '',
-        split: false,
-        splitMembers: []
+        note: product.description || ''
       };
       setItems(newItems);
     }
-  };
-
-  const toggleSplit = (index) => {
-    const newItems = [...items];
-    newItems[index].split = !newItems[index].split;
-    if (!newItems[index].split) {
-      newItems[index].splitMembers = [];
-    } else {
-      // Auto-add current member when enabling split
-      if (selectedMember) {
-        newItems[index].splitMembers = [{
-          member_id: selectedMember,
-          quantity: 1
-        }];
-      }
-    }
-    setItems(newItems);
-  };
-
-  const addSplitMember = (itemIndex) => {
-    const newItems = [...items];
-    newItems[itemIndex].splitMembers.push({
-      member_id: '',
-      quantity: 1
-    });
-    setItems(newItems);
-  };
-
-  const removeSplitMember = (itemIndex, memberIndex) => {
-    const newItems = [...items];
-    newItems[itemIndex].splitMembers = newItems[itemIndex].splitMembers.filter((_, i) => i !== memberIndex);
-    setItems(newItems);
-  };
-
-  const updateSplitMember = (itemIndex, memberIndex, field, value) => {
-    const newItems = [...items];
-    newItems[itemIndex].splitMembers[memberIndex][field] = value;
-    setItems(newItems);
   };
 
   const handleSubmit = () => {
@@ -162,32 +113,11 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     } else {
       // Batch add - call onAdd for each valid item
       validItems.forEach(validItem => {
-        // If split mode is enabled, create items for each member
-        if (validItem.split && validItem.splitMembers.length > 0) {
-          validItem.splitMembers.forEach(splitMember => {
-            const splitMemberData = members.find(m => m.id === splitMember.member_id);
-            if (splitMemberData && splitMember.quantity > 0) {
-              onAdd({
-                member_id: splitMemberData.id,
-                member_name: splitMemberData.name,
-                product_name: validItem.product_name,
-                quantity: splitMember.quantity,
-                price: validItem.price,
-                note: validItem.note
-              });
-            }
-          });
-        } else {
-          // Normal mode - add to selected member
-          onAdd({
-            member_id: member.id,
-            member_name: member.name,
-            product_name: validItem.product_name,
-            quantity: validItem.quantity,
-            price: validItem.price,
-            note: validItem.note
-          });
-        }
+        onAdd({
+          member_id: member.id,
+          member_name: member.name,
+          ...validItem
+        });
       });
     }
 
@@ -197,9 +127,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
       product_name: '',
       quantity: 1,
       price: 0,
-      note: '',
-      split: false,
-      splitMembers: []
+      note: ''
     }]);
     onOpenChange(false);
   };
@@ -242,20 +170,16 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                   <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-24">數量 *</th>
                   <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-28">單價 *</th>
                   <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">備註</th>
-                  {!item && (
-                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-20">平分</th>
-                  )}
                   <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-28">小計</th>
                   {!item && (
                     <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
                   )}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y">
                 {items.map((rowItem, index) => (
-                  <React.Fragment key={index}>
-                    <tr className={rowItem.split ? 'border-b-0' : ''}>
-                      <td className="px-3 py-2">
+                  <tr key={index}>
+                    <td className="px-3 py-2">
                       {presetProducts.length > 0 && !item ? (
                         <div className="flex gap-2">
                           <Select
@@ -308,108 +232,41 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                         className="h-9 text-right"
                       />
                     </td>
-                      <td className="px-3 py-2">
-                        <Input
-                          value={rowItem.note}
-                          onChange={(e) => updateItem(index, 'note', e.target.value)}
-                          placeholder="規格、顏色..."
-                          className="h-9"
-                        />
+                    <td className="px-3 py-2">
+                      <Input
+                        value={rowItem.note}
+                        onChange={(e) => updateItem(index, 'note', e.target.value)}
+                        placeholder="規格、顏色..."
+                        className="h-9"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-right font-medium text-slate-700">
+                      ${(rowItem.price * rowItem.quantity).toLocaleString()}
+                    </td>
+                    {!item && (
+                      <td className="px-3 py-2 text-center">
+                        {items.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeRow(index)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </td>
-                      {!item && (
-                        <td className="px-3 py-2 text-center">
-                          <Checkbox
-                            checked={rowItem.split}
-                            onCheckedChange={() => toggleSplit(index)}
-                          />
-                        </td>
-                      )}
-                      <td className="px-3 py-2 text-right font-medium text-slate-700">
-                        ${(rowItem.price * (rowItem.split ? rowItem.splitMembers.reduce((sum, m) => sum + m.quantity, 0) : rowItem.quantity)).toLocaleString()}
-                      </td>
-                      {!item && (
-                        <td className="px-3 py-2 text-center">
-                          {items.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeRow(index)}
-                              className="h-8 w-8 text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                    {!item && rowItem.split && (
-                      <tr>
-                        <td colSpan={7} className="px-3 py-2 bg-slate-50 border-b">
-                          <div className="flex items-start gap-2">
-                            <Users className="w-4 h-4 text-slate-500 mt-2" />
-                            <div className="flex-1 space-y-2">
-                              <div className="text-xs font-semibold text-slate-600 mb-2">平分成員：</div>
-                              {rowItem.splitMembers.map((splitMember, memberIndex) => (
-                                <div key={memberIndex} className="flex gap-2 items-center">
-                                  <Select
-                                    value={splitMember.member_id}
-                                    onValueChange={(value) => updateSplitMember(index, memberIndex, 'member_id', value)}
-                                  >
-                                    <SelectTrigger className="h-8 flex-1">
-                                      <SelectValue placeholder="選擇成員" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {members.map(m => (
-                                        <SelectItem key={m.id} value={m.id}>
-                                          {m.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    value={splitMember.quantity}
-                                    onChange={(e) => updateSplitMember(index, memberIndex, 'quantity', parseInt(e.target.value) || 1)}
-                                    className="h-8 w-20 text-center"
-                                    placeholder="數量"
-                                  />
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeSplitMember(index, memberIndex)}
-                                    className="h-8 w-8 text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              ))}
-                              <Button
-                                onClick={() => addSplitMember(index)}
-                                variant="outline"
-                                size="sm"
-                                className="w-full"
-                              >
-                                <Plus className="w-3 h-3 mr-1" />
-                                新增成員
-                              </Button>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
                     )}
-                  </React.Fragment>
+                  </tr>
                 ))}
               </tbody>
               <tfoot className="bg-slate-50 border-t">
                 <tr>
-                  <td colSpan={item ? 4 : 6} className="px-3 py-2 text-right font-semibold text-slate-700">
+                  <td colSpan={item ? 4 : 5} className="px-3 py-2 text-right font-semibold text-slate-700">
                     總計
                   </td>
                   <td className="px-3 py-2 text-right text-lg font-bold text-purple-600">
-                    ${items.reduce((sum, item) => 
-                      sum + (item.price * (item.split ? item.splitMembers.reduce((s, m) => s + m.quantity, 0) : item.quantity)), 0
-                    ).toLocaleString()}
+                    ${totalAmount.toLocaleString()}
                   </td>
                   {!item && <td></td>}
                 </tr>
