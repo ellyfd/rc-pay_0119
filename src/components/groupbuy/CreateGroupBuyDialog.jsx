@@ -272,33 +272,9 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <h3 className="font-semibold text-purple-900">AI 快速辨識商品</h3>
             </div>
             
-            {/* URL Analysis */}
-            <div>
-              <Label className="text-sm">方法一：貼上網址</Label>
-              <p className="text-xs text-slate-500 mb-2">貼上餐廳或商品網頁連結，AI 自動識別</p>
-              <div className="flex gap-2">
-                <Input
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://..."
-                  type="url"
-                  className="flex-1 bg-white"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAnalyzeUrl}
-                  disabled={analyzingUrl || !urlInput.trim()}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <LinkIcon className="w-4 h-4 mr-2" />
-                  {analyzingUrl ? '分析中...' : 'AI 辨識'}
-                </Button>
-              </div>
-            </div>
-
             {/* Image Upload */}
             <div>
-              <Label className="text-sm">方法二：上傳圖片（可多張）</Label>
+              <Label className="text-sm">方法一：上傳圖片（可多張）</Label>
               <p className="text-xs text-slate-500 mb-2">上傳菜單或商品圖片，AI 自動識別</p>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="outline"
@@ -348,6 +324,30 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                   ))}
                 </div>
               }
+            </div>
+
+            {/* URL Analysis */}
+            <div>
+              <Label className="text-sm">方法二：貼上網址</Label>
+              <p className="text-xs text-slate-500 mb-2">貼上餐廳或商品網頁連結，AI 自動識別</p>
+              <div className="flex gap-2">
+                <Input
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://..."
+                  type="url"
+                  className="flex-1 bg-white"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAnalyzeUrl}
+                  disabled={analyzingUrl || !urlInput.trim()}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  {analyzingUrl ? '分析中...' : 'AI 辨識'}
+                </Button>
+              </div>
             </div>
           </div>
 
