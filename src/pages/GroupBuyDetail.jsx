@@ -425,56 +425,85 @@ ${itemsList}
                 {isOpen && <p className="text-slate-400 text-sm">點擊「新增項目」開始跟團！</p>}
               </Card>
             ) : (
-              <div className="space-y-4">
-                {memberSummary.map(summary => (
-                  <Card key={summary.member_id} className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-slate-800">{summary.member_name}</h3>
-                      <span className="text-lg font-bold text-purple-600">
-                        ${summary.total.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {summary.items.map(item => (
-                        <div key={item.id} className="flex items-start justify-between bg-slate-50 rounded-lg p-3">
-                          <div className="flex-1">
-                            <div className="font-medium text-slate-700">{item.product_name}</div>
-                            <div className="text-sm text-slate-500">
-                              ${item.price} × {item.quantity} = ${(item.price * item.quantity).toLocaleString()}
-                            </div>
-                            {item.note && (
-                              <div className="text-xs text-slate-400 mt-1">備註：{item.note}</div>
+              <Card>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b">
+                      <tr>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">成員</th>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品</th>
+                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
+                        {((isOrganizer || items.some(i => i.member_id === currentUser?.id)) && isOpen) && (
+                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">操作</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {memberSummary.map((summary, summaryIdx) => (
+                        summary.items.map((item, itemIdx) => (
+                          <tr key={item.id} className="hover:bg-slate-50">
+                            {itemIdx === 0 && (
+                              <td 
+                                className="px-4 py-3 font-medium text-slate-800 align-top"
+                                rowSpan={summary.items.length}
+                              >
+                                {summary.member_name}
+                              </td>
                             )}
-                          </div>
-                          {(isOrganizer || (currentUser && item.member_id === currentUser.id)) && isOpen && (
-                            <div className="flex gap-1 ml-3">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setEditingItem(item);
-                                  setShowAddItem(true);
-                                }}
-                                className="h-8 w-8"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeletingItem(item)}
-                                className="h-8 w-8 text-red-500"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+                            <td className="px-4 py-3">
+                              <div className="text-slate-700">{item.product_name}</div>
+                              {item.note && (
+                                <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
+                            <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-medium text-slate-800">
+                              ${(item.price * item.quantity).toLocaleString()}
+                            </td>
+                            {((isOrganizer || (currentUser && item.member_id === currentUser.id)) && isOpen) && (
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1 justify-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setEditingItem(item);
+                                      setShowAddItem(true);
+                                    }}
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setDeletingItem(item)}
+                                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))
                       ))}
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                      <tr className="bg-slate-50 font-semibold">
+                        <td colSpan={4} className="px-4 py-3 text-right text-slate-700">總計</td>
+                        <td className="px-4 py-3 text-right text-lg text-purple-600">
+                          ${totalAmount.toLocaleString()}
+                        </td>
+                        {((isOrganizer || items.some(i => i.member_id === currentUser?.id)) && isOpen) && (
+                          <td></td>
+                        )}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
             )}
           </div>
         </div>
