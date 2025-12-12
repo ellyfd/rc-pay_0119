@@ -515,15 +515,16 @@ export default function GroupBuyDetail() {
                                 rowSpan={summary.items.length}
                               >
                                 <div className="flex items-center justify-center">
-                                  <Button
-                                    variant={summary.paid ? "default" : "outline"}
-                                    size="sm"
+                                  <button
                                     onClick={() => handleTogglePaid(summary)}
-                                    className={summary.paid ? "bg-green-600 hover:bg-green-700" : ""}
+                                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                      summary.paid 
+                                        ? 'bg-green-600 border-green-600' 
+                                        : 'border-slate-300 hover:border-slate-400'
+                                    }`}
                                   >
-                                    {summary.paid ? <CheckCircle className="w-4 h-4 mr-1" /> : <X className="w-4 h-4 mr-1" />}
-                                    {summary.paid ? '已收款' : '未收款'}
-                                  </Button>
+                                    {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
+                                  </button>
                                 </div>
                               </td>
                             )}
