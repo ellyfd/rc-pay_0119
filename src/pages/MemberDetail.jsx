@@ -330,14 +330,17 @@ export default function MemberDetail() {
                     <tr>
                       <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">團購名稱</th>
                       <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">狀態</th>
-                      <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購項目</th>
+                      <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">商品</th>
+                      <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
+                      <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">單價</th>
                       <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
                       <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付狀態</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {groupBuysByMember.map((groupBuy) => (
-                      groupBuy.items.map((item, itemIdx) => (
+                    {groupBuysByMember.map((groupBuy) => {
+                      const allPaid = groupBuy.items.every(item => item.paid);
+                      return groupBuy.items.map((item, itemIdx) => (
                         <tr key={item.id} className="hover:bg-slate-50">
                           {itemIdx === 0 && (
                             <>
@@ -364,28 +367,27 @@ export default function MemberDetail() {
                               </td>
                             </>
                           )}
-                          <td className="px-4 py-3">
-                            <div className="text-slate-700">
-                              {item.product_name}
-                              {item.note && <span className="text-slate-400 ml-2">({item.note})</span>}
-                            </div>
-                            <div className="text-sm text-slate-500">
-                              × {item.quantity} @ ${item.price.toLocaleString()}
-                            </div>
+                          <td className="px-4 py-3 text-slate-700">
+                            {item.product_name}
+                            {item.note && <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>}
                           </td>
-                          <td className="px-4 py-3 text-right text-slate-700">
+                          <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
+                          <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right font-medium text-slate-800">
                             ${(item.price * item.quantity).toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge className={item.paid ? 'bg-green-500' : 'bg-amber-500'}>
-                              {item.paid ? '已付款' : '未付款'}
-                            </Badge>
-                          </td>
+                          {itemIdx === 0 && (
+                            <td className="px-4 py-3 text-center align-top" rowSpan={groupBuy.items.length}>
+                              <Badge className={allPaid ? 'bg-green-500' : 'bg-amber-500'}>
+                                {allPaid ? '已付款' : '未付款'}
+                              </Badge>
+                            </td>
+                          )}
                         </tr>
-                      ))
-                    ))}
+                      ));
+                    })}
                     <tr className="bg-slate-50 font-semibold">
-                      <td colSpan={3} className="px-4 py-3 text-right">總計</td>
+                      <td colSpan={5} className="px-4 py-3 text-right">總計</td>
                       <td className="px-4 py-3 text-right text-purple-600">
                         ${groupBuysByMember.reduce((sum, gb) => sum + gb.total, 0).toLocaleString()}
                       </td>
