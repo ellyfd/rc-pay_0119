@@ -154,12 +154,13 @@ export default function GroupBuyDetail() {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const shareUrl = `${window.location.origin}${createPageUrl('GroupBuyDetail')}?id=${groupBuyId}`;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       alert('團購連結已複製到剪貼簿！');
     } catch (error) {
-      alert('複製失敗，請手動複製：\n' + url);
+      // Fallback: show URL in prompt
+      prompt('複製此連結：', shareUrl);
     }
   };
 
