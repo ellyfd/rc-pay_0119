@@ -209,21 +209,21 @@ export default function Home() {
             <div className="flex gap-2">
               {currentMember && (
                 <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
-                  <Button variant="ghost" className="text-white hover:bg-slate-800">
+                  <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
                     <User className="w-5 h-5 mr-2" />
                     個人資料
                   </Button>
                 </Link>
               )}
               <Link to={createPageUrl('MemberManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-slate-800">
+                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
                   <Settings className="w-5 h-5 mr-2" />
                   成員管理
                 </Button>
               </Link>
               <Button 
                 variant="ghost" 
-                className="text-white hover:bg-slate-800"
+                className="text-white hover:bg-white hover:text-slate-900"
                 onClick={() => base44.auth.logout()}
               >
                 登出
