@@ -19,12 +19,26 @@ import { Input } from "@/components/ui/input";
 export default function FoodOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedMember, setSelectedMember] = useState('');
+  const [isOrderingForOthers, setIsOrderingForOthers] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [mealBoxId, setMealBoxId] = useState('');
   const [riceOption, setRiceOption] = useState('normal');
   const [sideDishes, setSideDishes] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('balance');
   const [note, setNote] = useState('');
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    };
+    loadUser();
+  }, []);
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
