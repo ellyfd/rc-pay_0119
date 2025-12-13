@@ -219,56 +219,43 @@ export default function GroupBuyDetail() {
     });
   };
 
+  // Calculate applicable discount for a product
+  const getApplicableDiscount = (productName) => {
+    if (!groupBuy.discount_rules || groupBuy.discount_rules.length === 0) {
+      return null;
+    }
+
+    // Calculate total quantity across all members for this product
+    const totalQuantity = items
+      .filter(item => item.product_name === productName)
+      .reduce((sum, item) => sum + item.quantity, 0);
+
+    // Find applicable discount rule (highest min_quantity that is met)
+    const sortedRules = [...groupBuy.discount_rules].sort((a, b) => b.min_quantity - a.min_quantity);
+    const applicableRule = sortedRules.find(rule => totalQuantity >= rule.min_quantity);
+
+    return applicableRule;
+  };
+
+  // Calculate discounted price
+  const getDiscountedPrice = (productName, originalPrice) => {
+    const discount = getApplicableDiscount(productName);
+    if (!discount || discount.discount_percent === 0) {
+      return originalPrice;
+    }
+    const discountMultiplier = 1 - (discount.discount_percent / 100);
+    return Math.round(originalPrice * discountMultiplier * 100) / 100;
+  };
+
   const handleCompleteGroupBuy = async () => {
     if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
-
-    // Apply discount rules if any
-    if (groupBuy.discount_rules && groupBuy.discount_rules.length > 0) {
-      // Group items by product to calculate total quantity
-      const productQuantities = {};
-      items.forEach(item => {
-        const key = item.product_name;
-        if (!productQuantities[key]) {
-          productQuantities[key] = { total: 0, items: [] };
-        }
-        productQuantities[key].total += item.quantity;
-        productQuantities[key].items.push(item);
-      });
-
-      // Sort discount rules by min_quantity descending
-      const sortedRules = [...groupBuy.discount_rules].sort((a, b) => b.min_quantity - a.min_quantity);
-
-      // Apply discounts
-      for (const [productName, data] of Object.entries(productQuantities)) {
-        // Find applicable discount rule
-        const applicableRule = sortedRules.find(rule => data.total >= rule.min_quantity);
-        
-        if (applicableRule && applicableRule.discount_percent > 0) {
-          const discountMultiplier = 1 - (applicableRule.discount_percent / 100);
-          
-          // Update all items for this product with discounted price
-          for (const item of data.items) {
-            const newPrice = Math.round(item.price * discountMultiplier * 100) / 100;
-            await updateItem.mutateAsync({
-              id: item.id,
-              data: { 
-                price: newPrice,
-                note: item.note ? 
-                  `${item.note}（已套用${applicableRule.discount_percent}%折扣）` : 
-                  `已套用${applicableRule.discount_percent}%折扣，原價$${item.price}`
-              }
-            });
-          }
-        }
-      }
-    }
 
     await updateGroupBuy.mutateAsync({
       id: groupBuyId,
       data: { status: 'completed' }
     });
 
-    alert('結單完成！已自動套用折扣規則，請查看下方訂購彙總表。');
+    alert('結單完成！請查看下方訂購彙總表。');
   };
 
   const handleTogglePaid = async (summary) => {
@@ -372,7 +359,8 @@ export default function GroupBuyDetail() {
   // Group items by member
   const memberSummary = items.reduce((acc, item) => {
     const existing = acc.find(m => m.member_id === item.member_id);
-    const itemTotal = item.price * item.quantity;
+    const discountedPrice = getDiscountedPrice(item.product_name, item.price);
+    const itemTotal = discountedPrice * item.quantity;
     if (existing) {
       existing.items.push(item);
       existing.total += itemTotal;
@@ -699,7 +687,8 @@ export default function GroupBuyDetail() {
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">成員</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品</th>
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">金額</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">原價</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
@@ -734,11 +723,39 @@ export default function GroupBuyDetail() {
                             )}
                             <td className="px-4 py-3">
                               <div className="text-slate-700">{item.product_name}</div>
+                              {(() => {
+                                const discount = getApplicableDiscount(item.product_name);
+                                const totalQty = items
+                                  .filter(i => i.product_name === item.product_name)
+                                  .reduce((sum, i) => sum + i.quantity, 0);
+                                if (discount) {
+                                  return (
+                                    <div className="text-xs text-amber-600 mt-1">
+                                      🎉 全團 {totalQty} 件，享 {discount.discount_percent}% off
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-medium text-slate-700">
+                              {(() => {
+                                const discountedPrice = getDiscountedPrice(item.product_name, item.price);
+                                const hasDiscount = discountedPrice !== item.price;
+                                return (
+                                  <span className={hasDiscount ? 'text-amber-600' : ''}>
+                                    ${discountedPrice.toLocaleString()}
+                                  </span>
+                                );
+                              })()}
+                            </td>
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
-                              ${(item.price * item.quantity).toLocaleString()}
+                              {(() => {
+                                const discountedPrice = getDiscountedPrice(item.product_name, item.price);
+                                return `$${(discountedPrice * item.quantity).toLocaleString()}`;
+                              })()}
                             </td>
                             {isOrganizer && groupBuy.status !== 'open' && (
                               <td className="px-4 py-3 text-center">
@@ -827,9 +844,9 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={isOrganizer && groupBuy.status !== 'open' ? 6 : 5} className="px-4 py-3 text-right text-slate-700">總計</td>
+                        <td colSpan={isOrganizer && groupBuy.status !== 'open' ? 7 : 6} className="px-4 py-3 text-right text-slate-700">總計</td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
-                          ${totalAmount.toLocaleString()}
+                          ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <td></td>
