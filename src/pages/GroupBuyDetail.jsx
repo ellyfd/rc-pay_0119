@@ -627,32 +627,48 @@ export default function GroupBuyDetail() {
                     <thead className="bg-slate-50 border-b">
                       <tr>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品名稱</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">單價</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">原價</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">總數量</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購明細</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {productSummary.map((product) => (
-                        <tr key={product.key} className="hover:bg-slate-50">
-                          <td className="px-4 py-3 font-medium text-slate-800">{product.product_name}</td>
-                          <td className="px-4 py-3 text-right text-slate-700">${product.price.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-block bg-purple-100 text-purple-800 font-semibold px-3 py-1 rounded">
-                              {product.quantity}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm space-y-1">
-                              {product.members.map((member, idx) => (
-                                <div key={idx} className="text-slate-600">
-                                  • {member.name} × {member.quantity}
+                      {productSummary.map((product) => {
+                        const discountedPrice = getDiscountedPrice(product.price);
+                        const hasDiscount = discountedPrice !== product.price;
+                        const discount = getApplicableDiscount();
+                        return (
+                          <tr key={product.key} className="hover:bg-slate-50">
+                            <td className="px-4 py-3 font-medium text-slate-800">{product.product_name}</td>
+                            <td className="px-4 py-3 text-right text-slate-700">${product.price.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-medium">
+                              <span className={hasDiscount ? 'text-amber-600 font-semibold' : 'text-slate-700'}>
+                                ${discountedPrice.toLocaleString()}
+                              </span>
+                              {hasDiscount && discount && (
+                                <div className="text-xs text-green-600 mt-0.5">
+                                  ({discount.discount_percent}% off)
                                 </div>
-                              ))}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="inline-block bg-purple-100 text-purple-800 font-semibold px-3 py-1 rounded">
+                                {product.quantity}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="text-sm space-y-1">
+                                {product.members.map((member, idx) => (
+                                  <div key={idx} className="text-slate-600">
+                                    • {member.name} × {member.quantity}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
