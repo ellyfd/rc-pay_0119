@@ -542,36 +542,10 @@ export default function GroupBuyDetail() {
                     <span className="text-slate-600">參與人數</span>
                     <span className="text-lg font-bold text-purple-600">{memberSummary.length} 人</span>
                   </div>
-                  {(() => {
-                    const discount = getApplicableDiscount();
-                    const originalTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                    const discountedTotal = memberSummary.reduce((sum, m) => sum + m.total, 0);
-
-                    if (discount && discount.discount_percent > 0) {
-                      return (
-                        <>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-slate-500 text-sm">原價總額</span>
-                            <span className="text-slate-500 line-through">${originalTotal.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-amber-600 font-semibold">折扣後總額 ({discount.discount_percent}% off)</span>
-                            <span className="text-2xl font-bold text-amber-600">${discountedTotal.toLocaleString()}</span>
-                          </div>
-                          <div className="text-center text-xs text-green-600 font-semibold mb-2">
-                            💰 全團省下 ${(originalTotal - discountedTotal).toLocaleString()}
-                          </div>
-                        </>
-                      );
-                    } else {
-                      return (
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-slate-600">總金額</span>
-                          <span className="text-2xl font-bold text-slate-800">${originalTotal.toLocaleString()}</span>
-                        </div>
-                      );
-                    }
-                  })()}
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-600">總金額</span>
+                    <span className="text-2xl font-bold text-slate-800">${totalAmount.toLocaleString()}</span>
+                  </div>
                   {isOrganizer && groupBuy.status !== 'open' && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-slate-600">已付款</span>
