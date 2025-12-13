@@ -219,16 +219,18 @@ export default function GroupBuyDetail() {
     });
   };
 
-  // Calculate applicable discount for a product
-  const getApplicableDiscount = (productName) => {
+  // Calculate total quantity across all items in the group buy
+  const getTotalQuantity = () => {
+    return items.reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+  // Calculate applicable discount based on total group buy quantity
+  const getApplicableDiscount = () => {
     if (!groupBuy.discount_rules || groupBuy.discount_rules.length === 0) {
       return null;
     }
 
-    // Calculate total quantity across all members for this product
-    const totalQuantity = items
-      .filter(item => item.product_name === productName)
-      .reduce((sum, item) => sum + item.quantity, 0);
+    const totalQuantity = getTotalQuantity();
 
     // Find applicable discount rule (highest min_quantity that is met)
     const sortedRules = [...groupBuy.discount_rules].sort((a, b) => b.min_quantity - a.min_quantity);
@@ -238,8 +240,8 @@ export default function GroupBuyDetail() {
   };
 
   // Calculate discounted price
-  const getDiscountedPrice = (productName, originalPrice) => {
-    const discount = getApplicableDiscount(productName);
+  const getDiscountedPrice = (originalPrice) => {
+    const discount = getApplicableDiscount();
     if (!discount || discount.discount_percent === 0) {
       return originalPrice;
     }
@@ -359,7 +361,7 @@ export default function GroupBuyDetail() {
   // Group items by member
   const memberSummary = items.reduce((acc, item) => {
     const existing = acc.find(m => m.member_id === item.member_id);
-    const discountedPrice = getDiscountedPrice(item.product_name, item.price);
+    const discountedPrice = getDiscountedPrice(item.price);
     const itemTotal = discountedPrice * item.quantity;
     if (existing) {
       existing.items.push(item);
@@ -507,7 +509,7 @@ export default function GroupBuyDetail() {
                   )}
                   {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-                      <p className="text-xs font-semibold text-amber-800 mb-1">📊 數量折扣</p>
+                      <p className="text-xs font-semibold text-amber-800 mb-1">📊 數量折扣規則</p>
                       {groupBuy.discount_rules
                         .sort((a, b) => a.min_quantity - b.min_quantity)
                         .map((rule, idx) => (
@@ -515,6 +517,22 @@ export default function GroupBuyDetail() {
                             • 滿 {rule.min_quantity} 件：{rule.discount_percent}% off
                           </p>
                         ))}
+                      {(() => {
+                        const totalQty = getTotalQuantity();
+                        const discount = getApplicableDiscount();
+                        return (
+                          <div className="mt-2 pt-2 border-t border-amber-200">
+                            <p className="text-xs font-semibold text-amber-800">
+                              🎉 目前全團總數量：{totalQty} 件
+                            </p>
+                            {discount && (
+                              <p className="text-xs font-bold text-green-700 mt-1">
+                                ✨ 已達標！全團享 {discount.discount_percent}% off
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -723,29 +741,15 @@ export default function GroupBuyDetail() {
                             )}
                             <td className="px-4 py-3">
                               <div className="text-slate-700">{item.product_name}</div>
-                              {(() => {
-                                const discount = getApplicableDiscount(item.product_name);
-                                const totalQty = items
-                                  .filter(i => i.product_name === item.product_name)
-                                  .reduce((sum, i) => sum + i.quantity, 0);
-                                if (discount) {
-                                  return (
-                                    <div className="text-xs text-amber-600 mt-1">
-                                      🎉 全團 {totalQty} 件，享 {discount.discount_percent}% off
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
                             <td className="px-4 py-3 text-right font-medium text-slate-700">
                               {(() => {
-                                const discountedPrice = getDiscountedPrice(item.product_name, item.price);
+                                const discountedPrice = getDiscountedPrice(item.price);
                                 const hasDiscount = discountedPrice !== item.price;
                                 return (
-                                  <span className={hasDiscount ? 'text-amber-600' : ''}>
+                                  <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
                                     ${discountedPrice.toLocaleString()}
                                   </span>
                                 );
@@ -753,7 +757,7 @@ export default function GroupBuyDetail() {
                             </td>
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
                               {(() => {
-                                const discountedPrice = getDiscountedPrice(item.product_name, item.price);
+                                const discountedPrice = getDiscountedPrice(item.price);
                                 return `$${(discountedPrice * item.quantity).toLocaleString()}`;
                               })()}
                             </td>
