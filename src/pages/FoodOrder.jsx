@@ -198,7 +198,7 @@ export default function FoodOrder() {
             <div className="w-12 h-12 border-4 border-emerald-300 border-t-emerald-600 rounded-full animate-spin mx-auto mb-3" />
             <p className="text-slate-500">載入中...</p>
           </Card>
-        ) : members.length === 0 ? (
+        ) : allMembers.length === 0 ? (
           <Card className="p-8 text-center border-dashed">
             <p className="text-slate-500">尚未新增成員，請先到首頁新增成員</p>
           </Card>
