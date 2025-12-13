@@ -30,6 +30,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     note: '',
     organizer_id: ''
   });
+  const [discountRules, setDiscountRules] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
   const [products, setProducts] = useState([{
     product_name: '',
@@ -216,7 +217,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
     onCreate({
       ...formData,
-      products: validProducts
+      products: validProducts,
+      discount_rules: discountRules.filter(r => r.min_quantity > 0)
     });
 
     setFormData({
@@ -234,6 +236,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       price: 0,
       description: ''
     }]);
+    setDiscountRules([]);
   };
 
   return (
@@ -380,6 +383,83 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               placeholder="其他說明..." />
 
+          </div>
+
+          {/* Discount Rules */}
+          <div>
+            <Label className="mb-2 block">數量折扣規則（選填）</Label>
+            <p className="text-xs text-slate-500 mb-3">設定達到特定數量時的折扣優惠</p>
+            {discountRules.length > 0 && (
+              <div className="border rounded-lg overflow-hidden mb-2">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">最低數量</th>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">折扣</th>
+                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {discountRules.map((rule, index) => (
+                      <tr key={index}>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={rule.min_quantity}
+                            onChange={(e) => {
+                              const newRules = [...discountRules];
+                              newRules[index].min_quantity = parseInt(e.target.value) || 0;
+                              setDiscountRules(newRules);
+                            }}
+                            placeholder="10"
+                            className="h-9"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={rule.discount_percent}
+                              onChange={(e) => {
+                                const newRules = [...discountRules];
+                                newRules[index].discount_percent = parseFloat(e.target.value) || 0;
+                                setDiscountRules(newRules);
+                              }}
+                              placeholder="10"
+                              className="h-9"
+                            />
+                            <span className="text-sm text-slate-600">% off</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDiscountRules(discountRules.filter((_, i) => i !== index))}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <Button
+              type="button"
+              onClick={() => setDiscountRules([...discountRules, { min_quantity: 0, discount_percent: 0 }])}
+              variant="outline"
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              新增折扣規則
+            </Button>
           </div>
 
           {/* Products */}

@@ -222,12 +222,53 @@ export default function GroupBuyDetail() {
   const handleCompleteGroupBuy = async () => {
     if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
 
+    // Apply discount rules if any
+    if (groupBuy.discount_rules && groupBuy.discount_rules.length > 0) {
+      // Group items by product to calculate total quantity
+      const productQuantities = {};
+      items.forEach(item => {
+        const key = item.product_name;
+        if (!productQuantities[key]) {
+          productQuantities[key] = { total: 0, items: [] };
+        }
+        productQuantities[key].total += item.quantity;
+        productQuantities[key].items.push(item);
+      });
+
+      // Sort discount rules by min_quantity descending
+      const sortedRules = [...groupBuy.discount_rules].sort((a, b) => b.min_quantity - a.min_quantity);
+
+      // Apply discounts
+      for (const [productName, data] of Object.entries(productQuantities)) {
+        // Find applicable discount rule
+        const applicableRule = sortedRules.find(rule => data.total >= rule.min_quantity);
+        
+        if (applicableRule && applicableRule.discount_percent > 0) {
+          const discountMultiplier = 1 - (applicableRule.discount_percent / 100);
+          
+          // Update all items for this product with discounted price
+          for (const item of data.items) {
+            const newPrice = Math.round(item.price * discountMultiplier * 100) / 100;
+            await updateItem.mutateAsync({
+              id: item.id,
+              data: { 
+                price: newPrice,
+                note: item.note ? 
+                  `${item.note}（已套用${applicableRule.discount_percent}%折扣）` : 
+                  `已套用${applicableRule.discount_percent}%折扣，原價$${item.price}`
+              }
+            });
+          }
+        }
+      }
+    }
+
     await updateGroupBuy.mutateAsync({
       id: groupBuyId,
       data: { status: 'completed' }
     });
 
-    alert('結單完成！請查看下方訂購彙總表。');
+    alert('結單完成！已自動套用折扣規則，請查看下方訂購彙總表。');
   };
 
   const handleTogglePaid = async (summary) => {
@@ -475,6 +516,18 @@ export default function GroupBuyDetail() {
                       <ExternalLink className="w-4 h-4" />
                       <span>查看商品連結</span>
                     </a>
+                  )}
+                  {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+                      <p className="text-xs font-semibold text-amber-800 mb-1">📊 數量折扣</p>
+                      {groupBuy.discount_rules
+                        .sort((a, b) => a.min_quantity - b.min_quantity)
+                        .map((rule, idx) => (
+                          <p key={idx} className="text-xs text-amber-700">
+                            • 滿 {rule.min_quantity} 件：{rule.discount_percent}% off
+                          </p>
+                        ))}
+                    </div>
                   )}
                 </div>
 
