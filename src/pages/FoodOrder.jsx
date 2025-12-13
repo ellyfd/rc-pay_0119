@@ -45,10 +45,22 @@ export default function FoodOrder() {
     queryFn: () => base44.entities.Product.list('-created_date')
   });
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('name')
   });
+
+  // Auto-select current user's member
+  React.useEffect(() => {
+    if (currentUser && allMembers.length > 0 && !selectedMember && !isOrderingForOthers) {
+      const userMember = allMembers.find(m => 
+        m.user_emails && m.user_emails.includes(currentUser.email)
+      );
+      if (userMember) {
+        setSelectedMember(userMember.id);
+      }
+    }
+  }, [currentUser, allMembers, selectedMember, isOrderingForOthers]);
 
   const activeProducts = products.filter(p => p.is_active);
   const mealBoxes = activeProducts.filter(p => p.category === 'meal_box');
