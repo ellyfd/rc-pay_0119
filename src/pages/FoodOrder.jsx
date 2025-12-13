@@ -216,19 +216,50 @@ export default function FoodOrder() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">我是</label>
-                  <Select value={selectedMember} onValueChange={setSelectedMember}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="選擇成員" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {members.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">訂購人</label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsOrderingForOthers(!isOrderingForOthers);
+                        if (!isOrderingForOthers) {
+                          setSelectedMember('');
+                        } else {
+                          const userMember = allMembers.find(m => 
+                            m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+                          );
+                          if (userMember) {
+                            setSelectedMember(userMember.id);
+                          }
+                        }
+                      }}
+                      className="text-emerald-600 hover:text-emerald-700 h-auto py-1"
+                    >
+                      {isOrderingForOthers ? '取消代訂' : '代替訂購'}
+                    </Button>
+                  </div>
+                  {isOrderingForOthers ? (
+                    <Select value={selectedMember} onValueChange={setSelectedMember}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="選擇成員" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allMembers.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            {member.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={allMembers.find(m => m.id === selectedMember)?.name || ''}
+                      disabled
+                      className="bg-slate-50"
+                    />
+                  )}
                 </div>
               </div>
 
