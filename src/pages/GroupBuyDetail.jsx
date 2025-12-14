@@ -702,7 +702,12 @@ export default function GroupBuyDetail() {
               <div className="flex gap-2">
                 {isOrganizer && groupBuy.status !== 'open' && memberSummary.length > 0 && (
                   <Button
-                    onClick={() => exportGroupBuyPaymentRecord(memberSummary, groupBuy.title)}
+                    onClick={() => exportGroupBuyPaymentRecord(
+                      memberSummary, 
+                      groupBuy.title,
+                      groupBuy.discount_rules,
+                      getDiscountedPrice
+                    )}
                     variant="outline"
                   >
                     <Download className="w-4 h-4 mr-2" />

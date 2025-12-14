@@ -51,16 +51,83 @@ export const exportGroupBuyOrderSummary = (productSummary, groupBuyTitle, discou
   exportToCSV(data, `${groupBuyTitle}_訂購彙總_${new Date().toLocaleDateString()}.csv`);
 };
 
-export const exportGroupBuyPaymentRecord = (memberSummary, groupBuyTitle) => {
-  const data = [
-    ['成員姓名', '訂購項目', '金額', '付款狀態'],
-    ...memberSummary.map(summary => [
-      summary.member_name,
-      summary.items.map(item => `${item.product_name} x${item.quantity}`).join('; '),
-      summary.total,
-      summary.paid ? '已付款' : '未付款'
-    ])
-  ];
+export const exportGroupBuyPaymentRecord = (memberSummary, groupBuyTitle, discountRules, getDiscountedPrice) => {
+  const hasDiscount = discountRules && discountRules.length > 0;
+  
+  // Build header row
+  const headerRow = ['成員', '產品', '數量'];
+  if (hasDiscount) {
+    headerRow.push('原價', '折扣價');
+  } else {
+    headerRow.push('單價');
+  }
+  headerRow.push('小計', '支付', '小結', '收款');
+  
+  const data = [headerRow];
+  
+  // Add rows for each member and their items
+  memberSummary.forEach(summary => {
+    summary.items.forEach((item, itemIdx) => {
+      const row = [];
+      
+      // Member name (only on first row)
+      if (itemIdx === 0) {
+        row.push(summary.member_name);
+      } else {
+        row.push('');
+      }
+      
+      // Product details
+      const displayNote = item.note && item.note.includes('平分') ? ` (${item.note})` : '';
+      row.push(item.product_name + displayNote);
+      
+      // Quantity - show '-' for split members who aren't orderers
+      const isSplitItem = item.note && item.note.includes('平分');
+      const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
+      if (isSplitItem && !isOrderer) {
+        row.push('-');
+      } else {
+        row.push(item.quantity);
+      }
+      
+      // Price columns
+      row.push(item.price);
+      if (hasDiscount) {
+        row.push(getDiscountedPrice(item.price));
+      }
+      
+      // Subtotal
+      const discountedPrice = hasDiscount ? getDiscountedPrice(item.price) : item.price;
+      row.push(discountedPrice * item.quantity);
+      
+      // Payment method (only on first row)
+      if (itemIdx === 0) {
+        const paymentMethod = item.payment_method === 'rcpay' ? 'RC Pay' :
+                             item.payment_method === 'linepay' ? 'Line Pay' :
+                             item.payment_method === 'ipasspay' ? 'iPASS Pay' :
+                             item.payment_method === 'cash' ? '現金' : '';
+        row.push(paymentMethod);
+      } else {
+        row.push('');
+      }
+      
+      // Total (only on first row)
+      if (itemIdx === 0) {
+        row.push(summary.total);
+      } else {
+        row.push('');
+      }
+      
+      // Payment status (only on first row)
+      if (itemIdx === 0) {
+        row.push(summary.paid ? '已付款' : '未付款');
+      } else {
+        row.push('');
+      }
+      
+      data.push(row);
+    });
+  });
   
   exportToCSV(data, `${groupBuyTitle}_收款紀錄_${new Date().toLocaleDateString()}.csv`);
 };
