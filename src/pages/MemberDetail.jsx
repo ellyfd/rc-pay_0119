@@ -370,7 +370,7 @@ export default function MemberDetail() {
                           )}
                           <td className="px-4 py-3 text-slate-700">
                             {item.product_name}
-                            {item.note && <div className="text-xs text-slate-400 mt-0.5">備註：{item.note}</div>}
+                            {item.note && item.note.includes('平分') && <div className="text-xs text-slate-400 mt-0.5">{item.note}</div>}
                           </td>
                           <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
                           <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
