@@ -865,27 +865,40 @@ export default function GroupBuyDetail() {
                             )}
                             {((isOrganizer || (currentUser && item.created_by === currentUser.email)) && isOpen) && (
                               <td className="px-4 py-3">
-                                <div className="flex gap-1 justify-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                      setEditingItem(item);
-                                      setShowAddItem(true);
-                                    }}
-                                    className="h-8 w-8"
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setDeletingItem(item)}
-                                    className="h-8 w-8 text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                </div>
+                                {(() => {
+                                  // Check if this is a split item
+                                  const isSplitItem = item.note && item.note.includes('平分');
+                                  const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
+
+                                  // For split items, only the orderer can edit
+                                  const canEdit = !isSplitItem || isOrderer;
+
+                                  return canEdit ? (
+                                    <div className="flex gap-1 justify-center">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                          setEditingItem(item);
+                                          setShowAddItem(true);
+                                        }}
+                                        className="h-8 w-8"
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setDeletingItem(item)}
+                                        className="h-8 w-8 text-red-500 hover:text-red-700"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="text-center text-xs text-slate-400">-</div>
+                                  );
+                                })()}
                               </td>
                             )}
                           </tr>
