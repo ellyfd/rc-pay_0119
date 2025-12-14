@@ -17,6 +17,7 @@ export default function Welcome() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestName, setGuestName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,6 +44,7 @@ export default function Welcome() {
         }
       }
       setIsAuthenticated(auth);
+      setIsLoading(false);
     };
     checkAuth();
   }, []);
@@ -68,6 +70,17 @@ export default function Welcome() {
     localStorage.setItem('guest_name', guestName.trim());
     window.location.href = createPageUrl('GroupBuy');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-500 mt-4">載入中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
