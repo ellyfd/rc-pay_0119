@@ -35,7 +35,7 @@ export default function Welcome() {
             if (linkedMember.is_internal) {
               window.location.href = createPageUrl('Home');
             } else {
-              window.location.href = createPageUrl('GroupBuy');
+              window.location.href = 'https://rc-pay-4d8d4d5a.base44.app/GroupBuy';
             }
             return;
           }
