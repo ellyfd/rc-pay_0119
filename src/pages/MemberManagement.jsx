@@ -239,7 +239,6 @@ export default function MemberManagement() {
                     <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">錢包餘額</th>
                     <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">現金餘額</th>
                     <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">總餘額</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">狀態</th>
                     <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">操作</th>
                   </tr>
                 </thead>
@@ -302,13 +301,6 @@ export default function MemberManagement() {
                           <span className={`font-bold ${totalBalance >= 0 ? 'text-slate-800' : 'text-red-600'}`}>
                             ${totalBalance.toLocaleString()}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {member.is_active ? (
-                            <Badge className="bg-green-500">顯示</Badge>
-                          ) : (
-                            <Badge variant="secondary">已隱藏</Badge>
-                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1 justify-center">
