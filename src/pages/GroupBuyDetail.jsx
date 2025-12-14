@@ -627,8 +627,10 @@ export default function GroupBuyDetail() {
                     <thead className="bg-slate-50 border-b">
                       <tr>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品名稱</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">原價</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                        {groupBuy.discount_rules?.length > 0 && (
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
+                        )}
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">總數量</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購明細</th>
                       </tr>
@@ -642,16 +644,18 @@ export default function GroupBuyDetail() {
                           <tr key={product.key} className="hover:bg-slate-50">
                             <td className="px-4 py-3 font-medium text-slate-800">{product.product_name}</td>
                             <td className="px-4 py-3 text-right text-slate-700">${product.price.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-right font-medium">
-                              <span className={hasDiscount ? 'text-amber-600 font-semibold' : 'text-slate-700'}>
-                                ${discountedPrice.toLocaleString()}
-                              </span>
-                              {hasDiscount && discount && (
-                                <div className="text-xs text-green-600 mt-0.5">
-                                  ({discount.discount_percent}% off)
-                                </div>
-                              )}
-                            </td>
+                            {groupBuy.discount_rules?.length > 0 && (
+                              <td className="px-4 py-3 text-right font-medium">
+                                <span className={hasDiscount ? 'text-amber-600 font-semibold' : 'text-slate-700'}>
+                                  ${discountedPrice.toLocaleString()}
+                                </span>
+                                {hasDiscount && discount && (
+                                  <div className="text-xs text-green-600 mt-0.5">
+                                    ({discount.discount_percent}% off)
+                                  </div>
+                                )}
+                              </td>
+                            )}
                             <td className="px-4 py-3 text-center">
                               <span className="inline-block bg-purple-100 text-purple-800 font-semibold px-3 py-1 rounded">
                                 {product.quantity}
@@ -721,8 +725,10 @@ export default function GroupBuyDetail() {
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">成員</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品</th>
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">原價</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                        {groupBuy.discount_rules?.length > 0 && (
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
+                        )}
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
@@ -760,20 +766,22 @@ export default function GroupBuyDetail() {
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-right font-medium text-slate-700">
-                              {(() => {
-                                const discountedPrice = getDiscountedPrice(item.price);
-                                const hasDiscount = discountedPrice !== item.price;
-                                return (
-                                  <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
-                                    ${discountedPrice.toLocaleString()}
-                                  </span>
-                                );
-                              })()}
-                            </td>
+                            {groupBuy.discount_rules?.length > 0 && (
+                              <td className="px-4 py-3 text-right font-medium text-slate-700">
+                                {(() => {
+                                  const discountedPrice = getDiscountedPrice(item.price);
+                                  const hasDiscount = discountedPrice !== item.price;
+                                  return (
+                                    <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
+                                      ${discountedPrice.toLocaleString()}
+                                    </span>
+                                  );
+                                })()}
+                              </td>
+                            )}
                             <td className="px-4 py-3 text-right font-medium text-slate-800">
                               {(() => {
-                                const discountedPrice = getDiscountedPrice(item.price);
+                                const discountedPrice = groupBuy.discount_rules?.length > 0 ? getDiscountedPrice(item.price) : item.price;
                                 return `$${(discountedPrice * item.quantity).toLocaleString()}`;
                               })()}
                             </td>
@@ -864,7 +872,10 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={isOrganizer && groupBuy.status !== 'open' ? 7 : 6} className="px-4 py-3 text-right text-slate-700">總計</td>
+                        <td colSpan={
+                          (groupBuy.discount_rules?.length > 0 ? 6 : 5) + 
+                          (isOrganizer && groupBuy.status !== 'open' ? 1 : 0)
+                        } className="px-4 py-3 text-right text-slate-700">總計</td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
