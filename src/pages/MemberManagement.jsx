@@ -34,6 +34,7 @@ export default function MemberManagement() {
   const [editingMember, setEditingMember] = useState(null);
   const [deletingMember, setDeletingMember] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -102,6 +103,35 @@ export default function MemberManagement() {
     }
   };
 
+  const handleToggleSelectAll = () => {
+    if (selectedMembers.length === members.length) {
+      setSelectedMembers([]);
+    } else {
+      setSelectedMembers(members.map(m => m.id));
+    }
+  };
+
+  const handleToggleSelect = (memberId) => {
+    if (selectedMembers.includes(memberId)) {
+      setSelectedMembers(selectedMembers.filter(id => id !== memberId));
+    } else {
+      setSelectedMembers([...selectedMembers, memberId]);
+    }
+  };
+
+  const handleBatchSetInternal = async () => {
+    if (selectedMembers.length === 0) return;
+    if (!confirm(`確定要將 ${selectedMembers.length} 位成員設為 3F 內部成員嗎？`)) return;
+    
+    for (const memberId of selectedMembers) {
+      await updateMember.mutateAsync({
+        id: memberId,
+        data: { is_internal: true }
+      });
+    }
+    setSelectedMembers([]);
+  };
+
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
@@ -148,13 +178,24 @@ export default function MemberManagement() {
               </h1>
               <p className="text-slate-400 text-sm mt-1">新增、編輯或刪除成員</p>
             </div>
-            <Button
-              onClick={() => setShowAddMember(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-            >
-              <UserPlus className="w-5 h-5 mr-2" />
-              新增成員
-            </Button>
+            <div className="flex gap-2">
+              {selectedMembers.length > 0 && (
+                <Button
+                  onClick={handleBatchSetInternal}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  設為3F內部 ({selectedMembers.length})
+                </Button>
+              )}
+              <Button
+                onClick={() => setShowAddMember(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                新增成員
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -185,6 +226,14 @@ export default function MemberManagement() {
               <table className="w-full">
                 <thead className="bg-slate-50 border-b">
                   <tr>
+                    <th className="px-4 py-3 text-center w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedMembers.length === members.length && members.length > 0}
+                        onChange={handleToggleSelectAll}
+                        className="w-4 h-4 rounded border-slate-300"
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">成員</th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">關聯帳號</th>
                     <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">錢包餘額</th>
@@ -201,12 +250,25 @@ export default function MemberManagement() {
                     
                     return (
                       <tr key={member.id} className={`hover:bg-slate-50 ${!member.is_active ? 'opacity-60' : ''}`}>
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedMembers.includes(member.id)}
+                            onChange={() => handleToggleSelect(member.id)}
+                            className="w-4 h-4 rounded border-slate-300"
+                          />
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-full ${bgColor} flex items-center justify-center text-white font-bold flex-shrink-0`}>
                               {member.name?.charAt(0)}
                             </div>
-                            <span className="font-medium text-slate-800">{member.name}</span>
+                            <div>
+                              <span className="font-medium text-slate-800">{member.name}</span>
+                              {member.is_internal && (
+                                <Badge className="ml-2 bg-purple-100 text-purple-700 text-xs">3F內部</Badge>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-slate-600 text-sm">
