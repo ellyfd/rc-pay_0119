@@ -915,9 +915,22 @@ export default function GroupBuyDetail() {
                           }, 0)}
                         </td>
                         <td colSpan={
-                          (groupBuy.discount_rules?.length > 0 ? 3 : 2) + 
+                          (groupBuy.discount_rules?.length > 0 ? 2 : 2) + 
                           (isOrganizer && groupBuy.status !== 'open' ? 1 : 0)
                         }></td>
+                        {groupBuy.discount_rules?.length > 0 && (
+                          <td className="px-4 py-3 text-center">
+                            {(() => {
+                              const discount = getApplicableDiscount();
+                              return discount ? (
+                                <div className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-lg">
+                                  <div className="text-2xl font-bold">-{discount.discount_percent}%</div>
+                                  <div className="text-xs font-normal">全團優惠</div>
+                                </div>
+                              ) : null;
+                            })()}
+                          </td>
+                        )}
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
