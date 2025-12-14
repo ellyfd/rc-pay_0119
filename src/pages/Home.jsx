@@ -11,14 +11,13 @@ import TransactionItem from "@/components/TransactionItem";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import TransactionDialog from "@/components/TransactionDialog";
 import BatchTransactionDialog from "@/components/BatchTransactionDialog";
-import SelectMemberDialog from "@/components/SelectMemberDialog";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
-  const [showSelectMember, setShowSelectMember] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
@@ -46,17 +45,7 @@ export default function Home() {
     }
   });
 
-  // Check if current user is linked to any member
-  useEffect(() => {
-    if (currentUser && allMembers.length > 0) {
-      const isLinked = allMembers.some(member => 
-        member.user_emails && member.user_emails.includes(currentUser.email)
-      );
-      if (!isLinked) {
-        setShowSelectMember(true);
-      }
-    }
-  }, [currentUser, allMembers]);
+
 
   // Filter active members with non-zero balance for display
   const members = allMembers.filter(m => 
@@ -163,17 +152,7 @@ export default function Home() {
     }
   };
 
-  const handleSelectMember = async (memberId) => {
-    const member = allMembers.find(m => m.id === memberId);
-    if (!member || !currentUser) return;
 
-    const updatedEmails = [...(member.user_emails || []), currentUser.email];
-    await updateMember.mutateAsync({
-      id: memberId,
-      data: { user_emails: updatedEmails }
-    });
-    setShowSelectMember(false);
-  };
 
   const totalBalance = allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
 
@@ -403,12 +382,6 @@ export default function Home() {
         onOpenChange={setShowBatchTransaction}
         members={allMembers}
         onBatchTransaction={handleBatchTransaction} />
-
-      <SelectMemberDialog
-        open={showSelectMember}
-        members={allMembers}
-        currentUserEmail={currentUser?.email}
-        onSelect={handleSelectMember} />
 
       </div>);
 
