@@ -813,7 +813,9 @@ export default function GroupBuyDetail() {
                                   className="text-xs px-2 py-1 rounded border border-slate-300 bg-white text-slate-700"
                                 >
                                   <option value="">請選擇</option>
-                                  <option value="rcpay">RC Pay</option>
+                                  {currentUser?.is_internal !== false && (
+                                    <option value="rcpay">RC Pay</option>
+                                  )}
                                   <option value="linepay">Line Pay</option>
                                   <option value="ipasspay">iPASS Pay</option>
                                   <option value="cash">現金</option>
@@ -836,7 +838,7 @@ export default function GroupBuyDetail() {
                                 rowSpan={summary.items.length}
                               >
                                 <div className="flex items-center justify-center">
-                                  {summary.hasRcPay && !summary.paid ? (
+                                  {summary.hasRcPay && !summary.paid && currentUser?.is_internal !== false ? (
                                     <Button
                                       onClick={() => handleConfirmRcPay(summary)}
                                       size="sm"
