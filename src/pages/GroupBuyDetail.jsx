@@ -619,7 +619,13 @@ export default function GroupBuyDetail() {
                   </h3>
                   {isOrganizer && (
                     <Button
-                      onClick={() => exportGroupBuyOrderSummary(productSummary, groupBuy.title)}
+                      onClick={() => exportGroupBuyOrderSummary(
+                        productSummary, 
+                        groupBuy.title, 
+                        groupBuy.discount_rules,
+                        getDiscountedPrice,
+                        getApplicableDiscount
+                      )}
                       size="sm"
                       variant="outline"
                       className="bg-white"

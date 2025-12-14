@@ -15,15 +15,37 @@ export const exportToCSV = (data, filename) => {
   document.body.removeChild(link);
 };
 
-export const exportGroupBuyOrderSummary = (productSummary, groupBuyTitle) => {
+export const exportGroupBuyOrderSummary = (productSummary, groupBuyTitle, discountRules, getDiscountedPrice, getApplicableDiscount) => {
+  const hasDiscount = discountRules && discountRules.length > 0;
+  const applicableDiscount = hasDiscount ? getApplicableDiscount() : null;
+  
+  // Build header row
+  const headerRow = ['產品名稱'];
+  if (hasDiscount) {
+    headerRow.push('原價');
+    headerRow.push(applicableDiscount ? `折扣價 (${applicableDiscount.discount_percent}% off)` : '折扣價');
+  } else {
+    headerRow.push('單價');
+  }
+  headerRow.push('總數量', '訂購明細');
+  
   const data = [
-    ['產品名稱', '單價', '總數量', '訂購明細'],
-    ...productSummary.map(product => [
-      product.product_name,
-      product.price,
-      product.quantity,
-      product.members.map(m => `${m.name} x${m.quantity}${m.note ? ` (${m.note})` : ''}`).join('; ')
-    ])
+    headerRow,
+    ...productSummary.map(product => {
+      const row = [product.product_name];
+      
+      if (hasDiscount) {
+        row.push(product.price);
+        row.push(getDiscountedPrice(product.price));
+      } else {
+        row.push(product.price);
+      }
+      
+      row.push(product.quantity);
+      row.push(product.members.map(m => `${m.name} × ${m.quantity}`).join('、'));
+      
+      return row;
+    })
   ];
   
   exportToCSV(data, `${groupBuyTitle}_訂購彙總_${new Date().toLocaleDateString()}.csv`);
