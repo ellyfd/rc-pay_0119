@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -135,6 +135,14 @@ export default function GroupBuyDetail() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
   });
 
+  const createTemplate = useMutation({
+    mutationFn: (data) => base44.entities.GroupBuyTemplate.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuyTemplates'] });
+      alert('範本已建立！');
+    }
+  });
+
   const handleSelectMember = async (memberId) => {
     const member = members.find(m => m.id === memberId);
     if (!member || !currentUser) return;
@@ -209,6 +217,25 @@ export default function GroupBuyDetail() {
     }
     // Then delete the group buy
     await deleteGroupBuy.mutateAsync(groupBuyId);
+  };
+
+  const handleSaveAsTemplate = async () => {
+    const templateName = prompt('請輸入範本名稱：', `${groupBuy.title} 範本`);
+    if (!templateName) return;
+
+    await createTemplate.mutateAsync({
+      template_name: templateName,
+      title: groupBuy.title,
+      description: groupBuy.description,
+      product_link: groupBuy.product_link,
+      image_url: groupBuy.image_url,
+      discount_rules: groupBuy.discount_rules,
+      products: products.map(p => ({
+        product_name: p.product_name,
+        price: p.price,
+        description: p.description
+      }))
+    });
   };
 
   const handleCloseGroupBuy = async () => {
@@ -594,6 +621,14 @@ export default function GroupBuyDetail() {
                         產生訂購表單
                       </Button>
                     )}
+                    <Button
+                      onClick={handleSaveAsTemplate}
+                      variant="outline"
+                      className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      另存為範本
+                    </Button>
                     <Button
                       onClick={() => setDeletingGroupBuy(true)}
                       variant="outline"
