@@ -636,7 +636,17 @@ export default function GroupBuyDetail() {
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品名稱</th>
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">
+                            <div>折扣價</div>
+                            {(() => {
+                              const discount = getApplicableDiscount();
+                              return discount ? (
+                                <div className="text-xs text-green-600 font-normal mt-0.5">
+                                  ({discount.discount_percent}% off)
+                                </div>
+                              ) : null;
+                            })()}
+                          </th>
                         )}
                         <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">總數量</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購明細</th>
@@ -656,11 +666,6 @@ export default function GroupBuyDetail() {
                                 <span className={hasDiscount ? 'text-amber-600 font-semibold' : 'text-slate-700'}>
                                   ${discountedPrice.toLocaleString()}
                                 </span>
-                                {hasDiscount && discount && (
-                                  <div className="text-xs text-green-600 mt-0.5">
-                                    ({discount.discount_percent}% off)
-                                  </div>
-                                )}
                               </td>
                             )}
                             <td className="px-4 py-3 text-center">
