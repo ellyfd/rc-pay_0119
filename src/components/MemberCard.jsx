@@ -16,8 +16,6 @@ const colorMap = {
 export default function MemberCard({ member, onClick, selected }) {
   const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
   
-  const totalBalance = (member.balance || 0) + (member.cash_balance || 0);
-  
   const CardContent = () => (
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -39,12 +37,6 @@ export default function MemberCard({ member, onClick, selected }) {
               ${member.cash_balance?.toLocaleString() || 0}
             </p>
           </div>
-        </div>
-        <div className="text-center bg-slate-50 rounded p-1.5 hidden md:block">
-          <p className="text-xs text-slate-500">總額</p>
-          <p className={`text-base font-bold ${totalBalance >= 0 ? 'text-slate-800' : 'text-red-500'}`}>
-            ${totalBalance.toLocaleString()}
-          </p>
         </div>
       </div>
   );
