@@ -182,23 +182,6 @@ export default function Home() {
     m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
   );
 
-  // Redirect non-internal users to GroupBuy page
-  if (currentUser && currentUser.is_internal === false) {
-    window.location.href = createPageUrl('GroupBuy');
-    return null;
-  }
-
-  if (!currentUser || membersLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
