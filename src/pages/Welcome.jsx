@@ -23,22 +23,23 @@ export default function Welcome() {
     const checkAuth = async () => {
       const auth = await base44.auth.isAuthenticated();
       if (auth) {
-        // If already logged in, check if they have a member
+        // If already logged in, check if they are internal
         try {
           const user = await base44.auth.me();
           const members = await base44.entities.Member.list();
           const linkedMember = members.find(m => 
             m.user_emails && m.user_emails.includes(user.email)
           );
-          if (linkedMember) {
-            // Has linked member - check if internal
-            if (linkedMember.is_internal) {
-              window.location.href = createPageUrl('Home');
-            } else {
-              window.location.href = 'https://rc-pay-4d8d4d5a.base44.app/GroupBuy';
-            }
+          
+          // If has linked member and is internal, go to RC Pay
+          if (linkedMember && linkedMember.is_internal) {
+            window.location.href = createPageUrl('Home');
             return;
           }
+          
+          // Otherwise (not internal or no member), go to group buy
+          window.location.href = 'https://rc-pay-4d8d4d5a.base44.app/GroupBuy';
+          return;
         } catch (error) {
           console.error('Error checking user:', error);
         }

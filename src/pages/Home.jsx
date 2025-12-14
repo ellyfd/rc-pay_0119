@@ -26,6 +26,17 @@ export default function Home() {
       try {
         const user = await base44.auth.me();
         setCurrentUser(user);
+        
+        // Check if user is internal member
+        const members = await base44.entities.Member.list();
+        const linkedMember = members.find(m => 
+          m.user_emails && m.user_emails.includes(user.email)
+        );
+        
+        // If not internal, redirect to group buy
+        if (!linkedMember || !linkedMember.is_internal) {
+          window.location.href = 'https://rc-pay-4d8d4d5a.base44.app/GroupBuy';
+        }
       } catch (error) {
         console.error('Failed to load user:', error);
       }
