@@ -109,16 +109,16 @@ export default function GroupBuy() {
                 <p className="text-purple-100 text-sm">開團、跟團、輕鬆購</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Link to={createPageUrl('GroupBuyTemplates')}>
-                <Button variant="ghost" className="text-white hover:bg-purple-500">
+            <div className="flex flex-col-reverse md:flex-row gap-2">
+              <Link to={createPageUrl('GroupBuyTemplates')} className="w-full md:w-auto">
+                <Button variant="ghost" className="text-white hover:bg-purple-500 w-full">
                   <FileText className="w-5 h-5 mr-2" />
                   範本管理
                 </Button>
               </Link>
               <Button
                 onClick={() => setShowCreate(true)}
-                className="bg-white text-purple-600 hover:bg-purple-50"
+                className="bg-white text-purple-600 hover:bg-purple-50 w-full md:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 我要開團
