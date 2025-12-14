@@ -773,6 +773,30 @@ export default function GroupBuyDetail() {
                               {item.note && item.note.includes('平分') && (
                                 <div className="text-xs text-slate-500 mt-0.5">{item.note}</div>
                               )}
+                              {(() => {
+                                // Calculate total quantity for this product across all orderers
+                                const productTotalQty = items.reduce((sum, i) => {
+                                  if (i.product_name === item.product_name) {
+                                    const isSplitItem = i.note && i.note.includes('平分');
+                                    const isOrderer = i.note && i.note.includes(`${i.member_name}訂購`);
+                                    if (!isSplitItem || isOrderer) {
+                                      return sum + i.quantity;
+                                    }
+                                  }
+                                  return sum;
+                                }, 0);
+                                
+                                const discount = getApplicableDiscount();
+                                
+                                return (
+                                  <div className="text-xs text-purple-600 font-medium mt-1">
+                                    全團共 {productTotalQty} 件
+                                    {discount && groupBuy.discount_rules?.length > 0 && (
+                                      <span className="ml-1 text-amber-600">• 享 {discount.discount_percent}% off</span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">
                               {(() => {
