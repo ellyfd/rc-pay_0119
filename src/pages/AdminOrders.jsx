@@ -26,6 +26,7 @@ export default function AdminOrders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [cashPaidStatus, setCashPaidStatus] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -170,6 +171,15 @@ export default function AdminOrders() {
   };
 
   const handleCheckoutAll = async () => {
+    // Check if all cash orders are checked
+    const cashOrders = orders.filter(o => o.payment_method === 'cash');
+    const uncheckedCash = cashOrders.filter(o => !cashPaidStatus[o.id]);
+    
+    if (uncheckedCash.length > 0) {
+      alert(`請先確認所有現金訂單已收款（共 ${uncheckedCash.length} 筆未勾選）`);
+      return;
+    }
+
     if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
     for (const order of orders) {
@@ -182,16 +192,14 @@ export default function AdminOrders() {
         data: { status: 'completed' }
       });
 
-      // Only process balance deduction if payment method is balance
-      if (order.payment_method === 'balance' || order.payment_method === 'cash') {
-        const walletType = order.payment_method === 'cash' ? 'cash' : 'balance';
-        const balanceField = order.payment_method === 'cash' ? 'cash_balance' : 'balance';
-        const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
+      const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
 
+      // Only deduct balance for balance payment method
+      if (order.payment_method === 'balance') {
         await createTransaction.mutateAsync({
           type: 'withdraw',
           amount: order.total_amount,
-          wallet_type: walletType,
+          wallet_type: 'balance',
           from_member_id: member.id,
           from_member_name: member.name,
           note: transactionNote
@@ -199,12 +207,23 @@ export default function AdminOrders() {
 
         await updateMember.mutateAsync({
           id: member.id,
-          data: { [balanceField]: (member[balanceField] || 0) - order.total_amount }
+          data: { balance: (member.balance || 0) - order.total_amount }
+        });
+      } else if (order.payment_method === 'cash') {
+        // For cash, only record transaction without deducting balance
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: order.total_amount,
+          wallet_type: 'cash',
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: transactionNote + '（現金）'
         });
       }
     }
 
     alert('結帳完成！');
+    setCashPaidStatus({});
   };
 
   const totalAmount = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
@@ -389,6 +408,11 @@ export default function AdminOrders() {
                               {order.payment_method === 'cash' && (
                                 <input 
                                   type="checkbox"
+                                  checked={cashPaidStatus[order.id] || false}
+                                  onChange={(e) => setCashPaidStatus({
+                                    ...cashPaidStatus,
+                                    [order.id]: e.target.checked
+                                  })}
                                   className="w-4 h-4 rounded border-slate-300 cursor-pointer"
                                 />
                               )}
