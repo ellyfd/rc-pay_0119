@@ -906,7 +906,7 @@ export default function GroupBuyDetail() {
                       ))}
                       <tr className="bg-slate-50 font-semibold">
                         <td colSpan={2} className="px-4 py-3 text-right text-slate-700">總計</td>
-                        <td className="px-4 py-3 text-center text-slate-800 font-bold">
+                        <td className="px-4 py-3 text-center text-slate-800">
                           {items.reduce((sum, item) => {
                             const isSplitItem = item.note && item.note.includes('平分');
                             const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
@@ -918,27 +918,8 @@ export default function GroupBuyDetail() {
                           (groupBuy.discount_rules?.length > 0 ? 3 : 2) + 
                           (isOrganizer && groupBuy.status !== 'open' ? 1 : 0)
                         }></td>
-                        <td className="px-4 py-3 text-right">
-                          {(() => {
-                            const discount = getApplicableDiscount();
-                            if (discount) {
-                              return (
-                                <div className="space-y-1">
-                                  <div className="text-2xl font-bold text-green-600">
-                                    {discount.discount_percent}% OFF 🎉
-                                  </div>
-                                  <div className="text-lg font-bold text-purple-600">
-                                    ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div className="text-lg font-bold text-purple-600">
-                                ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
-                              </div>
-                            );
-                          })()}
+                        <td className="px-4 py-3 text-right text-lg text-purple-600">
+                          ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <td></td>
