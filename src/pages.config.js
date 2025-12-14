@@ -8,6 +8,7 @@ import GroupBuy from './pages/GroupBuy';
 import GroupBuyDetail from './pages/GroupBuyDetail';
 import ProductCatalog from './pages/ProductCatalog';
 import TransactionHistory from './pages/TransactionHistory';
+import RCPayHome from './pages/RCPayHome';
 
 
 export const PAGES = {
@@ -21,6 +22,7 @@ export const PAGES = {
     "GroupBuyDetail": GroupBuyDetail,
     "ProductCatalog": ProductCatalog,
     "TransactionHistory": TransactionHistory,
+    "RCPayHome": RCPayHome,
 }
 
 export const pagesConfig = {
