@@ -54,8 +54,13 @@ export default function AdminOrders() {
     queryKey: ['orderItems', orders.map(o => o.id)],
     queryFn: async () => {
       if (orders.length === 0) return [];
-      const allItems = await base44.entities.OrderItem.list();
-      return allItems.filter(item => orders.some(o => o.id === item.order_id));
+      try {
+        const allItems = await base44.entities.OrderItem.list();
+        return allItems.filter(item => orders.some(o => o.id === item.order_id));
+      } catch (error) {
+        console.error('Error fetching order items:', error);
+        return [];
+      }
     },
     enabled: orders.length > 0
   });
@@ -114,7 +119,11 @@ export default function AdminOrders() {
     // Delete all order items first
     const items = getOrderItems(deletingOrder.id);
     for (const item of items) {
-      await deleteOrderItem.mutateAsync(item.id);
+      try {
+        await deleteOrderItem.mutateAsync(item.id);
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
     }
 
     // Then delete the order
@@ -132,7 +141,11 @@ export default function AdminOrders() {
     // Delete existing order items
     const existingItems = getOrderItems(editingOrder.id);
     for (const item of existingItems) {
-      await deleteOrderItem.mutateAsync(item.id);
+      try {
+        await deleteOrderItem.mutateAsync(item.id);
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
     }
 
     // Create new order items
