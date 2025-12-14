@@ -770,6 +770,9 @@ export default function GroupBuyDetail() {
                             )}
                             <td className="px-4 py-3">
                               <div className="text-slate-700">{item.product_name}</div>
+                              {item.note && (
+                                <div className="text-xs text-slate-500 mt-0.5">{item.note}</div>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-center text-slate-700">
                               {(() => {
