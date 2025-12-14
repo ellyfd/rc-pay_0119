@@ -40,7 +40,7 @@ export default function MemberCard({ member, onClick, selected }) {
             </p>
           </div>
         </div>
-        <div className="text-center bg-slate-50 rounded p-1.5">
+        <div className="text-center bg-slate-50 rounded p-1.5 hidden md:block">
           <p className="text-xs text-slate-500">總額</p>
           <p className={`text-base font-bold ${totalBalance >= 0 ? 'text-slate-800' : 'text-red-500'}`}>
             ${totalBalance.toLocaleString()}
