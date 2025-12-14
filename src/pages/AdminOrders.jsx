@@ -171,7 +171,7 @@ export default function AdminOrders() {
   };
 
   const handleCheckoutAll = async () => {
-    // 檢查所有現金訂單是否都已勾選確認收款
+    // Check if all cash orders are checked
     const cashOrders = orders.filter(o => o.payment_method === 'cash');
     const uncheckedCash = cashOrders.filter(o => !cashPaidStatus[o.id]);
     
@@ -186,7 +186,7 @@ export default function AdminOrders() {
       const member = allMembers.find(m => m.id === order.member_id);
       if (!member) continue;
 
-      // 1. 更新訂單狀態為已完成
+      // Update order status
       await updateOrder.mutateAsync({
         id: order.id,
         data: { status: 'completed' }
@@ -194,11 +194,8 @@ export default function AdminOrders() {
 
       const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
 
-      // 2. 根據付款方式處理
+      // Only deduct balance for balance payment method
       if (order.payment_method === 'balance') {
-        // 餘額支付：需扣款並記錄交易
-        
-        // 2a. 建立交易紀錄
         await createTransaction.mutateAsync({
           type: 'withdraw',
           amount: order.total_amount,
@@ -208,14 +205,12 @@ export default function AdminOrders() {
           note: transactionNote
         });
 
-        // 2b. 扣除成員錢包餘額
         await updateMember.mutateAsync({
           id: member.id,
           data: { balance: (member.balance || 0) - order.total_amount }
         });
       } else if (order.payment_method === 'cash') {
-        // 現金支付：只記錄交易，不扣除餘額（已由打勾確認收款）
-        
+        // For cash, only record transaction without deducting balance
         await createTransaction.mutateAsync({
           type: 'withdraw',
           amount: order.total_amount,
@@ -228,7 +223,6 @@ export default function AdminOrders() {
     }
 
     alert('結帳完成！');
-    // 清空現金收款確認狀態
     setCashPaidStatus({});
   };
 
