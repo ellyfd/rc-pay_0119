@@ -100,7 +100,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
         product_name: product.product_name,
         quantity: 1,
         price: product.price,
-        note: product.description || '',
+        note: '',
         split: newItems[index].split || false,
         splitMembers: newItems[index].splitMembers || [],
         splitExpanded: newItems[index].splitExpanded || false
