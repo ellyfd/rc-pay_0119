@@ -219,9 +219,16 @@ export default function GroupBuyDetail() {
     });
   };
 
-  // Calculate total quantity across all items in the group buy
+  // Calculate total quantity across all items in the group buy (only count orderers, not split members)
   const getTotalQuantity = () => {
-    return items.reduce((sum, item) => sum + item.quantity, 0);
+    return items.reduce((sum, item) => {
+      // If it's a split item and this member is not the orderer, don't count it
+      const isSplitItem = item.note && item.note.includes('平分');
+      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+        return sum;
+      }
+      return sum + item.quantity;
+    }, 0);
   };
 
   // Calculate applicable discount based on total group buy quantity
@@ -764,7 +771,17 @@ export default function GroupBuyDetail() {
                             <td className="px-4 py-3">
                               <div className="text-slate-700">{item.product_name}</div>
                             </td>
-                            <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
+                            <td className="px-4 py-3 text-center text-slate-700">
+                              {(() => {
+                                const isSplitItem = item.note && item.note.includes('平分');
+                                const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
+                                // Only show quantity if this is the orderer, or if it's not a split item
+                                if (isSplitItem && !isOrderer) {
+                                  return '-';
+                                }
+                                return item.quantity;
+                              })()}
+                            </td>
                             <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
                             {groupBuy.discount_rules?.length > 0 && (
                               <td className="px-4 py-3 text-right font-medium text-slate-700">
