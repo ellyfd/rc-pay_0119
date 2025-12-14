@@ -30,7 +30,13 @@ export default function Welcome() {
             m.user_emails && m.user_emails.includes(user.email)
           );
           if (linkedMember) {
-            window.location.href = createPageUrl('Home');
+            // Has linked member - check if internal
+            if (linkedMember.is_internal) {
+              window.location.href = createPageUrl('Home');
+            } else {
+              window.location.href = createPageUrl('GroupBuy');
+            }
+            return;
           }
         } catch (error) {
           console.error('Error checking user:', error);

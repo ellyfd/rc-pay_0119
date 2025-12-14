@@ -25,16 +25,10 @@ export default function Home() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const auth = await base44.auth.isAuthenticated();
-        if (!auth) {
-          window.location.href = createPageUrl('Welcome');
-          return;
-        }
         const user = await base44.auth.me();
         setCurrentUser(user);
       } catch (error) {
         console.error('Failed to load user:', error);
-        window.location.href = createPageUrl('Welcome');
       }
     };
     loadUser();
