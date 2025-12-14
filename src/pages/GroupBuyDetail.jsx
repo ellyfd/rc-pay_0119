@@ -796,7 +796,13 @@ export default function GroupBuyDetail() {
                                   className="text-xs px-2 py-1 rounded border border-slate-300 bg-white text-slate-700"
                                 >
                                   <option value="">請選擇</option>
-                                  <option value="rcpay">RC Pay</option>
+                                  {(() => {
+                                    const itemMember = members.find(m => m.id === item.member_id);
+                                    if (itemMember?.is_internal) {
+                                      return <option value="rcpay">RC Pay</option>;
+                                    }
+                                    return null;
+                                  })()}
                                   <option value="linepay">Line Pay</option>
                                   <option value="ipasspay">iPASS Pay</option>
                                   <option value="cash">現金</option>

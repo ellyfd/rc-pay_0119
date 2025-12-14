@@ -207,29 +207,31 @@ export default function Home() {
               </Link>
             </div>
             <div className="flex gap-2">
-              {currentMember && (
-                <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
-                  <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
+                  {currentMember && (
+                    <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
+                      <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
+                        <User className="w-5 h-5 md:mr-2" />
+                        <span className="hidden md:inline">個人資料</span>
+                      </Button>
+                    </Link>
+                  )}
+                  {currentMember?.is_internal && (
+                    <Link to={createPageUrl('MemberManagement')}>
+                      <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
+                        <Settings className="w-5 h-5 md:mr-2" />
+                        <span className="hidden md:inline">成員管理</span>
+                      </Button>
+                    </Link>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    className="text-white hover:bg-white hover:text-slate-900"
+                    onClick={() => base44.auth.logout()}
+                  >
                     <User className="w-5 h-5 md:mr-2" />
-                    <span className="hidden md:inline">個人資料</span>
+                    <span className="hidden md:inline">登出</span>
                   </Button>
-                </Link>
-              )}
-              <Link to={createPageUrl('MemberManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                  <Settings className="w-5 h-5 md:mr-2" />
-                  <span className="hidden md:inline">成員管理</span>
-                </Button>
-              </Link>
-              <Button 
-                variant="ghost" 
-                className="text-white hover:bg-white hover:text-slate-900"
-                onClick={() => base44.auth.logout()}
-              >
-                <User className="w-5 h-5 md:mr-2" />
-                <span className="hidden md:inline">登出</span>
-              </Button>
-            </div>
+                </div>
           </div>
         </div>
       </div>
@@ -237,28 +239,39 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Link to={createPageUrl('FoodOrder')}>
-            <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
-              <UtensilsCrossed className="w-5 h-5 mr-2" />
-              七分飽訂餐
-            </Button>
-          </Link>
-          <Button
-            onClick={() => setShowTransaction(true)}
-            className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
-            disabled={allMembers.length === 0}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            新增交易（單筆）
-          </Button>
-          <Button
-            onClick={() => setShowBatchTransaction(true)}
-            className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
-            disabled={allMembers.length === 0}
-          >
-            <Users className="w-5 h-5 mr-2" />
-            新增交易（多筆）
-          </Button>
+          {currentMember?.is_internal ? (
+            <>
+              <Link to={createPageUrl('FoodOrder')}>
+                <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
+                  <UtensilsCrossed className="w-5 h-5 mr-2" />
+                  七分飽訂餐
+                </Button>
+              </Link>
+              <Button
+                onClick={() => setShowTransaction(true)}
+                className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
+                disabled={allMembers.length === 0}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                新增交易（單筆）
+              </Button>
+              <Button
+                onClick={() => setShowBatchTransaction(true)}
+                className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
+                disabled={allMembers.length === 0}
+              >
+                <Users className="w-5 h-5 mr-2" />
+                新增交易（多筆）
+              </Button>
+            </>
+          ) : (
+            <Link to={createPageUrl('GroupBuy')} className="col-span-full">
+              <Button className="w-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-purple-700">
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                團購專區
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Members Section */}
