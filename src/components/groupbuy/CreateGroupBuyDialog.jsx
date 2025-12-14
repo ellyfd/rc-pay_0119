@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2, Link as LinkIcon, Sparkles, FileText } from "lucide-react";
+import { Upload, Plus, Trash2, Sparkles, FileText } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -40,8 +40,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   }]);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analyzingUrl, setAnalyzingUrl] = useState(false);
-  const [urlInput, setUrlInput] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
   const { data: templates = [] } = useQuery({
@@ -165,53 +163,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     }
   };
 
-  const handleAnalyzeUrl = async () => {
-    if (!urlInput.trim()) {
-      alert('請輸入網址！');
-      return;
-    }
 
-    setAnalyzingUrl(true);
-    try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `請分析這個網頁 ${urlInput}，提取出所有可用的產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。請盡可能完整地提取產品資訊，包括菜單、商品名稱、價格等。`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            products: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  product_name: { type: "string" },
-                  price: { type: "number" },
-                  description: { type: "string" }
-                },
-                required: ["product_name", "price"]
-              }
-            }
-          },
-          required: ["products"]
-        }
-      });
-
-      if (result.products && result.products.length > 0) {
-        setProducts(result.products);
-        // Auto-fill product_link if not already set
-        if (!formData.product_link) {
-          setFormData({ ...formData, product_link: urlInput });
-        }
-        alert(`成功識別 ${result.products.length} 個產品！`);
-      } else {
-        alert('未能識別出產品資訊，請手動輸入。');
-      }
-    } catch (error) {
-      alert('分析失敗：' + error.message);
-    } finally {
-      setAnalyzingUrl(false);
-    }
-  };
 
   const addProduct = () => {
     setProducts([...products, {
@@ -324,7 +276,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
           </div>
 
           {/* AI Analysis Section */}
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-purple-600" />
               <h3 className="font-semibold text-purple-900">AI 快速辨識商品</h3>
@@ -332,7 +284,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             
             {/* Image Upload */}
             <div>
-              <Label className="text-sm">方法一：上傳圖片（可多張）</Label>
+              <Label className="text-sm">上傳圖片（可多張）</Label>
               <p className="text-xs text-slate-500 mb-2">上傳菜單或商品圖片，AI 自動識別</p>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="outline"
@@ -382,30 +334,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                   ))}
                 </div>
               }
-            </div>
-
-            {/* URL Analysis */}
-            <div>
-              <Label className="text-sm">方法二：貼上網址（成功率較低）</Label>
-              <p className="text-xs text-slate-500 mb-2">貼上餐廳或商品網頁連結，AI 自動識別</p>
-              <div className="flex gap-2">
-                <Input
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://..."
-                  type="url"
-                  className="flex-1 bg-white"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAnalyzeUrl}
-                  disabled={analyzingUrl || !urlInput.trim()}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <LinkIcon className="w-4 h-4 mr-2" />
-                  {analyzingUrl ? '分析中...' : 'AI 辨識'}
-                </Button>
-              </div>
             </div>
           </div>
 
