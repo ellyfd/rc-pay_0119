@@ -247,6 +247,29 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Template Selection */}
+          {templates.length > 0 && (
+            <div>
+              <Label>從範本快速建立</Label>
+              <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇範本（選填）" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>不使用範本</SelectItem>
+                  {templates.map(template => (
+                    <SelectItem key={template.id} value={template.id}>
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        {template.template_name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Title */}
           <div>
             <Label>團購標題 *</Label>

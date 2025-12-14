@@ -8,6 +8,7 @@ import GroupBuy from './pages/GroupBuy';
 import GroupBuyDetail from './pages/GroupBuyDetail';
 import ProductCatalog from './pages/ProductCatalog';
 import TransactionHistory from './pages/TransactionHistory';
+import GroupBuyTemplates from './pages/GroupBuyTemplates';
 
 
 export const PAGES = {
@@ -21,6 +22,7 @@ export const PAGES = {
     "GroupBuyDetail": GroupBuyDetail,
     "ProductCatalog": ProductCatalog,
     "TransactionHistory": TransactionHistory,
+    "GroupBuyTemplates": GroupBuyTemplates,
 }
 
 export const pagesConfig = {
