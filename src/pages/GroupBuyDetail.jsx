@@ -915,25 +915,9 @@ export default function GroupBuyDetail() {
                           }, 0)}
                         </td>
                         <td colSpan={
-                          (groupBuy.discount_rules?.length > 0 ? 2 : 2) + 
+                          (groupBuy.discount_rules?.length > 0 ? 3 : 2) + 
                           (isOrganizer && groupBuy.status !== 'open' ? 1 : 0)
                         }></td>
-                        {groupBuy.discount_rules?.length > 0 && (
-                          <td className="px-4 py-3 text-right">
-                            <div className="text-2xl font-bold text-green-600">
-                              ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
-                            </div>
-                            {(() => {
-                              const discount = getApplicableDiscount();
-                              return discount && (
-                                <div className="text-xs text-green-700 mt-1">
-                                  ({discount.discount_percent}% off)
-                                </div>
-                              );
-                            })()}
-                          </td>
-                        )}
-                        <td colSpan={groupBuy.discount_rules?.length > 0 ? 0 : 1}></td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
