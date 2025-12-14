@@ -923,10 +923,9 @@ export default function GroupBuyDetail() {
                             {(() => {
                               const discount = getApplicableDiscount();
                               return discount ? (
-                                <div className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-lg">
-                                  <div className="text-2xl font-bold">-{discount.discount_percent}%</div>
-                                  <div className="text-xs font-normal">全團優惠</div>
-                                </div>
+                                <span className="text-lg font-bold text-orange-600">
+                                  -{discount.discount_percent}%
+                                </span>
                               ) : null;
                             })()}
                           </td>
