@@ -369,9 +369,17 @@ export default function AdminOrders() {
                             )}
                           </td>
                           <td className="px-3 py-3">
-                            <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
-                              {order.payment_method === 'cash' ? '現金' : '餘額'}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                                {order.payment_method === 'cash' ? '現金' : '餘額'}
+                              </Badge>
+                              {order.payment_method === 'cash' && (
+                                <input 
+                                  type="checkbox"
+                                  className="w-4 h-4 rounded border-slate-300 cursor-pointer"
+                                />
+                              )}
+                            </div>
                           </td>
                           <td className="px-3 py-3 text-right font-bold text-emerald-600">
                             ${order.total_amount.toLocaleString()}
