@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, Wallet } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -156,48 +156,39 @@ export default function AdminOrders() {
     setEditingOrder(null);
   };
 
-  const handleCheckoutSingle = async (order) => {
-    const member = allMembers.find(m => m.id === order.member_id);
-    if (!member) return;
-
-    if (order.payment_method === 'balance') {
-      if (member.balance < order.total_amount) {
-        alert(`餘額不足！${member.name} 餘額：$${member.balance}，需支付：$${order.total_amount}`);
-        return;
-      }
-      
-      if (!confirm(`確認從 ${member.name} 的錢包扣除 $${order.total_amount} 嗎？`)) {
-        return;
-      }
-
-      const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
-
-      await createTransaction.mutateAsync({
-        type: 'withdraw',
-        amount: order.total_amount,
-        wallet_type: 'balance',
-        from_member_id: member.id,
-        from_member_name: member.name,
-        note: transactionNote
-      });
-
-      await updateMember.mutateAsync({
-        id: member.id,
-        data: { balance: member.balance - order.total_amount }
-      });
-    }
-
-    await updateOrder.mutateAsync({
-      id: order.id,
-      data: { status: 'completed' }
-    });
-  };
-
   const handleCheckoutAll = async () => {
     if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
     for (const order of orders) {
-      await handleCheckoutSingle(order);
+      const member = allMembers.find(m => m.id === order.member_id);
+      if (!member) continue;
+
+      // Update order status
+      await updateOrder.mutateAsync({
+        id: order.id,
+        data: { status: 'completed' }
+      });
+
+      // Only process balance deduction if payment method is balance
+      if (order.payment_method === 'balance' || order.payment_method === 'cash') {
+        const walletType = order.payment_method === 'cash' ? 'cash' : 'balance';
+        const balanceField = order.payment_method === 'cash' ? 'cash_balance' : 'balance';
+        const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
+
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: order.total_amount,
+          wallet_type: walletType,
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: transactionNote
+        });
+
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: { [balanceField]: (member[balanceField] || 0) - order.total_amount }
+        });
+      }
     }
 
     alert('結帳完成！');
@@ -385,25 +376,8 @@ export default function AdminOrders() {
                           <td className="px-3 py-3 text-right font-bold text-emerald-600">
                             ${order.total_amount.toLocaleString()}
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="px-3 py-3 text-center">
                             <div className="flex items-center justify-center gap-1">
-                              {order.payment_method === 'balance' ? (
-                                <Button
-                                  onClick={() => handleCheckoutSingle(order)}
-                                  size="sm"
-                                  className="h-8 px-3 bg-blue-600 hover:bg-blue-700"
-                                >
-                                  <Wallet className="w-3 h-3 mr-1" />
-                                  扣款
-                                </Button>
-                              ) : (
-                                <button
-                                  onClick={() => handleCheckoutSingle(order)}
-                                  className="w-6 h-6 rounded border-2 border-slate-300 hover:border-slate-400 flex items-center justify-center transition-colors"
-                                >
-                                  <CheckCircle className="w-4 h-4 text-white opacity-0" />
-                                </button>
-                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
