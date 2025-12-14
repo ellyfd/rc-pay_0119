@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2, Link as LinkIcon, Sparkles } from "lucide-react";
+import { Upload, Plus, Trash2, Link as LinkIcon, Sparkles, FileText } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,12 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzingUrl, setAnalyzingUrl] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['groupBuyTemplates'],
+    queryFn: () => base44.entities.GroupBuyTemplate.list('-created_date')
+  });
 
   // Auto-select organizer based on current user
   React.useEffect(() => {
@@ -53,6 +60,31 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       }
     }
   }, [currentUser, members]);
+
+  const handleTemplateSelect = (templateId) => {
+    setSelectedTemplate(templateId);
+    if (!templateId) return;
+
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setFormData(prev => ({
+        ...prev,
+        title: template.title || '',
+        description: template.description || '',
+        product_link: template.product_link || '',
+        image_url: template.image_url || ''
+      }));
+      setProducts(template.products || [{
+        product_name: '',
+        price: 0,
+        description: ''
+      }]);
+      setDiscountRules(template.discount_rules || []);
+      if (template.image_url) {
+        setImageUrls([template.image_url]);
+      }
+    }
+  };
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
