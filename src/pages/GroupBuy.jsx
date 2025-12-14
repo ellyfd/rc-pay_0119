@@ -18,8 +18,17 @@ export default function GroupBuy() {
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
+        const auth = await base44.auth.isAuthenticated();
+        if (auth) {
+          const user = await base44.auth.me();
+          setCurrentUser(user);
+        } else {
+          // Guest mode - use name from localStorage
+          const guestName = localStorage.getItem('guest_name');
+          if (guestName) {
+            setCurrentUser({ email: 'guest', full_name: guestName, role: 'guest' });
+          }
+        }
       } catch (error) {
         console.error('Failed to load user:', error);
       }

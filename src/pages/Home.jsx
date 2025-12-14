@@ -29,6 +29,7 @@ export default function Home() {
         setCurrentUser(user);
       } catch (error) {
         console.error('Failed to load user:', error);
+        window.location.href = createPageUrl('Welcome');
       }
     };
     loadUser();
