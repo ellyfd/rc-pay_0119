@@ -285,7 +285,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             {/* Image Upload */}
             <div>
               <Label className="text-sm">上傳圖片（可多張）</Label>
-              <p className="text-xs text-slate-500 mb-2">上傳菜單或商品圖片，AI 自動識別</p>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="outline"
                   onClick={() => document.getElementById('groupbuy-image').click()}
