@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, ShoppingCart, Users, Package } from "lucide-react";
+import { ArrowLeft, Plus, ShoppingCart, Users, Package, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import GroupBuyCard from "@/components/groupbuy/GroupBuyCard";
@@ -109,13 +109,21 @@ export default function GroupBuy() {
                 <p className="text-purple-100 text-sm">開團、跟團、輕鬆購</p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowCreate(true)}
-              className="bg-white text-purple-600 hover:bg-purple-50"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              我要開團
-            </Button>
+            <div className="flex gap-2">
+              <Link to={createPageUrl('GroupBuyTemplates')}>
+                <Button variant="ghost" className="text-white hover:bg-purple-500">
+                  <FileText className="w-5 h-5 mr-2" />
+                  範本管理
+                </Button>
+              </Link>
+              <Button
+                onClick={() => setShowCreate(true)}
+                className="bg-white text-purple-600 hover:bg-purple-50"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                我要開團
+              </Button>
+            </div>
           </div>
         </div>
       </div>
