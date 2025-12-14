@@ -524,6 +524,22 @@ export default function GroupBuyDetail() {
                             • 滿 {rule.min_quantity} 件：{rule.discount_percent}% off
                           </p>
                         ))}
+                      {(() => {
+                        const totalQty = getTotalQuantity();
+                        const discount = getApplicableDiscount();
+                        return (
+                          <div className="mt-2 pt-2 border-t border-amber-200">
+                            <p className="text-xs font-semibold text-amber-800">
+                              🎉 目前全團總數量：{totalQty} 件
+                            </p>
+                            {discount && (
+                              <p className="text-xs font-bold text-green-700 mt-1">
+                                ✨ 已達標！全團享 {discount.discount_percent}% off
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -642,7 +658,7 @@ export default function GroupBuyDetail() {
                                 </span>
                                 {hasDiscount && discount && (
                                   <div className="text-xs text-green-600 mt-0.5">
-                                    ({(100 - discount.discount_percent) / 10}折)
+                                    ({discount.discount_percent}% off)
                                   </div>
                                 )}
                               </td>
@@ -775,18 +791,10 @@ export default function GroupBuyDetail() {
                                 {(() => {
                                   const discountedPrice = getDiscountedPrice(item.price);
                                   const hasDiscount = discountedPrice !== item.price;
-                                  const discount = getApplicableDiscount();
                                   return (
-                                    <div>
-                                      <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
-                                        ${discountedPrice.toLocaleString()}
-                                      </span>
-                                      {hasDiscount && discount && (
-                                        <div className="text-xs text-green-600 mt-0.5">
-                                          ({(100 - discount.discount_percent) / 10}折)
-                                        </div>
-                                      )}
-                                    </div>
+                                    <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
+                                      ${discountedPrice.toLocaleString()}
+                                    </span>
                                   );
                                 })()}
                               </td>
@@ -900,27 +908,7 @@ export default function GroupBuyDetail() {
                         <td colSpan={
                           (groupBuy.discount_rules?.length > 0 ? 6 : 5) + 
                           (isOrganizer && groupBuy.status !== 'open' ? 1 : 0)
-                        } className="px-4 py-3 text-right text-slate-700">
-                          <div className="flex items-center justify-end gap-2">
-                            <span>總計</span>
-                            {groupBuy.discount_rules?.length > 0 && (() => {
-                              const totalQty = getTotalQuantity();
-                              const discount = getApplicableDiscount();
-                              return (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-amber-700">
-                                    (全團 {totalQty} 件)
-                                  </span>
-                                  {discount && (
-                                    <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded">
-                                      ✨ 已達標！{discount.discount_percent}% off
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        </td>
+                        } className="px-4 py-3 text-right text-slate-700">總計</td>
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
