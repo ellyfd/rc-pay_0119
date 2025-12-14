@@ -296,7 +296,12 @@ export default function AdminOrders() {
               />
             </div>
             {orders.length > 0 && (
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                  <p className="text-blue-800 font-medium text-xs mb-1">📝 結帳說明</p>
+                  <p className="text-blue-700 text-xs">• <span className="font-semibold">餘額</span>：自動扣款</p>
+                  <p className="text-blue-700 text-xs">• <span className="font-semibold">現金</span>：勾選確認，不扣款</p>
+                </div>
                 <div className="text-right">
                   <p className="text-sm text-slate-500">訂單數</p>
                   <p className="text-xl font-bold text-slate-800">{orders.length}</p>
