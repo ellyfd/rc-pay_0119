@@ -206,28 +206,28 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-            <div className="flex gap-2">
+            <div className="flex md:flex-row flex-col gap-2">
               {currentMember && (
                 <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
-                  <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                    <User className="w-5 h-5 md:mr-2" />
-                    <span className="hidden md:inline">個人資料</span>
+                  <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900 w-full md:w-auto">
+                    <User className="w-5 h-5 mr-2" />
+                    個人資料
                   </Button>
                 </Link>
               )}
               <Link to={createPageUrl('MemberManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                  <Settings className="w-5 h-5 md:mr-2" />
-                  <span className="hidden md:inline">成員管理</span>
+                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900 w-full md:w-auto">
+                  <Settings className="w-5 h-5 mr-2" />
+                  成員管理
                 </Button>
               </Link>
               <Button 
                 variant="ghost" 
-                className="text-white hover:bg-white hover:text-slate-900"
+                className="text-white hover:bg-white hover:text-slate-900 w-full md:w-auto"
                 onClick={() => base44.auth.logout()}
               >
-                <User className="w-5 h-5 md:mr-2" />
-                <span className="hidden md:inline">登出</span>
+                <User className="w-5 h-5 mr-2" />
+                登出
               </Button>
             </div>
           </div>
@@ -236,28 +236,31 @@ export default function Home() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           <Link to={createPageUrl('FoodOrder')}>
-            <Button className="w-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-emerald-700">
-              <UtensilsCrossed className="w-5 h-5 mr-2" />
-              七分飽訂餐
+            <Button className="w-full bg-emerald-600 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-emerald-700">
+              <UtensilsCrossed className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline md:mr-0">七分飽訂餐</span>
+              <span className="sm:hidden">訂餐</span>
             </Button>
           </Link>
           <Button
             onClick={() => setShowTransaction(true)}
-            className="bg-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-amber-600"
+            className="bg-amber-500 text-slate-900 px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-amber-600"
             disabled={allMembers.length === 0}
           >
-            <Plus className="w-5 h-5 mr-2" />
-            新增交易（單筆）
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">新增交易（單筆）</span>
+            <span className="sm:hidden">單筆</span>
           </Button>
           <Button
             onClick={() => setShowBatchTransaction(true)}
-            className="bg-red-500 text-white px-4 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-14 hover:bg-red-600"
+            className="bg-red-500 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-red-600"
             disabled={allMembers.length === 0}
           >
-            <Users className="w-5 h-5 mr-2" />
-            新增交易（多筆）
+            <Users className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">新增交易（多筆）</span>
+            <span className="sm:hidden">多筆</span>
           </Button>
         </div>
 
@@ -290,7 +293,7 @@ export default function Home() {
             </Card> :
 
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-3"
             initial="hidden"
             animate="visible"
             variants={{
