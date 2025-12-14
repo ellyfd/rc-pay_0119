@@ -23,8 +23,7 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
   const [formData, setFormData] = useState({
     name: '',
     avatar_color: 'blue',
-    user_emails: [],
-    is_internal: false
+    user_emails: []
   });
   const [newEmail, setNewEmail] = useState('');
 
@@ -33,8 +32,7 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
       setFormData({
         name: member.name || '',
         avatar_color: member.avatar_color || 'blue',
-        user_emails: member.user_emails || [],
-        is_internal: member.is_internal || false
+        user_emails: member.user_emails || []
       });
     }
   }, [member]);
@@ -136,18 +134,6 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
                 />
               ))}
             </div>
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.is_internal}
-                onChange={(e) => setFormData({ ...formData, is_internal: e.target.checked })}
-                className="w-4 h-4 rounded border-slate-300"
-              />
-              <span className="text-sm text-slate-700">3F內部成員（可使用RC Pay）</span>
-            </label>
           </div>
         </div>
 

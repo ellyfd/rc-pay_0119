@@ -22,7 +22,6 @@ const colorMap = {
 export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState('blue');
-  const [isInternal, setIsInternal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -30,11 +29,10 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
     if (!name.trim()) return;
     
     setLoading(true);
-    await onAdd({ name: name.trim(), avatar_color: selectedColor, balance: 0, is_internal: isInternal });
+    await onAdd({ name: name.trim(), avatar_color: selectedColor, balance: 0 });
     setLoading(false);
     setName('');
     setSelectedColor('blue');
-    setIsInternal(false);
     onOpenChange(false);
   };
 
@@ -70,18 +68,6 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
                 />
               ))}
             </div>
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isInternal}
-                onChange={(e) => setIsInternal(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300"
-              />
-              <span className="text-sm text-slate-700">3F內部成員（可使用RC Pay）</span>
-            </label>
           </div>
           
           <Button 
