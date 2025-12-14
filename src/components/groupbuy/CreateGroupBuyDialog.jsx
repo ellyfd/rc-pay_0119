@@ -103,13 +103,9 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       if (!formData.image_url && uploadedUrls.length > 0) {
         setFormData({ ...formData, image_url: uploadedUrls[0] });
       }
-
-      setUploading(false);
-      
-      // Auto-analyze after upload
-      await handleAnalyzeImageWithUrls(newImageUrls);
     } catch (error) {
       alert('上傳失敗：' + error.message);
+    } finally {
       setUploading(false);
     }
   };
@@ -126,14 +122,14 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     }
   };
 
-  const handleAnalyzeImageWithUrls = async (urls) => {
-    if (urls.length === 0) return;
+  const handleAnalyzeImage = async () => {
+    if (imageUrls.length === 0) return;
 
     setAnalyzing(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `請分析這些圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
-        file_urls: urls,
+        file_urls: imageUrls,
         response_json_schema: {
           type: "object",
           properties: {
@@ -293,10 +289,10 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <div className="flex items-center gap-3">
                 <Button type="button" variant="outline"
                   onClick={() => document.getElementById('groupbuy-image').click()}
-                  disabled={uploading || analyzing}
+                  disabled={uploading}
                   className="bg-white">
                   <Upload className="w-4 h-4 mr-2" />
-                  {uploading ? '上傳中...' : analyzing ? 'AI 識別中...' : '上傳圖片'}
+                  {uploading ? '上傳中...' : '上傳圖片'}
                 </Button>
                 <input
                   id="groupbuy-image"
@@ -306,9 +302,19 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                   onChange={handleFileUpload}
                   className="hidden" />
 
-                {imageUrls.length > 0 && !analyzing && (
-                  <span className="text-sm text-green-600">✓ 已上傳 {imageUrls.length} 張</span>
-                )}
+                {imageUrls.length > 0 &&
+                <>
+                    <span className="text-sm text-green-600">✓ 已上傳 {imageUrls.length} 張</span>
+                    <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAnalyzeImage}
+                    disabled={analyzing}
+                    className="ml-auto bg-white">
+                      {analyzing ? '分析中...' : '🤖 AI 識別產品'}
+                    </Button>
+                  </>
+                }
               </div>
               {imageUrls.length > 0 &&
               <div className="mt-3 grid grid-cols-3 gap-2">
