@@ -473,16 +473,16 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <table className="w-full table-auto">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-2 sm:px-3 py-2 text-sm font-semibold text-slate-700 w-[40%]">商品名稱</th>
-                    <th className="text-left px-2 sm:px-3 py-2 text-sm font-semibold text-slate-700 w-[30%] sm:w-[30%] md:w-[30%] sm:text-left">說明</th>
-                    <th className="text-right px-2 sm:px-3 py-2 text-sm font-semibold text-slate-700 w-[30%] sm:w-[15%] md:w-[15%]">單價</th>
-                    <th className="text-center px-2 sm:px-3 py-2 text-sm font-semibold text-slate-700 w-0 sm:w-[15%]"></th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[40%]">商品名稱</th>
+                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-[15%]">單價</th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[30%]">說明</th>
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-[15%]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {products.map((product, index) =>
                   <tr key={index}>
-                      <td className="px-2 sm:px-3 py-2">
+                      <td className="px-3 py-2">
                         <Input
                         value={product.product_name}
                         onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
@@ -490,15 +490,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                         className="h-9" />
 
                       </td>
-                      <td className="px-2 sm:px-3 py-2">
-                        <Input
-                        value={product.description}
-                        onChange={(e) => updateProduct(index, 'description', e.target.value)}
-                        placeholder="規格、說明..."
-                        className="h-9" />
-
-                      </td>
-                      <td className="px-2 sm:px-3 py-2">
+                      <td className="px-3 py-2">
                         <Input
                         type="number"
                         min="0"
@@ -508,7 +500,15 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                         className="h-9 text-right" />
 
                       </td>
-                      <td className="px-2 sm:px-3 py-2 text-center hidden sm:table-cell">
+                      <td className="px-3 py-2">
+                        <Input
+                        value={product.description}
+                        onChange={(e) => updateProduct(index, 'description', e.target.value)}
+                        placeholder="規格、說明..."
+                        className="h-9" />
+
+                      </td>
+                      <td className="px-3 py-2 text-center">
                         {products.length > 1 &&
                       <Button
                         variant="ghost"
