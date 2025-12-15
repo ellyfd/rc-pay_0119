@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, History, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -255,6 +255,20 @@ export default function AdminOrders() {
             <div>
               <h1 className="text-2xl font-bold">訂單管理</h1>
               <p className="text-emerald-100 text-sm">查詢訂單紀錄與統一結帳</p>
+            </div>
+            <div className="flex gap-2">
+              <Link to={createPageUrl('OrderHistoryByDate')}>
+                <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  按日期查詢
+                </Button>
+              </Link>
+              <Link to={createPageUrl('OrderHistoryByMember')}>
+                <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                  <Users className="w-4 h-4 mr-2" />
+                  按成員查詢
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
