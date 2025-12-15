@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, FileText, Link2, Lock } from "lucide-react";
+import { Plus, Trash2, FileText, Link2, Lock, Upload, Sparkles } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -38,11 +38,14 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     }
   });
   const [discountRules, setDiscountRules] = useState([]);
+  const [imageUrls, setImageUrls] = useState([]);
   const [products, setProducts] = useState([{
     product_name: '',
     price: 0,
     description: ''
   }]);
+  const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
   const { data: templates = [] } = useQuery({
@@ -81,6 +84,102 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         description: ''
       }]);
       setDiscountRules(template.discount_rules || []);
+      if (template.image_url) {
+        setImageUrls([template.image_url]);
+      }
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedUrls = [];
+      for (const file of files) {
+        let fileToUpload = file;
+        if (file.type.startsWith('image/')) {
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true
+          };
+          try {
+            fileToUpload = await imageCompression(file, options);
+          } catch (compressionError) {
+            console.warn('圖片壓縮失敗，使用原始檔案', compressionError);
+          }
+        }
+        const result = await base44.integrations.Core.UploadFile({ file: fileToUpload });
+        uploadedUrls.push(result.file_url);
+      }
+      
+      const newImageUrls = [...imageUrls, ...uploadedUrls];
+      setImageUrls(newImageUrls);
+      
+      if (!formData.image_url && uploadedUrls.length > 0) {
+        setFormData({ ...formData, image_url: uploadedUrls[0] });
+      }
+      toast.success(`成功上傳 ${uploadedUrls.length} 張圖片！`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('上傳失敗：' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index) => {
+    const newImageUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newImageUrls);
+    
+    if (newImageUrls.length > 0) {
+      setFormData({ ...formData, image_url: newImageUrls[0] });
+    } else {
+      setFormData({ ...formData, image_url: '' });
+    }
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (imageUrls.length === 0) return;
+
+    setAnalyzing(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `請分析這些圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
+        file_urls: imageUrls,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            products: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  product_name: { type: "string" },
+                  price: { type: "number" },
+                  description: { type: "string" }
+                },
+                required: ["product_name", "price"]
+              }
+            }
+          },
+          required: ["products"]
+        }
+      });
+
+      if (result.products && result.products.length > 0) {
+        setProducts(result.products);
+        toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
+      } else {
+        toast.warning('未能識別出產品資訊，請手動輸入。');
+      }
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast.error('AI 分析失敗：' + error.message);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -139,6 +238,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         access_type: 'public'
       }
     });
+    setImageUrls([]);
     setProducts([{
       product_name: '',
       price: 0,
@@ -197,6 +297,73 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               placeholder="說明團購內容、注意事項等..."
               rows={3} />
 
+          </div>
+
+          {/* AI Image Upload & Analysis */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <h3 className="font-semibold text-purple-900">AI 快速辨識商品</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => document.getElementById('groupbuy-image').click()}
+                  disabled={uploading}
+                  className="bg-white hover:bg-purple-50"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploading ? '上傳中...' : '上傳圖片'}
+                </Button>
+                <input
+                  id="groupbuy-image"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                
+                {imageUrls.length > 0 && (
+                  <>
+                    <span className="text-sm text-green-600 font-medium">✓ 已上傳 {imageUrls.length} 張</span>
+                    <Button
+                      type="button"
+                      onClick={handleAnalyzeImage}
+                      disabled={analyzing}
+                      className="ml-auto bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {analyzing ? '分析中...' : 'AI 識別產品'}
+                    </Button>
+                  </>
+                )}
+              </div>
+              
+              {imageUrls.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full aspect-square object-cover rounded-lg border border-purple-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Product Link */}
