@@ -546,18 +546,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
           </div>
 
           {/* Link Settings */}
-          <div className="space-y-4 border-t pt-4">
-            <div className="flex items-center gap-2">
-              <Link2 className="w-5 h-5 text-purple-600" />
-              <h3 className="font-semibold text-slate-800">分享連結設定</h3>
-            </div>
-
-            <div className="space-y-3 bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="border-t pt-4">
+            <Label className="mb-2 block">分享連結設定</Label>
+            <div className="space-y-2 bg-purple-50 border border-purple-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-slate-600" />
-                  <Label htmlFor="access-type" className="text-sm font-medium">訪問權限</Label>
-                </div>
+                <Label htmlFor="access-type" className="text-sm">訪問權限</Label>
                 <Select
                   value={formData.link_settings.access_type}
                   onValueChange={(value) => setFormData({
@@ -575,8 +568,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="expiration" className="text-sm font-medium">連結有效期（天數）</Label>
+              <div>
+                <Label htmlFor="expiration" className="text-sm">連結有效期（天數）</Label>
                 <Input
                   id="expiration"
                   type="number"
