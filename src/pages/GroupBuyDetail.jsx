@@ -115,12 +115,24 @@ export default function GroupBuyDetail() {
 
   const updateItem = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuyItem.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] });
+      toast.success('已更新訂單！');
+    },
+    onError: (error) => {
+      toast.error('更新失敗：' + error.message);
+    }
   });
 
   const deleteItem = useMutation({
     mutationFn: (id) => base44.entities.GroupBuyItem.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] });
+      toast.success('已刪除訂單！');
+    },
+    onError: (error) => {
+      toast.error('刪除失敗：' + error.message);
+    }
   });
 
   const deleteGroupBuy = useMutation({

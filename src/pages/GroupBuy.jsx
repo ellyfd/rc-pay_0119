@@ -3,16 +3,20 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, ShoppingCart, Users, Package, FileText } from "lucide-react";
+import { ArrowLeft, Plus, ShoppingCart, Users, Package, FileText, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import GroupBuyCard from "@/components/groupbuy/GroupBuyCard";
 import CreateGroupBuyDialog from "@/components/groupbuy/CreateGroupBuyDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export default function GroupBuy() {
   const [showCreate, setShowCreate] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [filterType, setFilterType] = useState('all'); // all, my_organized, my_joined
+  const [sortBy, setSortBy] = useState('latest'); // latest, deadline, participants
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -49,11 +53,18 @@ export default function GroupBuy() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groupBuys'] });
       setShowCreate(false);
+      toast.success('團購已成功建立！');
+    },
+    onError: (error) => {
+      toast.error('建立團購失敗：' + error.message);
     }
   });
 
   const createGroupBuyProduct = useMutation({
-    mutationFn: (data) => base44.entities.GroupBuyProduct.create(data)
+    mutationFn: (data) => base44.entities.GroupBuyProduct.create(data),
+    onError: (error) => {
+      toast.error('建立商品失敗：' + error.message);
+    }
   });
 
   const handleCreate = async (data) => {
@@ -81,8 +92,50 @@ export default function GroupBuy() {
     }
   };
 
-  const openGroupBuys = groupBuys.filter(gb => gb.status === 'open');
-  const closedGroupBuys = groupBuys.filter(gb => gb.status === 'closed' || gb.status === 'completed');
+  // Find current user's member
+  const currentMember = members.find(m => 
+    m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+  );
+
+  // Filter function
+  const filterGroupBuys = (gbs) => {
+    let filtered = gbs;
+    
+    if (filterType === 'my_organized' && currentMember) {
+      filtered = filtered.filter(gb => gb.organizer_id === currentMember.id);
+    } else if (filterType === 'my_joined' && currentMember) {
+      const myGroupBuyIds = allGroupBuyItems
+        .filter(item => item.member_id === currentMember.id)
+        .map(item => item.group_buy_id);
+      filtered = filtered.filter(gb => myGroupBuyIds.includes(gb.id));
+    }
+    
+    return filtered;
+  };
+
+  // Sort function
+  const sortGroupBuys = (gbs) => {
+    const sorted = [...gbs];
+    
+    if (sortBy === 'deadline') {
+      sorted.sort((a, b) => {
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline) - new Date(b.deadline);
+      });
+    } else if (sortBy === 'participants') {
+      sorted.sort((a, b) => {
+        const aParticipants = new Set(allGroupBuyItems.filter(i => i.group_buy_id === a.id).map(i => i.member_id)).size;
+        const bParticipants = new Set(allGroupBuyItems.filter(i => i.group_buy_id === b.id).map(i => i.member_id)).size;
+        return bParticipants - aParticipants;
+      });
+    }
+    
+    return sorted;
+  };
+
+  const openGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'open')));
+  const closedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' || gb.status === 'completed')));
 
   if (!currentUser) {
     return (
@@ -136,6 +189,34 @@ export default function GroupBuy() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Filters and Sort */}
+        <div className="mb-6 flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-500" />
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部團購</SelectItem>
+                <SelectItem value="my_organized">我發起的</SelectItem>
+                <SelectItem value="my_joined">我參與的</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">最新建立</SelectItem>
+              <SelectItem value="deadline">截止日期</SelectItem>
+              <SelectItem value="participants">參與人數</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Tabs defaultValue="open" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
             <TabsTrigger value="open">

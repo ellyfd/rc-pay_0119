@@ -89,7 +89,8 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
       const result = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       setFormData({ ...formData, image_url: result.file_url });
     } catch (error) {
-      alert('上傳失敗：' + error.message);
+      const toast = await import('sonner');
+      toast.toast.error('上傳失敗：' + error.message);
     } finally {
       setUploading(false);
     }
@@ -115,7 +116,8 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
 
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
-      alert('請輸入團購標題！');
+      const toast = await import('sonner');
+      toast.toast.error('請輸入團購標題！');
       return;
     }
 

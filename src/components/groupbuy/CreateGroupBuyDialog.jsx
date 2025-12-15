@@ -119,7 +119,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         setFormData({ ...formData, image_url: uploadedUrls[0] });
       }
     } catch (error) {
-      alert('上傳失敗：' + error.message);
+      const toast = await import('sonner');
+      toast.toast.error('上傳失敗：' + error.message);
     } finally {
       setUploading(false);
     }
@@ -167,12 +168,15 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
       if (result.products && result.products.length > 0) {
         setProducts(result.products);
-        alert(`成功識別 ${result.products.length} 個產品！`);
+        const toast = await import('sonner');
+        toast.toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
       } else {
-        alert('未能識別出產品資訊，請手動輸入。');
+        const toast = await import('sonner');
+        toast.toast.warning('未能識別出產品資訊，請手動輸入。');
       }
     } catch (error) {
-      alert('分析失敗：' + error.message);
+      const toast = await import('sonner');
+      toast.toast.error('AI 分析失敗：' + error.message);
     } finally {
       setAnalyzing(false);
     }
@@ -200,14 +204,16 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     setProducts(newProducts);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title.trim()) {
-      alert('請輸入團購標題！');
+      const toast = await import('sonner');
+      toast.toast.error('請輸入團購標題！');
       return;
     }
 
     if (!formData.organizer_id) {
-      alert('請選擇開團者！');
+      const toast = await import('sonner');
+      toast.toast.error('請選擇開團者！');
       return;
     }
 
