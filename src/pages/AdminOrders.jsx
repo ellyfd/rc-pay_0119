@@ -277,54 +277,58 @@ export default function AdminOrders() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Date and Status Selection */}
         <Card className="p-3 sm:p-4 mb-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <label className="font-semibold text-slate-700 text-sm sm:text-base whitespace-nowrap">訂餐日期：</label>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">訂餐日期：</label>
               <Input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full sm:w-48 text-sm"
+                className="w-32 sm:w-36 text-xs sm:text-sm"
               />
-              <div className="flex gap-2">
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+              <div className="flex flex-col gap-1.5">
                 <Button
                   variant={orderStatus === 'pending' ? 'default' : 'outline'}
                   onClick={() => setOrderStatus('pending')}
-                  className={`flex-1 sm:flex-none text-xs sm:text-sm ${orderStatus === 'pending' ? 'bg-emerald-600' : ''}`}
+                  className={`text-xs sm:text-sm h-8 px-3 ${orderStatus === 'pending' ? 'bg-emerald-600' : ''}`}
                 >
                   待處理
                 </Button>
                 <Button
                   variant={orderStatus === 'completed' ? 'default' : 'outline'}
                   onClick={() => setOrderStatus('completed')}
-                  className={`flex-1 sm:flex-none text-xs sm:text-sm ${orderStatus === 'completed' ? 'bg-slate-600' : ''}`}
+                  className={`text-xs sm:text-sm h-8 px-3 ${orderStatus === 'completed' ? 'bg-slate-600' : ''}`}
                 >
                   已完成
                 </Button>
               </div>
+              
+              {orders.length > 0 && (
+                <div className="flex items-center gap-3 sm:gap-4 ml-2 sm:ml-4">
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500">訂單數</p>
+                    <p className="text-base sm:text-lg font-bold text-slate-800">{orders.length}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500">總金額</p>
+                    <p className="text-base sm:text-lg font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
+                  </div>
+                  {currentUser?.role === 'admin' && orderStatus === 'pending' && (
+                    <Button
+                      onClick={handleCheckoutAll}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 text-xs sm:text-sm h-8 sm:h-10 whitespace-nowrap"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
+                      <span className="hidden sm:inline">統一結帳</span>
+                      <span className="sm:hidden">結帳</span>
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
-            {orders.length > 0 && (
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
-                <div className="text-left sm:text-right">
-                  <p className="text-xs sm:text-sm text-slate-500">訂單數</p>
-                  <p className="text-lg sm:text-xl font-bold text-slate-800">{orders.length}</p>
-                </div>
-                <div className="text-left sm:text-right">
-                  <p className="text-xs sm:text-sm text-slate-500">總金額</p>
-                  <p className="text-lg sm:text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
-                </div>
-                {currentUser?.role === 'admin' && orderStatus === 'pending' && (
-                  <Button
-                    onClick={handleCheckoutAll}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap"
-                  >
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
-                    <span className="hidden sm:inline">統一結帳</span>
-                    <span className="sm:hidden">結帳</span>
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
         </Card>
 
