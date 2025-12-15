@@ -11,6 +11,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import GroupBuyTemplates from './pages/GroupBuyTemplates';
 import OrderHistoryByDate from './pages/OrderHistoryByDate';
 import OrderHistoryByMember from './pages/OrderHistoryByMember';
+import PublicGroupBuy from './pages/PublicGroupBuy';
 
 
 export const PAGES = {
@@ -27,6 +28,7 @@ export const PAGES = {
     "GroupBuyTemplates": GroupBuyTemplates,
     "OrderHistoryByDate": OrderHistoryByDate,
     "OrderHistoryByMember": OrderHistoryByMember,
+    "PublicGroupBuy": PublicGroupBuy,
 }
 
 export const pagesConfig = {
