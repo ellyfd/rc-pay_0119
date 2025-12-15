@@ -508,13 +508,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                         className="h-9" />
 
                       </td>
-                      <td className="px-3 py-2 text-center">
+                      <td className="px-2 py-2 text-center">
                         {products.length > 1 &&
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => removeProduct(index)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700">
+                        className="h-8 w-8 text-red-500 hover:text-red-700 mx-auto">
 
                             <Trash2 className="w-4 h-4" />
                           </Button>
