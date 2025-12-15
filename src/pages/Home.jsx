@@ -3,7 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, MoreVertical, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
@@ -206,30 +212,33 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-            <div className="flex md:flex-row flex-col gap-2">
-              {currentMember && (
-                <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
-                  <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900 w-full md:w-auto">
-                    <User className="w-5 h-5 mr-2" />
-                    個人資料
-                  </Button>
-                </Link>
-              )}
-              <Link to={createPageUrl('MemberManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900 w-full md:w-auto">
-                  <Settings className="w-5 h-5 mr-2" />
-                  成員管理
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
+                  <MoreVertical className="w-5 h-5" />
                 </Button>
-              </Link>
-              <Button 
-                variant="ghost" 
-                className="text-white hover:bg-white hover:text-slate-900 w-full md:w-auto"
-                onClick={() => base44.auth.logout()}
-              >
-                <User className="w-5 h-5 mr-2" />
-                登出
-              </Button>
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {currentMember && (
+                  <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
+                    <DropdownMenuItem>
+                      <User className="w-4 h-4 mr-2" />
+                      個人資料
+                    </DropdownMenuItem>
+                  </Link>
+                )}
+                <Link to={createPageUrl('MemberManagement')}>
+                  <DropdownMenuItem>
+                    <Settings className="w-4 h-4 mr-2" />
+                    成員管理
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem onClick={() => base44.auth.logout()}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  登出
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
