@@ -80,7 +80,7 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
           <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
             <Button className="w-full bg-purple-600 hover:bg-purple-700">
               <Plus className="w-4 h-4 mr-2" />
-              我要跟團
+              {groupBuy.status === 'open' ? '我要跟團' : '我要查看'}
             </Button>
           </Link>
         </div>
