@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Users, Calendar, ExternalLink, Plus } from "lucide-react";
+import { Package, Users, Calendar, ExternalLink, Plus, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -79,7 +79,11 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
         <div className="pt-2">
           <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
             <Button className="w-full bg-purple-600 hover:bg-purple-700">
-              <Plus className="w-4 h-4 mr-2" />
+              {groupBuy.status === 'open' ? (
+                <Plus className="w-4 h-4 mr-2" />
+              ) : (
+                <Eye className="w-4 h-4 mr-2" />
+              )}
               {groupBuy.status === 'open' ? '我要跟團' : '我要查看'}
             </Button>
           </Link>
