@@ -24,7 +24,7 @@ export default function TransactionItem({ transaction }) {
       case 'withdraw':
         return `${transaction.from_member_name} 出帳`;
       case 'transfer':
-        return `${transaction.from_member_name} → ${transaction.to_member_name} 轉帳`;
+        return `${transaction.from_member_name} → ${transaction.to_member_name}`;
       default:
         return '';
     }
@@ -49,30 +49,23 @@ export default function TransactionItem({ transaction }) {
         {getIcon()}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
           <p className="font-medium text-slate-800">{getDescription()}</p>
-          {transaction.type === 'transfer' && (
-            <span className={`font-bold text-base ${getAmountColor()}`}>
-              ${transaction.amount?.toLocaleString()}
-            </span>
-          )}
           <Badge className={transaction.wallet_type === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
             {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
           </Badge>
         </div>
         {transaction.note && (
-          <p className="text-sm text-slate-500 line-clamp-2">{transaction.note}</p>
+          <p className="text-sm text-slate-500 truncate">{transaction.note}</p>
         )}
         <p className="text-xs text-slate-400 mt-1">
           {format(new Date(transaction.created_date), 'yyyy/MM/dd HH:mm')}
         </p>
       </div>
-      {transaction.type !== 'transfer' && (
-        <div className={`font-bold text-lg ${getAmountColor()}`}>
-          {transaction.type === 'deposit' ? '+' : '-'}
-          ${transaction.amount?.toLocaleString()}
-        </div>
-      )}
+      <div className={`font-bold text-lg ${getAmountColor()}`}>
+        {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
+        ${transaction.amount?.toLocaleString()}
+      </div>
     </div>
   );
 }
