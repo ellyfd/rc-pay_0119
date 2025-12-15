@@ -118,7 +118,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       if (!formData.image_url && uploadedUrls.length > 0) {
         setFormData({ ...formData, image_url: uploadedUrls[0] });
       }
+      
+      // Reset file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
+      console.error('Upload error:', error);
       const toast = await import('sonner');
       toast.toast.error('上傳失敗：' + error.message);
     } finally {
