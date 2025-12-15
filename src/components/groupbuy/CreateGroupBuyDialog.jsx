@@ -373,6 +373,16 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
           </div>
 
+          {/* Deadline */}
+          <div>
+            <Label>截止日期</Label>
+            <Input
+              type="date"
+              value={formData.deadline}
+              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
+
+          </div>
+
           {/* AI Analysis Section */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -442,16 +452,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               onChange={(e) => setFormData({ ...formData, product_link: e.target.value })}
               placeholder="https://..."
               type="url" />
-
-          </div>
-
-          {/* Deadline */}
-          <div>
-            <Label>截止日期</Label>
-            <Input
-              type="date"
-              value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
 
           </div>
 
