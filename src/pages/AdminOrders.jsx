@@ -341,16 +341,16 @@ export default function AdminOrders() {
           <>
             <Card className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="bg-emerald-50">
                     <tr>
-                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-32">成員</th>
-                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
-                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">飯量</th>
-                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
-                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">付款</th>
-                      <th className="px-3 py-3 text-right font-semibold text-slate-700 border-b w-32">小計</th>
-                      <th className="px-3 py-3 text-center font-semibold text-slate-700 border-b w-24">操作</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">成員</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">飯量</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">單點</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">付款</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">小計</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b">操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -368,86 +368,86 @@ export default function AdminOrders() {
                       
                       return (
                         <tr key={order.id} className="border-b hover:bg-slate-50">
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-slate-800">{order.member_name}</div>
-                            <div className="text-xs text-slate-500">
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3">
+                            <div className="font-medium text-slate-800 leading-tight">{order.member_name}</div>
+                            <div className="text-[10px] sm:text-xs text-slate-500">
                               {format(new Date(order.created_date), 'HH:mm')}
                             </div>
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                             {mealBox ? (
-                              <div className="text-sm text-slate-700">
-                                {mealBox.product_name}
-                                <div className="text-xs text-slate-500">${mealBox.price}</div>
+                              <div className="text-slate-700 leading-tight">
+                                <div className="break-words">{mealBox.product_name}</div>
+                                <div className="text-[10px] sm:text-xs text-slate-500">${mealBox.price}</div>
                               </div>
                             ) : (
-                              <span className="text-slate-400 text-sm">-</span>
+                              <span className="text-slate-400">-</span>
                             )}
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                             {mealBox && mealBoxItem ? (
-                              <span className="text-sm text-slate-700">
+                              <span className="text-slate-700 whitespace-nowrap">
                                 {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
                                  mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
                               </span>
                             ) : mealBox ? (
-                              <span className="text-sm text-slate-700">正常</span>
+                              <span className="text-slate-700">正常</span>
                             ) : (
-                              <span className="text-slate-400 text-sm">-</span>
+                              <span className="text-slate-400">-</span>
                             )}
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                             {sideItems.length > 0 ? (
-                              <div className="space-y-1">
+                              <div className="space-y-0.5">
                                 {sideItems.map(item => (
-                                  <div key={item.id} className="text-sm text-slate-700">
+                                  <div key={item.id} className="text-slate-700 leading-tight break-words">
                                     {item.product_name}
-                                    <span className="text-xs text-slate-500 ml-1">${item.price}</span>
+                                    <span className="text-[10px] sm:text-xs text-slate-500 ml-1">${item.price}</span>
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-slate-400 text-sm">-</span>
+                              <span className="text-slate-400">-</span>
                             )}
                           </td>
-                          <td className="px-3 py-3">
-                            <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3">
+                            <Badge className={`text-[10px] sm:text-xs ${order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}`}>
                               {order.payment_method === 'cash' ? '現金' : '餘額'}
                             </Badge>
                           </td>
-                          <td className="px-3 py-3 text-right font-bold text-emerald-600">
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-bold text-emerald-600 whitespace-nowrap">
                             ${order.total_amount.toLocaleString()}
                           </td>
-                          <td className="px-3 py-3 text-center">
+                          <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
                             {currentUser?.role === 'admin' && orderStatus === 'pending' ? (
-                              <div className="flex items-center justify-center gap-1">
+                              <div className="flex items-center justify-center gap-0.5 sm:gap-1">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleEdit(order)}
-                                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                 >
-                                  <Edit className="w-4 h-4" />
+                                  <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => setDeletingOrder(order)}
-                                  className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </Button>
                               </div>
                             ) : (
-                              <span className="text-slate-400 text-sm">-</span>
+                              <span className="text-slate-400">-</span>
                             )}
                           </td>
                         </tr>
                       );
                     })}
                     <tr className="bg-emerald-50 font-bold">
-                      <td colSpan="5" className="px-3 py-4 text-right text-lg">總計</td>
-                      <td className="px-3 py-4 text-right text-lg text-emerald-600">
+                      <td colSpan="5" className="px-1.5 sm:px-3 py-3 sm:py-4 text-right text-sm sm:text-lg">總計</td>
+                      <td className="px-1.5 sm:px-3 py-3 sm:py-4 text-right text-sm sm:text-lg text-emerald-600 whitespace-nowrap">
                         ${totalAmount.toLocaleString()}
                       </td>
                       <td></td>
