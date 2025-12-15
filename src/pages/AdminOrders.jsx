@@ -3,8 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, Search } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -23,11 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminOrders() {
-  const [queryMode, setQueryMode] = useState('single'); // single, range, member
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [selectedMemberId, setSelectedMemberId] = useState('');
   const [orderStatus, setOrderStatus] = useState('pending');
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
@@ -47,23 +42,12 @@ export default function AdminOrders() {
   }, []);
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['orders', queryMode, selectedDate, startDate, endDate, selectedMemberId, orderStatus],
+    queryKey: ['orders', selectedDate, orderStatus],
     queryFn: async () => {
       const allOrders = await base44.entities.Order.list('-created_date');
-      return allOrders.filter(order => {
-        // Status filter
-        if (order.status !== orderStatus) return false;
-        
-        // Date/Member filter based on query mode
-        if (queryMode === 'single') {
-          return order.order_date === selectedDate;
-        } else if (queryMode === 'range') {
-          return order.order_date >= startDate && order.order_date <= endDate;
-        } else if (queryMode === 'member') {
-          return selectedMemberId ? order.member_id === selectedMemberId : true;
-        }
-        return true;
-      });
+      return allOrders.filter(order => 
+        order.order_date === selectedDate && order.status === orderStatus
+      );
     }
   });
 
@@ -277,117 +261,55 @@ export default function AdminOrders() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Query Mode and Filters */}
+        {/* Date and Status Selection */}
         <Card className="p-4 mb-6">
-          <div className="flex flex-col gap-4">
-            {/* Top Row: Query Mode & Status */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Search className="w-5 h-5 text-slate-500" />
-                <Select value={queryMode} onValueChange={setQueryMode}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="single">按單日</SelectItem>
-                    <SelectItem value="range">按區間</SelectItem>
-                    <SelectItem value="member">按成員</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant={orderStatus === 'pending' ? 'default' : 'outline'}
-                    onClick={() => setOrderStatus('pending')}
-                    className={orderStatus === 'pending' ? 'bg-emerald-600' : ''}
-                  >
-                    待處理
-                  </Button>
-                  <Button
-                    variant={orderStatus === 'completed' ? 'default' : 'outline'}
-                    onClick={() => setOrderStatus('completed')}
-                    className={orderStatus === 'completed' ? 'bg-slate-600' : ''}
-                  >
-                    已完成
-                  </Button>
-                </div>
-              </div>
-
-              {orders.length > 0 && (
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm text-slate-500">訂單數</p>
-                    <p className="text-xl font-bold text-slate-800">{orders.length}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-slate-500">總金額</p>
-                    <p className="text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
-                  </div>
-                  {currentUser?.role === 'admin' && orderStatus === 'pending' && (
-                    <Button
-                      onClick={handleCheckoutAll}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
-                    >
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      統一結帳
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Filter Inputs based on Query Mode */}
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {queryMode === 'single' && (
-                <>
-                  <label className="font-semibold text-slate-700">訂餐日期：</label>
-                  <Input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-48"
-                  />
-                </>
-              )}
-
-              {queryMode === 'range' && (
-                <>
-                  <label className="font-semibold text-slate-700">日期區間：</label>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-48"
-                  />
-                  <span className="text-slate-500">至</span>
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-48"
-                  />
-                </>
-              )}
-
-              {queryMode === 'member' && (
-                <>
-                  <label className="font-semibold text-slate-700">選擇成員：</label>
-                  <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="請選擇成員" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>全部成員</SelectItem>
-                      {allMembers.map(member => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
+              <label className="font-semibold text-slate-700">訂餐日期：</label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-48"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant={orderStatus === 'pending' ? 'default' : 'outline'}
+                  onClick={() => setOrderStatus('pending')}
+                  className={orderStatus === 'pending' ? 'bg-emerald-600' : ''}
+                >
+                  待處理
+                </Button>
+                <Button
+                  variant={orderStatus === 'completed' ? 'default' : 'outline'}
+                  onClick={() => setOrderStatus('completed')}
+                  className={orderStatus === 'completed' ? 'bg-slate-600' : ''}
+                >
+                  已完成
+                </Button>
+              </div>
             </div>
+            {orders.length > 0 && (
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm text-slate-500">訂單數</p>
+                  <p className="text-xl font-bold text-slate-800">{orders.length}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-slate-500">總金額</p>
+                  <p className="text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
+                </div>
+                {currentUser?.role === 'admin' && orderStatus === 'pending' && (
+                  <Button
+                    onClick={handleCheckoutAll}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                  >
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    統一結帳
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </Card>
 
