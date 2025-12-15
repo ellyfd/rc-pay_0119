@@ -23,6 +23,7 @@ import {
 
 export default function AdminOrders() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [orderStatus, setOrderStatus] = useState('pending');
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -41,11 +42,11 @@ export default function AdminOrders() {
   }, []);
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['orders', selectedDate],
+    queryKey: ['orders', selectedDate, orderStatus],
     queryFn: async () => {
       const allOrders = await base44.entities.Order.list('-created_date');
       return allOrders.filter(order => 
-        order.order_date === selectedDate && order.status === 'pending'
+        order.order_date === selectedDate && order.status === orderStatus
       );
     }
   });
@@ -238,22 +239,7 @@ export default function AdminOrders() {
     );
   }
 
-  if (currentUser.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center">
-        <Card className="p-8 text-center max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="w-8 h-8 text-red-600" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">無權限訪問</h2>
-          <p className="text-slate-500 mb-4">此頁面僅限管理員使用</p>
-          <Link to={createPageUrl('Home')}>
-            <Button className="w-full">返回首頁</Button>
-          </Link>
-        </Card>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
@@ -268,14 +254,14 @@ export default function AdminOrders() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">訂單管理</h1>
-              <p className="text-emerald-100 text-sm">統一結帳待處理訂單</p>
+              <p className="text-emerald-100 text-sm">查詢訂單紀錄與統一結帳</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Date Selection */}
+        {/* Date and Status Selection */}
         <Card className="p-4 mb-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -286,6 +272,22 @@ export default function AdminOrders() {
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-48"
               />
+              <div className="flex gap-2">
+                <Button
+                  variant={orderStatus === 'pending' ? 'default' : 'outline'}
+                  onClick={() => setOrderStatus('pending')}
+                  className={orderStatus === 'pending' ? 'bg-emerald-600' : ''}
+                >
+                  待處理
+                </Button>
+                <Button
+                  variant={orderStatus === 'completed' ? 'default' : 'outline'}
+                  onClick={() => setOrderStatus('completed')}
+                  className={orderStatus === 'completed' ? 'bg-slate-600' : ''}
+                >
+                  已完成
+                </Button>
+              </div>
             </div>
             {orders.length > 0 && (
               <div className="flex items-center gap-4">
@@ -297,13 +299,15 @@ export default function AdminOrders() {
                   <p className="text-sm text-slate-500">總金額</p>
                   <p className="text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
                 </div>
-                <Button
-                  onClick={handleCheckoutAll}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  統一結帳
-                </Button>
+                {currentUser?.role === 'admin' && orderStatus === 'pending' && (
+                  <Button
+                    onClick={handleCheckoutAll}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                  >
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    統一結帳
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -317,7 +321,7 @@ export default function AdminOrders() {
         ) : orders.length === 0 ? (
           <Card className="p-8 text-center border-dashed">
             <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">此日期沒有待處理訂單</p>
+            <p className="text-slate-500">此日期沒有{orderStatus === 'pending' ? '待處理' : '已完成'}訂單</p>
           </Card>
         ) : (
           <>
@@ -401,24 +405,28 @@ export default function AdminOrders() {
                             ${order.total_amount.toLocaleString()}
                           </td>
                           <td className="px-3 py-3 text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(order)}
-                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeletingOrder(order)}
-                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
+                            {currentUser?.role === 'admin' && orderStatus === 'pending' ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(order)}
+                                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeletingOrder(order)}
+                                  className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-sm">-</span>
+                            )}
                           </td>
                         </tr>
                       );
