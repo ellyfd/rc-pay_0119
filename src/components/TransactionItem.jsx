@@ -18,16 +18,32 @@ export default function TransactionItem({ transaction }) {
   };
 
   const getDescription = () => {
+    const amount = `$${transaction.amount?.toLocaleString()}`;
     switch (transaction.type) {
       case 'deposit':
-        return `${transaction.to_member_name} 入帳`;
+        return `${transaction.to_member_name} 入帳 ${amount}`;
       case 'withdraw':
-        return `${transaction.from_member_name} 出帳`;
+        return `${transaction.from_member_name} 出帳 ${amount}`;
       case 'transfer':
-        return `${transaction.from_member_name} → ${transaction.to_member_name}`;
+        return `${transaction.from_member_name} → ${transaction.to_member_name} 轉帳 ${amount}`;
       default:
         return '';
     }
+  };
+
+  const getRelativeTime = () => {
+    const now = new Date();
+    const transactionDate = new Date(transaction.created_date);
+    const diffInMinutes = Math.floor((now - transactionDate) / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return '剛剛';
+    if (diffInMinutes < 60) return `${diffInMinutes} 分鐘前`;
+    if (diffInHours < 24) return `${diffInHours} 小時前`;
+    if (diffInDays === 1) return '昨天 ' + format(transactionDate, 'HH:mm');
+    if (diffInDays < 7) return `${diffInDays} 天前`;
+    return format(transactionDate, 'yyyy/MM/dd HH:mm');
   };
 
   const getAmountColor = () => {
@@ -59,12 +75,11 @@ export default function TransactionItem({ transaction }) {
           <p className="text-sm text-slate-500 truncate">{transaction.note}</p>
         )}
         <p className="text-xs text-slate-400 mt-1">
-          {format(new Date(transaction.created_date), 'yyyy/MM/dd HH:mm')}
+          {getRelativeTime()}
         </p>
       </div>
       <div className={`font-bold text-lg ${getAmountColor()}`}>
         {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
-        ${transaction.amount?.toLocaleString()}
       </div>
     </div>
   );
