@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminOrders() {
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [orderStatus, setOrderStatus] = useState('pending');
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -42,11 +42,11 @@ export default function AdminOrders() {
   }, []);
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ['orders', startDate, endDate],
+    queryKey: ['orders', selectedDate, orderStatus],
     queryFn: async () => {
-      const allOrders = await base44.entities.Order.list('-order_date');
+      const allOrders = await base44.entities.Order.list('-created_date');
       return allOrders.filter(order => 
-        order.order_date >= startDate && order.order_date <= endDate
+        order.order_date === selectedDate && order.status === orderStatus
       );
     }
   });
@@ -171,15 +171,9 @@ export default function AdminOrders() {
   };
 
   const handleCheckoutAll = async () => {
-    const pendingOrders = orders.filter(o => o.status === 'pending');
-    if (pendingOrders.length === 0) {
-      alert('沒有待處理的訂單');
-      return;
-    }
+    if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
-    if (!confirm(`確認要結帳 ${pendingOrders.length} 筆待處理訂單嗎？`)) return;
-
-    for (const order of pendingOrders) {
+    for (const order of orders) {
       const member = allMembers.find(m => m.id === order.member_id);
       if (!member) continue;
 
@@ -225,11 +219,14 @@ export default function AdminOrders() {
     alert('結帳完成！');
   };
 
-  const pendingOrders = orders.filter(o => o.status === 'pending');
-  const completedOrders = orders.filter(o => o.status === 'completed');
   const totalAmount = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-  const pendingAmount = pendingOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-  const completedAmount = completedOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+  const groupedOrders = orders.reduce((acc, order) => {
+    if (!acc[order.member_name]) {
+      acc[order.member_name] = [];
+    }
+    acc[order.member_name].push(order);
+    return acc;
+  }, {});
 
   if (!currentUser) {
     return (
@@ -264,53 +261,51 @@ export default function AdminOrders() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Date Range Selection */}
+        {/* Date and Status Selection */}
         <Card className="p-4 mb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <label className="font-semibold text-slate-700">查詢區間：</label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-40"
-                />
-                <span className="text-slate-500">至</span>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-40"
-                />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <label className="font-semibold text-slate-700">訂餐日期：</label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-48"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant={orderStatus === 'pending' ? 'default' : 'outline'}
+                  onClick={() => setOrderStatus('pending')}
+                  className={orderStatus === 'pending' ? 'bg-emerald-600' : ''}
+                >
+                  待處理
+                </Button>
+                <Button
+                  variant={orderStatus === 'completed' ? 'default' : 'outline'}
+                  onClick={() => setOrderStatus('completed')}
+                  className={orderStatus === 'completed' ? 'bg-slate-600' : ''}
+                >
+                  已完成
+                </Button>
               </div>
             </div>
             {orders.length > 0 && (
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">總訂單</p>
-                  <p className="text-lg font-bold text-slate-800">{orders.length}</p>
+                  <p className="text-sm text-slate-500">訂單數</p>
+                  <p className="text-xl font-bold text-slate-800">{orders.length}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">總金額</p>
-                  <p className="text-lg font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
+                  <p className="text-sm text-slate-500">總金額</p>
+                  <p className="text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
                 </div>
-                <div className="h-8 w-px bg-slate-200" />
-                <div className="text-right">
-                  <p className="text-xs text-amber-600">待處理</p>
-                  <p className="text-sm font-semibold text-amber-600">{pendingOrders.length} / ${pendingAmount.toLocaleString()}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-green-600">已完成</p>
-                  <p className="text-sm font-semibold text-green-600">{completedOrders.length} / ${completedAmount.toLocaleString()}</p>
-                </div>
-                {currentUser?.role === 'admin' && pendingOrders.length > 0 && (
+                {currentUser?.role === 'admin' && orderStatus === 'pending' && (
                   <Button
                     onClick={handleCheckoutAll}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    結帳待處理
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    統一結帳
                   </Button>
                 )}
               </div>
@@ -326,7 +321,7 @@ export default function AdminOrders() {
         ) : orders.length === 0 ? (
           <Card className="p-8 text-center border-dashed">
             <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">此時間區間沒有訂單</p>
+            <p className="text-slate-500">此日期沒有{orderStatus === 'pending' ? '待處理' : '已完成'}訂單</p>
           </Card>
         ) : (
           <>
@@ -335,13 +330,11 @@ export default function AdminOrders() {
                 <table className="w-full">
                   <thead className="bg-emerald-50">
                     <tr>
-                      <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">日期</th>
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-32">成員</th>
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">飯量</th>
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b">單點</th>
                       <th className="px-3 py-3 text-left font-semibold text-slate-700 border-b w-24">付款</th>
-                      <th className="px-3 py-3 text-center font-semibold text-slate-700 border-b w-20">狀態</th>
                       <th className="px-3 py-3 text-right font-semibold text-slate-700 border-b w-32">小計</th>
                       <th className="px-3 py-3 text-center font-semibold text-slate-700 border-b w-24">操作</th>
                     </tr>
@@ -362,15 +355,10 @@ export default function AdminOrders() {
                       return (
                         <tr key={order.id} className="border-b hover:bg-slate-50">
                           <td className="px-3 py-3">
-                            <div className="text-sm font-medium text-slate-700">
-                              {format(new Date(order.order_date), 'MM/dd')}
-                            </div>
+                            <div className="font-medium text-slate-800">{order.member_name}</div>
                             <div className="text-xs text-slate-500">
                               {format(new Date(order.created_date), 'HH:mm')}
                             </div>
-                          </td>
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-slate-800">{order.member_name}</div>
                           </td>
                           <td className="px-3 py-3">
                             {mealBox ? (
@@ -413,16 +401,11 @@ export default function AdminOrders() {
                               {order.payment_method === 'cash' ? '現金' : '餘額'}
                             </Badge>
                           </td>
-                          <td className="px-3 py-3 text-center">
-                            <Badge className={order.status === 'pending' ? 'bg-amber-500' : 'bg-green-500'}>
-                              {order.status === 'pending' ? '待處理' : '已完成'}
-                            </Badge>
-                          </td>
                           <td className="px-3 py-3 text-right font-bold text-emerald-600">
                             ${order.total_amount.toLocaleString()}
                           </td>
                           <td className="px-3 py-3 text-center">
-                            {currentUser?.role === 'admin' && order.status === 'pending' ? (
+                            {currentUser?.role === 'admin' && orderStatus === 'pending' ? (
                               <div className="flex items-center justify-center gap-1">
                                 <Button
                                   variant="ghost"
@@ -449,7 +432,7 @@ export default function AdminOrders() {
                       );
                     })}
                     <tr className="bg-emerald-50 font-bold">
-                      <td colSpan="7" className="px-3 py-4 text-right text-lg">總計</td>
+                      <td colSpan="5" className="px-3 py-4 text-right text-lg">總計</td>
                       <td className="px-3 py-4 text-right text-lg text-emerald-600">
                         ${totalAmount.toLocaleString()}
                       </td>
