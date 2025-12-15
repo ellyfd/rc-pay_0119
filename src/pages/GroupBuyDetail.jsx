@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet, Copy, Users as UsersIcon } from "lucide-react";
 import DiscountProgressBar from "@/components/groupbuy/DiscountProgressBar";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -105,12 +106,21 @@ export default function GroupBuyDetail() {
 
   const updateGroupBuy = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuy.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuy'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuy'] });
+      queryClient.invalidateQueries({ queryKey: ['groupBuys'] });
+    }
   });
 
   const createItem = useMutation({
     mutationFn: (data) => base44.entities.GroupBuyItem.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] });
+      toast.success('已成功加入團購！');
+    },
+    onError: (error) => {
+      toast.error('加入團購失敗：' + error.message);
+    }
   });
 
   const updateItem = useMutation({
@@ -139,7 +149,11 @@ export default function GroupBuyDetail() {
     mutationFn: (id) => base44.entities.GroupBuy.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groupBuys'] });
+      toast.success('團購已刪除！');
       window.location.href = createPageUrl('GroupBuy');
+    },
+    onError: (error) => {
+      toast.error('刪除團購失敗：' + error.message);
     }
   });
 
@@ -157,7 +171,10 @@ export default function GroupBuyDetail() {
     mutationFn: (data) => base44.entities.GroupBuyTemplate.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groupBuyTemplates'] });
-      alert('範本已建立！');
+      toast.success('範本已成功儲存！');
+    },
+    onError: (error) => {
+      toast.error('儲存範本失敗：' + error.message);
     }
   });
 
@@ -258,10 +275,15 @@ export default function GroupBuyDetail() {
 
   const handleCloseGroupBuy = async () => {
     if (!confirm('確定要截止這個團購嗎？截止後成員將無法再新增項目。')) return;
-    await updateGroupBuy.mutateAsync({
-      id: groupBuyId,
-      data: { status: 'closed' }
-    });
+    try {
+      await updateGroupBuy.mutateAsync({
+        id: groupBuyId,
+        data: { status: 'closed' }
+      });
+      toast.success('團購已截止，可以開始統計訂單！');
+    } catch (error) {
+      toast.error('截止團購失敗：' + error.message);
+    }
   };
 
   // Calculate total quantity across all items in the group buy (only count orderers, not split members)
@@ -304,29 +326,37 @@ export default function GroupBuyDetail() {
   const handleCompleteGroupBuy = async () => {
     if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
 
-    await updateGroupBuy.mutateAsync({
-      id: groupBuyId,
-      data: { status: 'completed' }
-    });
-
-    alert('結單完成！請查看下方訂購彙總表。');
+    try {
+      await updateGroupBuy.mutateAsync({
+        id: groupBuyId,
+        data: { status: 'completed' }
+      });
+      toast.success('結單完成！請查看下方訂購彙總表。');
+    } catch (error) {
+      toast.error('結單失敗：' + error.message);
+    }
   };
 
   const handleTogglePaid = async (summary) => {
     // Check if all items have payment method selected
     const allHavePaymentMethod = summary.items.every(item => item.payment_method);
     if (!allHavePaymentMethod) {
-      alert('請先為所有項目選擇支付方式！');
+      toast.warning('請先為所有項目選擇支付方式！');
       return;
     }
     
     const newPaidStatus = !summary.paid;
     // Update all items for this member
-    for (const item of summary.items) {
-      await updateItem.mutateAsync({
-        id: item.id,
-        data: { paid: newPaidStatus }
-      });
+    try {
+      for (const item of summary.items) {
+        await updateItem.mutateAsync({
+          id: item.id,
+          data: { paid: newPaidStatus }
+        });
+      }
+      toast.success(newPaidStatus ? '已標記為已付款' : '已標記為未付款');
+    } catch (error) {
+      toast.error('更新付款狀態失敗：' + error.message);
     }
   };
 
@@ -334,26 +364,28 @@ export default function GroupBuyDetail() {
     // Check if all items have payment method selected
     const allHavePaymentMethod = summary.items.every(item => item.payment_method);
     if (!allHavePaymentMethod) {
-      alert('請先為所有項目選擇支付方式！');
+      toast.warning('請先為所有項目選擇支付方式！');
       return;
     }
 
     // Find the member
     const member = members.find(m => m.member_id === summary.member_id || m.id === summary.member_id);
     if (!member) {
-      alert('找不到成員資料！');
+      toast.error('找不到成員資料！');
       return;
     }
 
     // Check if member has enough balance
     if (member.balance < summary.total) {
-      alert(`餘額不足！成員餘額：$${member.balance}，需支付：$${summary.total}`);
+      toast.error(`餘額不足！成員餘額：$${member.balance}，需支付：$${summary.total}`);
       return;
     }
 
     if (!confirm(`確定要從 ${summary.member_name} 的錢包扣除 $${summary.total} 嗎？`)) {
       return;
     }
+
+    try {
 
     // Deduct balance
     await updateMember.mutateAsync({
@@ -371,15 +403,18 @@ export default function GroupBuyDetail() {
       note: `團購付款：${groupBuy.title}`
     });
 
-    // Mark all items as paid
-    for (const item of summary.items) {
-      await updateItem.mutateAsync({
-        id: item.id,
-        data: { paid: true }
-      });
-    }
+      // Mark all items as paid
+      for (const item of summary.items) {
+        await updateItem.mutateAsync({
+          id: item.id,
+          data: { paid: true }
+        });
+      }
 
-    alert('扣款成功！');
+      toast.success('扣款成功！');
+    } catch (error) {
+      toast.error('RC Pay 扣款失敗：' + error.message);
+    }
   };
 
   if (!currentUser || groupBuyLoading) {
