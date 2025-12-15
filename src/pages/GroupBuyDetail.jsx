@@ -444,6 +444,10 @@ export default function GroupBuyDetail() {
   const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
   const isOpen = groupBuy.status === 'open';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  // Check if all items are paid (for settled status)
+  const allPaid = items.length > 0 && items.every(item => item.paid);
+  const isSettled = groupBuy.status === 'completed' && allPaid;
 
   // Group items by member
   const memberSummary = items.reduce((acc, item) => {
@@ -553,10 +557,12 @@ export default function GroupBuyDetail() {
                     <Badge className={
                       groupBuy.status === 'open' ? 'bg-green-500' :
                       groupBuy.status === 'closed' ? 'bg-amber-500' :
+                      isSettled ? 'bg-blue-500' :
                       'bg-slate-500'
                     }>
                       {groupBuy.status === 'open' ? '進行中' :
                        groupBuy.status === 'closed' ? '已截止' :
+                       isSettled ? '已結清' :
                        '已結單'}
                     </Badge>
                   </div>

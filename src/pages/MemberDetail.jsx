@@ -358,12 +358,12 @@ export default function MemberDetail() {
                                   className={`${
                                     groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
                                     groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
-                                    'bg-slate-500'
+                                    allPaid ? 'bg-blue-500' : 'bg-slate-500'
                                   }`}
                                 >
                                   {groupBuy.group_buy_status === 'open' ? '進行中' :
                                    groupBuy.group_buy_status === 'closed' ? '已截止' :
-                                   '已結單'}
+                                   allPaid ? '已結清' : '已結單'}
                                 </Badge>
                               </td>
                             </>
