@@ -400,62 +400,7 @@ export default function GroupBuyDetail() {
     }
   };
 
-  const handleConfirmRcPay = async (summary) => {
-    // Check if all items have payment method selected
-    const allHavePaymentMethod = summary.items.every(item => item.payment_method);
-    if (!allHavePaymentMethod) {
-      toast.warning('請先為所有項目選擇支付方式！');
-      return;
-    }
 
-    // Find the member
-    const member = members.find(m => m.member_id === summary.member_id || m.id === summary.member_id);
-    if (!member) {
-      toast.error('找不到成員資料！');
-      return;
-    }
-
-    // Check if member has enough balance
-    if (member.balance < summary.total) {
-      toast.error(`餘額不足！成員餘額：$${member.balance}，需支付：$${summary.total}`);
-      return;
-    }
-
-    if (!confirm(`確定要從 ${summary.member_name} 的錢包扣除 $${summary.total} 嗎？`)) {
-      return;
-    }
-
-    try {
-
-    // Deduct balance
-    await updateMember.mutateAsync({
-      id: member.id,
-      data: { balance: member.balance - summary.total }
-    });
-
-    // Create transaction record
-    await createTransaction.mutateAsync({
-      type: 'withdraw',
-      amount: summary.total,
-      wallet_type: 'balance',
-      from_member_id: member.id,
-      from_member_name: member.name,
-      note: `團購付款：${groupBuy.title}`
-    });
-
-      // Mark all items as paid
-      for (const item of summary.items) {
-        await updateItem.mutateAsync({
-          id: item.id,
-          data: { paid: true }
-        });
-      }
-
-      toast.success('扣款成功！');
-    } catch (error) {
-      toast.error('RC Pay 扣款失敗：' + error.message);
-    }
-  };
 
   if (!currentUser || groupBuyLoading) {
     return (
