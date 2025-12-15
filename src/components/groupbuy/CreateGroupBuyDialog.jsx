@@ -143,33 +143,42 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
     setAnalyzing(true);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `請分析這些圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
-        file_urls: imageUrls,
-        response_json_schema: {
+      const jsonSchema = {
+        type: "array",
+        items: {
           type: "object",
           properties: {
-            products: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  product_name: { type: "string" },
-                  price: { type: "number" },
-                  description: { type: "string" }
-                },
-                required: ["product_name", "price"]
-              }
-            }
+            product_name: { type: "string" },
+            price: { type: "number" },
+            description: { type: "string" }
           },
-          required: ["products"]
+          required: ["product_name", "price"]
         }
-      });
+      };
 
-      if (result.products && result.products.length > 0) {
-        setProducts(result.products);
+      let allProducts = [];
+      
+      // Process each image
+      for (const imageUrl of imageUrls) {
+        try {
+          const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+            file_url: imageUrl,
+            json_schema: jsonSchema
+          });
+
+          if (result.status === 'success' && result.output) {
+            const products = Array.isArray(result.output) ? result.output : [result.output];
+            allProducts = [...allProducts, ...products];
+          }
+        } catch (error) {
+          console.warn('Failed to extract from image:', imageUrl, error);
+        }
+      }
+
+      if (allProducts.length > 0) {
+        setProducts(allProducts);
         const toast = await import('sonner');
-        toast.toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
+        toast.toast.success(`AI 成功識別 ${allProducts.length} 個產品！`);
       } else {
         const toast = await import('sonner');
         toast.toast.warning('未能識別出產品資訊，請手動輸入。');
