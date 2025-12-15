@@ -474,9 +474,9 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[40%]">商品名稱</th>
-                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-[15%]">單價</th>
-                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[30%]">說明</th>
-                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-[15%]"></th>
+                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-[25%]">單價</th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[25%]">說明</th>
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-[10%]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
