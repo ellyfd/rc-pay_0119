@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2, Sparkles, FileText, Share2, Copy, CheckCircle } from "lucide-react";
+import { Upload, Plus, Trash2, Sparkles, FileText } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -42,7 +42,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [createdGroupBuy, setCreatedGroupBuy] = useState(null);
 
   const { data: templates = [] } = useQuery({
     queryKey: ['groupBuyTemplates'],
@@ -243,19 +242,12 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     // Filter valid products
     const validProducts = products.filter((p) => p.product_name && p.price > 0);
 
-    const result = await onCreate({
+    await onCreate({
       ...formData,
       products: validProducts,
       discount_rules: discountRules.filter(r => r.min_quantity > 0)
     });
 
-    // Show share link after creation
-    if (result && result.id) {
-      setCreatedGroupBuy(result);
-    }
-  };
-
-  const handleClose = () => {
     setFormData({
       title: '',
       description: '',
@@ -271,64 +263,16 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       description: ''
     }]);
     setDiscountRules([]);
-    setCreatedGroupBuy(null);
-    onOpenChange(false);
-  };
-
-  const handleCopyLink = () => {
-    if (createdGroupBuy) {
-      const shareUrl = `${window.location.origin}${window.location.pathname}?groupBuyId=${createdGroupBuy.id}`;
-      navigator.clipboard.writeText(shareUrl);
-      toast.success('連結已複製！');
-    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{createdGroupBuy ? '團購已建立！' : '開始新團購'}</DialogTitle>
+          <DialogTitle>開始新團購</DialogTitle>
         </DialogHeader>
 
-        {createdGroupBuy ? (
-          <div className="space-y-4 py-4">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">{createdGroupBuy.title}</h3>
-              <p className="text-slate-600 mb-4">團購已成功建立！分享連結給朋友一起參加吧</p>
-            </div>
-            
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Share2 className="w-5 h-5 text-purple-600" />
-                <span className="font-semibold text-purple-900">分享連結</span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={`${window.location.origin}${window.location.pathname}?groupBuyId=${createdGroupBuy.id}`}
-                  className="flex-1 px-3 py-2 bg-white border rounded text-sm text-slate-600"
-                  onClick={(e) => e.target.select()}
-                />
-                <Button onClick={handleCopyLink} className="bg-purple-600 hover:bg-purple-700">
-                  <Copy className="w-4 h-4 mr-2" />
-                  複製
-                </Button>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button onClick={handleClose} className="w-full bg-purple-600 hover:bg-purple-700">
-                完成
-              </Button>
-            </DialogFooter>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-4">
+        <div className="space-y-4">
           {/* Template Selection */}
           {templates.length > 0 && (
             <div>
@@ -605,7 +549,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         </div>
 
         <DialogFooter className="flex flex-row justify-center gap-2">
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
           <Button
@@ -616,8 +560,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             建立團購
           </Button>
         </DialogFooter>
-        </>
-        )}
         </DialogContent>
         </Dialog>);
 
