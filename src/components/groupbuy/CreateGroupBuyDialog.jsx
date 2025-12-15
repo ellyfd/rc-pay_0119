@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import imageCompression from 'browser-image-compression';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -87,46 +87,56 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      console.log('No files selected');
+      return;
+    }
 
+    console.log(`開始上傳 ${files.length} 個檔案`);
     setUploading(true);
+    
     try {
       const uploadedUrls = [];
-      for (const file of files) {
-        // Compress image before upload
-        let fileToUpload = file;
-        if (file.type.startsWith('image/')) {
-          const options = {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1920,
-            useWebWorker: true
-          };
-          try {
-            fileToUpload = await imageCompression(file, options);
-          } catch (compressionError) {
-            console.warn('圖片壓縮失敗，使用原始檔案', compressionError);
-          }
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`上傳檔案 ${i + 1}:`, file.name, file.type, file.size);
+        
+        if (!file.type.startsWith('image/')) {
+          toast.warning(`${file.name} 不是圖片檔案`);
+          continue;
         }
-        const result = await base44.integrations.Core.UploadFile({ file: fileToUpload });
-        uploadedUrls.push(result.file_url);
+        
+        try {
+          const result = await base44.integrations.Core.UploadFile({ file: file });
+          console.log('上傳成功:', result.file_url);
+          uploadedUrls.push(result.file_url);
+          toast.success(`已上傳 ${file.name}`);
+        } catch (uploadError) {
+          console.error(`上傳 ${file.name} 失敗:`, uploadError);
+          toast.error(`${file.name} 上傳失敗`);
+        }
       }
       
-      const newImageUrls = [...imageUrls, ...uploadedUrls];
-      setImageUrls(newImageUrls);
-      
-      // Keep the first image as the main image_url for backward compatibility
-      if (!formData.image_url && uploadedUrls.length > 0) {
-        setFormData({ ...formData, image_url: uploadedUrls[0] });
+      if (uploadedUrls.length > 0) {
+        const newImageUrls = [...imageUrls, ...uploadedUrls];
+        setImageUrls(newImageUrls);
+        console.log('所有圖片 URLs:', newImageUrls);
+        
+        if (!formData.image_url) {
+          setFormData({ ...formData, image_url: uploadedUrls[0] });
+        }
+        
+        toast.success(`成功上傳 ${uploadedUrls.length} 張圖片`);
       }
       
-      // Reset file input so the same file can be selected again
+      // Reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      const toast = await import('sonner');
-      toast.toast.error('上傳失敗：' + error.message);
+      console.error('上傳錯誤:', error);
+      toast.error('上傳失敗：' + (error.message || '未知錯誤'));
     } finally {
       setUploading(false);
     }
@@ -136,21 +146,29 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     const newImageUrls = imageUrls.filter((_, i) => i !== index);
     setImageUrls(newImageUrls);
     
-    // Update main image_url
     if (newImageUrls.length > 0) {
       setFormData({ ...formData, image_url: newImageUrls[0] });
     } else {
       setFormData({ ...formData, image_url: '' });
     }
+    
+    toast.success('已移除圖片');
   };
 
   const handleAnalyzeImage = async () => {
-    if (imageUrls.length === 0) return;
+    if (imageUrls.length === 0) {
+      toast.warning('請先上傳圖片');
+      return;
+    }
 
+    console.log('開始 AI 分析，圖片 URLs:', imageUrls);
     setAnalyzing(true);
+    
     try {
+      toast.info('AI 正在分析圖片...');
+      
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `請分析這些圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
+        prompt: `請仔細分析這些圖片中的產品資訊。提取所有產品的名稱、價格和規格說明。如果圖片中有價格資訊請一定要提取出來。請回傳 JSON 格式的產品列表。`,
         file_urls: imageUrls,
         response_json_schema: {
           type: "object",
@@ -172,17 +190,17 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         }
       });
 
-      if (result.products && result.products.length > 0) {
+      console.log('AI 分析結果:', result);
+
+      if (result && result.products && result.products.length > 0) {
         setProducts(result.products);
-        const toast = await import('sonner');
-        toast.toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
+        toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
       } else {
-        const toast = await import('sonner');
-        toast.toast.warning('未能識別出產品資訊，請手動輸入。');
+        toast.warning('AI 未能識別出產品資訊，請手動輸入');
       }
     } catch (error) {
-      const toast = await import('sonner');
-      toast.toast.error('AI 分析失敗：' + error.message);
+      console.error('AI 分析錯誤:', error);
+      toast.error('AI 分析失敗：' + (error.message || '未知錯誤'));
     } finally {
       setAnalyzing(false);
     }
@@ -212,14 +230,12 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
-      const toast = await import('sonner');
-      toast.toast.error('請輸入團購標題！');
+      toast.error('請輸入團購標題！');
       return;
     }
 
     if (!formData.organizer_id) {
-      const toast = await import('sonner');
-      toast.toast.error('請選擇開團者！');
+      toast.error('請選擇開團者！');
       return;
     }
 
