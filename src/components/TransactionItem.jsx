@@ -62,29 +62,29 @@ export default function TransactionItem({ transaction }) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-100 hover:shadow-md transition-shadow">
+    <div className="flex items-center gap-2 md:gap-4 p-3 md:p-4 bg-white rounded-lg md:rounded-xl border border-slate-100 hover:shadow-md transition-shadow">
       <Badge className={
         transaction.type === 'deposit' ? 'bg-emerald-500' :
         transaction.type === 'withdraw' ? 'bg-red-500' :
         'bg-blue-500'
       }>
-        {getTypeLabel()}
+        <span className="text-xs md:text-sm">{getTypeLabel()}</span>
       </Badge>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-medium text-slate-800">{getDescription()}</p>
-          <Badge variant="outline" className={transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}>
+        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+          <p className="font-medium text-slate-800 text-sm md:text-base">{getDescription()}</p>
+          <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
             {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
           </Badge>
         </div>
         {transaction.note && (
-          <p className="text-sm text-slate-500 truncate mt-1">{transaction.note}</p>
+          <p className="text-xs md:text-sm text-slate-500 truncate mt-0.5 md:mt-1">{transaction.note}</p>
         )}
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-400 mt-0.5 md:mt-1">
           {getRelativeTime()}
         </p>
       </div>
-      <div className={`font-bold text-lg ${getAmountColor()}`}>
+      <div className={`font-bold text-base md:text-lg ${getAmountColor()} whitespace-nowrap`}>
         {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
         ${transaction.amount?.toLocaleString()}
       </div>

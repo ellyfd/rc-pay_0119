@@ -24,26 +24,26 @@ export default function TransactionHistory() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
       <div className="bg-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 md:py-6">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回首頁
+            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-3 md:mb-4 -ml-2 h-8 md:h-10">
+              <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="text-sm md:text-base">返回首頁</span>
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
-              <History className="w-6 h-6 text-slate-900" />
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-400 rounded-lg md:rounded-xl flex items-center justify-center">
+              <History className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">交易紀錄</h1>
-              <p className="text-slate-400 text-sm">共 {allTransactions.length} 筆交易</p>
+              <h1 className="text-xl md:text-2xl font-bold">交易紀錄</h1>
+              <p className="text-slate-400 text-xs md:text-sm">共 {allTransactions.length} 筆交易</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 md:py-6">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -66,7 +66,7 @@ export default function TransactionHistory() {
           </Card>
         ) : (
           <>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {transactions.map((transaction) => (
                 <TransactionItem key={transaction.id} transaction={transaction} />
               ))}
@@ -74,21 +74,25 @@ export default function TransactionHistory() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-6">
+              <div className="flex items-center justify-center gap-2 mt-4 md:mt-6">
                 <Button
                   variant="outline"
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
+                  size="sm"
+                  className="h-8 md:h-10 px-3 md:px-4 text-xs md:text-sm"
                 >
                   上一頁
                 </Button>
-                <span className="text-sm text-slate-600">
-                  第 {page} / {totalPages} 頁
+                <span className="text-xs md:text-sm text-slate-600">
+                  {page} / {totalPages}
                 </span>
                 <Button
                   variant="outline"
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
+                  size="sm"
+                  className="h-8 md:h-10 px-3 md:px-4 text-xs md:text-sm"
                 >
                   下一頁
                 </Button>
