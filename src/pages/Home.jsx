@@ -215,7 +215,7 @@ export default function Home() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                  <MoreVertical className="w-5 h-5" />
+                  <Settings className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
