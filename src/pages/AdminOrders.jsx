@@ -256,15 +256,15 @@ export default function AdminOrders() {
               <h1 className="text-2xl font-bold">訂單管理</h1>
               <p className="text-emerald-100 text-sm">查詢訂單紀錄與統一結帳</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
               <Link to={createPageUrl('OrderHistoryByDate')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                <Button variant="ghost" className="text-white hover:bg-emerald-500 w-full">
                   <Calendar className="w-4 h-4 mr-2" />
                   按日期查詢
                 </Button>
               </Link>
               <Link to={createPageUrl('OrderHistoryByMember')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                <Button variant="ghost" className="text-white hover:bg-emerald-500 w-full">
                   <Users className="w-4 h-4 mr-2" />
                   按成員查詢
                 </Button>
