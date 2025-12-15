@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 
 export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, members = [], currentUser }) {
+  const fileInputRef = React.useRef(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -308,14 +309,14 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <Label className="text-sm">上傳圖片（可多張）</Label>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="outline"
-                  onClick={() => document.getElementById('groupbuy-image').click()}
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                   className="bg-white">
                   <Upload className="w-4 h-4 mr-2" />
                   {uploading ? '上傳中...' : '上傳圖片'}
                 </Button>
                 <input
-                  id="groupbuy-image"
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   multiple
