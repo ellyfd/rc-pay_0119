@@ -346,6 +346,46 @@ export default function GroupBuyDetail() {
     }
     
     const newPaidStatus = !summary.paid;
+    
+    // If marking as paid and using RC Pay, check balance and deduct
+    if (newPaidStatus && summary.hasRcPay) {
+      const member = members.find(m => m.id === summary.member_id);
+      if (!member) {
+        toast.error('找不到成員資料！');
+        return;
+      }
+      
+      if (member.balance < summary.total) {
+        toast.error(`餘額不足！成員餘額：$${member.balance}，需支付：$${summary.total}`);
+        return;
+      }
+      
+      if (!confirm(`確定要從 ${summary.member_name} 的錢包扣除 $${summary.total} 嗎？`)) {
+        return;
+      }
+      
+      try {
+        // Deduct balance
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: { balance: member.balance - summary.total }
+        });
+        
+        // Create transaction record
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: summary.total,
+          wallet_type: 'balance',
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: `團購付款：${groupBuy.title}`
+        });
+      } catch (error) {
+        toast.error('RC Pay 扣款失敗：' + error.message);
+        return;
+      }
+    }
+    
     // Update all items for this member
     try {
       for (const item of summary.items) {
@@ -964,27 +1004,16 @@ export default function GroupBuyDetail() {
                                 rowSpan={summary.items.length}
                               >
                                 <div className="flex items-center justify-center">
-                                  {summary.hasRcPay && !summary.paid ? (
-                                    <Button
-                                      onClick={() => handleConfirmRcPay(summary)}
-                                      size="sm"
-                                      className="bg-purple-600 hover:bg-purple-700 h-7 px-3"
-                                    >
-                                      <Wallet className="w-3 h-3 mr-1" />
-                                      確定
-                                    </Button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleTogglePaid(summary)}
-                                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                                        summary.paid 
-                                          ? 'bg-green-600 border-green-600' 
-                                          : 'border-slate-300 hover:border-slate-400'
-                                      }`}
-                                    >
-                                      {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
-                                    </button>
-                                  )}
+                                  <button
+                                    onClick={() => handleTogglePaid(summary)}
+                                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                      summary.paid 
+                                        ? 'bg-green-600 border-green-600' 
+                                        : 'border-slate-300 hover:border-slate-400'
+                                    }`}
+                                  >
+                                    {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
+                                  </button>
                                 </div>
                               </td>
                             )}
