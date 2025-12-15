@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 export default function TransactionItem({ transaction }) {
@@ -48,7 +49,12 @@ export default function TransactionItem({ transaction }) {
         {getIcon()}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-slate-800">{getDescription()}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-slate-800">{getDescription()}</p>
+          <Badge className={transaction.wallet_type === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+            {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+          </Badge>
+        </div>
         {transaction.note && (
           <p className="text-sm text-slate-500 truncate">{transaction.note}</p>
         )}
