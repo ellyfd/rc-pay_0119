@@ -1,22 +1,8 @@
 import React from 'react';
-import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 export default function TransactionItem({ transaction }) {
-  const getIcon = () => {
-    switch (transaction.type) {
-      case 'deposit':
-        return <ArrowDownCircle className="w-5 h-5 text-emerald-500" />;
-      case 'withdraw':
-        return <ArrowUpCircle className="w-5 h-5 text-red-500" />;
-      case 'transfer':
-        return <ArrowRightLeft className="w-5 h-5 text-blue-500" />;
-      default:
-        return null;
-    }
-  };
-
   const getDescription = () => {
     switch (transaction.type) {
       case 'deposit':
@@ -77,18 +63,15 @@ export default function TransactionItem({ transaction }) {
 
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-100 hover:shadow-md transition-shadow">
-      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center">
-        {getIcon()}
-      </div>
+      <Badge className={
+        transaction.type === 'deposit' ? 'bg-emerald-500' :
+        transaction.type === 'withdraw' ? 'bg-red-500' :
+        'bg-blue-500'
+      }>
+        {getTypeLabel()}
+      </Badge>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge className={
-            transaction.type === 'deposit' ? 'bg-emerald-500' :
-            transaction.type === 'withdraw' ? 'bg-red-500' :
-            'bg-blue-500'
-          }>
-            {getTypeLabel()}
-          </Badge>
           <p className="font-medium text-slate-800">{getDescription()}</p>
           <Badge variant="outline" className={transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}>
             {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
