@@ -26,7 +26,6 @@ export default function AdminOrders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [cashPaidStatus, setCashPaidStatus] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -171,15 +170,6 @@ export default function AdminOrders() {
   };
 
   const handleCheckoutAll = async () => {
-    // Check if all cash orders are checked
-    const cashOrders = orders.filter(o => o.payment_method === 'cash');
-    const uncheckedCash = cashOrders.filter(o => !cashPaidStatus[o.id]);
-    
-    if (uncheckedCash.length > 0) {
-      alert(`請先確認所有現金訂單已收款（共 ${uncheckedCash.length} 筆未勾選）`);
-      return;
-    }
-
     if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
     for (const order of orders) {
@@ -194,7 +184,6 @@ export default function AdminOrders() {
 
       const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
 
-      // Only deduct balance for balance payment method
       if (order.payment_method === 'balance') {
         await createTransaction.mutateAsync({
           type: 'withdraw',
@@ -210,20 +199,23 @@ export default function AdminOrders() {
           data: { balance: (member.balance || 0) - order.total_amount }
         });
       } else if (order.payment_method === 'cash') {
-        // For cash, only record transaction without deducting balance
         await createTransaction.mutateAsync({
           type: 'withdraw',
           amount: order.total_amount,
           wallet_type: 'cash',
           from_member_id: member.id,
           from_member_name: member.name,
-          note: transactionNote + '（現金）'
+          note: transactionNote
+        });
+
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: { cash_balance: (member.cash_balance || 0) - order.total_amount }
         });
       }
     }
 
     alert('結帳完成！');
-    setCashPaidStatus({});
   };
 
   const totalAmount = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
@@ -297,11 +289,6 @@ export default function AdminOrders() {
             </div>
             {orders.length > 0 && (
               <div className="flex items-center gap-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                  <p className="text-blue-800 font-medium text-xs mb-1">📝 結帳說明</p>
-                  <p className="text-blue-700 text-xs">• <span className="font-semibold">餘額</span>：自動扣款</p>
-                  <p className="text-blue-700 text-xs">• <span className="font-semibold">現金</span>：勾選確認，不扣款</p>
-                </div>
                 <div className="text-right">
                   <p className="text-sm text-slate-500">訂單數</p>
                   <p className="text-xl font-bold text-slate-800">{orders.length}</p>
@@ -406,22 +393,9 @@ export default function AdminOrders() {
                             )}
                           </td>
                           <td className="px-3 py-3">
-                            <div className="flex items-center gap-2">
-                              <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
-                                {order.payment_method === 'cash' ? '現金' : '餘額'}
-                              </Badge>
-                              {order.payment_method === 'cash' && (
-                                <input 
-                                  type="checkbox"
-                                  checked={cashPaidStatus[order.id] || false}
-                                  onChange={(e) => setCashPaidStatus({
-                                    ...cashPaidStatus,
-                                    [order.id]: e.target.checked
-                                  })}
-                                  className="w-4 h-4 rounded border-slate-300 cursor-pointer"
-                                />
-                              )}
-                            </div>
+                            <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                              {order.payment_method === 'cash' ? '現金' : '餘額'}
+                            </Badge>
                           </td>
                           <td className="px-3 py-3 text-right font-bold text-emerald-600">
                             ${order.total_amount.toLocaleString()}
