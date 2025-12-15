@@ -277,55 +277,54 @@ export default function AdminOrders() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Date and Status Selection */}
         <Card className="p-3 sm:p-4 mb-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <label className="font-semibold text-slate-700 text-sm sm:text-base whitespace-nowrap">訂餐日期：</label>
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="flex items-center gap-2">
+              <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">訂餐日期：</label>
               <Input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full sm:w-48 text-sm"
+                className="w-36 text-sm"
               />
-              <div className="flex gap-2">
-                <Button
-                  variant={orderStatus === 'pending' ? 'default' : 'outline'}
-                  onClick={() => setOrderStatus('pending')}
-                  className={`flex-1 sm:flex-none text-xs sm:text-sm ${orderStatus === 'pending' ? 'bg-emerald-600' : ''}`}
-                >
-                  待處理
-                </Button>
-                <Button
-                  variant={orderStatus === 'completed' ? 'default' : 'outline'}
-                  onClick={() => setOrderStatus('completed')}
-                  className={`flex-1 sm:flex-none text-xs sm:text-sm ${orderStatus === 'completed' ? 'bg-slate-600' : ''}`}
-                >
-                  已完成
-                </Button>
-              </div>
             </div>
-            {orders.length > 0 && (
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
-                <div className="text-left sm:text-right">
-                  <p className="text-xs sm:text-sm text-slate-500">訂單數</p>
-                  <p className="text-lg sm:text-xl font-bold text-slate-800">{orders.length}</p>
-                </div>
-                <div className="text-left sm:text-right">
-                  <p className="text-xs sm:text-sm text-slate-500">總金額</p>
-                  <p className="text-lg sm:text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
-                </div>
-                {currentUser?.role === 'admin' && orderStatus === 'pending' && (
-                  <Button
-                    onClick={handleCheckoutAll}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-6 text-xs sm:text-sm whitespace-nowrap"
-                  >
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
-                    <span className="hidden sm:inline">統一結帳</span>
-                    <span className="sm:hidden">結帳</span>
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex flex-col gap-2">
+              <Button
+                variant={orderStatus === 'pending' ? 'default' : 'outline'}
+                onClick={() => setOrderStatus('pending')}
+                className={`text-xs ${orderStatus === 'pending' ? 'bg-emerald-600' : ''}`}
+              >
+                待處理
+              </Button>
+              <Button
+                variant={orderStatus === 'completed' ? 'default' : 'outline'}
+                onClick={() => setOrderStatus('completed')}
+                className={`text-xs ${orderStatus === 'completed' ? 'bg-slate-600' : ''}`}
+              >
+                已完成
+              </Button>
+            </div>
           </div>
+          {orders.length > 0 && (
+            <div className="flex items-center justify-between gap-3 pt-3 border-t">
+              <div className="text-left">
+                <p className="text-xs text-slate-500">訂單數</p>
+                <p className="text-lg font-bold text-slate-800">{orders.length}</p>
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-slate-500">總金額</p>
+                <p className="text-lg font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
+              </div>
+              {currentUser?.role === 'admin' && orderStatus === 'pending' && (
+                <Button
+                  onClick={handleCheckoutAll}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 text-xs whitespace-nowrap"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  結帳
+                </Button>
+              )}
+            </div>
+          )}
         </Card>
 
         {ordersLoading || itemsLoading ? (
