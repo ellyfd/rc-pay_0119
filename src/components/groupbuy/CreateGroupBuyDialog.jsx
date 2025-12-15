@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import imageCompression from 'browser-image-compression';
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, FileText, Link2, Lock, Upload, Sparkles } from "lucide-react";
+import { Upload, Plus, Trash2, Sparkles, FileText } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -31,11 +30,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     image_url: '',
     deadline: '',
     note: '',
-    organizer_id: '',
-    link_settings: {
-      expiration_days: null,
-      access_type: 'public'
-    }
+    organizer_id: ''
   });
   const [discountRules, setDiscountRules] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
@@ -98,6 +93,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     try {
       const uploadedUrls = [];
       for (const file of files) {
+        // Compress image before upload
         let fileToUpload = file;
         if (file.type.startsWith('image/')) {
           const options = {
@@ -118,13 +114,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       const newImageUrls = [...imageUrls, ...uploadedUrls];
       setImageUrls(newImageUrls);
       
+      // Keep the first image as the main image_url for backward compatibility
       if (!formData.image_url && uploadedUrls.length > 0) {
         setFormData({ ...formData, image_url: uploadedUrls[0] });
       }
-      toast.success(`成功上傳 ${uploadedUrls.length} 張圖片！`);
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('上傳失敗：' + error.message);
+      const toast = await import('sonner');
+      toast.toast.error('上傳失敗：' + error.message);
     } finally {
       setUploading(false);
     }
@@ -134,6 +130,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     const newImageUrls = imageUrls.filter((_, i) => i !== index);
     setImageUrls(newImageUrls);
     
+    // Update main image_url
     if (newImageUrls.length > 0) {
       setFormData({ ...formData, image_url: newImageUrls[0] });
     } else {
@@ -171,13 +168,15 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
       if (result.products && result.products.length > 0) {
         setProducts(result.products);
-        toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
+        const toast = await import('sonner');
+        toast.toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
       } else {
-        toast.warning('未能識別出產品資訊，請手動輸入。');
+        const toast = await import('sonner');
+        toast.toast.warning('未能識別出產品資訊，請手動輸入。');
       }
     } catch (error) {
-      console.error('AI analysis error:', error);
-      toast.error('AI 分析失敗：' + error.message);
+      const toast = await import('sonner');
+      toast.toast.error('AI 分析失敗：' + error.message);
     } finally {
       setAnalyzing(false);
     }
@@ -207,12 +206,14 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
-      toast.error('請輸入團購標題！');
+      const toast = await import('sonner');
+      toast.toast.error('請輸入團購標題！');
       return;
     }
 
     if (!formData.organizer_id) {
-      toast.error('請選擇開團者！');
+      const toast = await import('sonner');
+      toast.toast.error('請選擇開團者！');
       return;
     }
 
@@ -232,11 +233,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       image_url: '',
       deadline: '',
       note: '',
-      organizer_id: '',
-      link_settings: {
-        expiration_days: null,
-        access_type: 'public'
-      }
+      organizer_id: ''
     });
     setImageUrls([]);
     setProducts([{
@@ -299,22 +296,21 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
           </div>
 
-          {/* AI Image Upload & Analysis */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
+          {/* AI Analysis Section */}
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-purple-600" />
               <h3 className="font-semibold text-purple-900">AI 快速辨識商品</h3>
             </div>
             
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline"
+            {/* Image Upload */}
+            <div>
+              <Label className="text-sm">上傳圖片（可多張）</Label>
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="outline"
                   onClick={() => document.getElementById('groupbuy-image').click()}
                   disabled={uploading}
-                  className="bg-white hover:bg-purple-50"
-                >
+                  className="bg-white">
                   <Upload className="w-4 h-4 mr-2" />
                   {uploading ? '上傳中...' : '上傳圖片'}
                 </Button>
@@ -324,45 +320,40 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                   accept="image/*"
                   multiple
                   onChange={handleFileUpload}
-                  className="hidden"
-                />
-                
-                {imageUrls.length > 0 && (
-                  <>
-                    <span className="text-sm text-green-600 font-medium">✓ 已上傳 {imageUrls.length} 張</span>
+                  className="hidden" />
+
+                {imageUrls.length > 0 &&
+                <>
+                    <span className="text-sm text-green-600">✓ 已上傳 {imageUrls.length} 張</span>
                     <Button
-                      type="button"
-                      onClick={handleAnalyzeImage}
-                      disabled={analyzing}
-                      className="ml-auto bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {analyzing ? '分析中...' : 'AI 識別產品'}
+                    type="button"
+                    variant="outline"
+                    onClick={handleAnalyzeImage}
+                    disabled={analyzing}
+                    className="ml-auto bg-white">
+                      {analyzing ? '分析中...' : '🤖 AI 識別產品'}
                     </Button>
                   </>
-                )}
+                }
               </div>
-              
-              {imageUrls.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
+              {imageUrls.length > 0 &&
+              <div className="mt-3 grid grid-cols-3 gap-2">
                   {imageUrls.map((url, index) => (
                     <div key={index} className="relative group">
                       <img
                         src={url}
                         alt={`Preview ${index + 1}`}
-                        className="w-full aspect-square object-cover rounded-lg border border-purple-200"
-                      />
+                        className="w-full aspect-square object-cover rounded-lg border" />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
-              )}
+              }
             </div>
           </div>
 
@@ -479,13 +470,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             <Label className="mb-2 block">預設商品列表（選填）</Label>
             <p className="text-xs text-slate-500 mb-3">新增商品讓參與者更方便選購，也可以稍後再新增</p>
             <div className="border rounded-lg overflow-hidden">
-              <table className="w-full table-fixed">
+              <table className="w-full table-auto">
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[40%]">商品名稱</th>
                     <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-[25%]">單價</th>
                     <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[25%]">說明</th>
-                    <th className="text-center px-2 py-2 text-sm font-semibold text-slate-700 w-[10%]"></th>
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-[10%]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -517,13 +508,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                         className="h-9" />
 
                       </td>
-                      <td className="px-2 py-2 text-center">
+                      <td className="px-3 py-2 text-center">
                         {products.length > 1 &&
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => removeProduct(index)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700 mx-auto">
+                        className="h-8 w-8 text-red-500 hover:text-red-700">
 
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -543,55 +534,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <Plus className="w-4 h-4 mr-2" />
               新增商品
             </Button>
-          </div>
-
-          {/* Link Settings */}
-          <div className="border-t pt-4">
-            <Label className="mb-2 block">分享連結設定</Label>
-            <div className="space-y-2 bg-purple-50 border border-purple-200 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="access-type" className="text-sm">訪問權限</Label>
-                <Select
-                  value={formData.link_settings.access_type}
-                  onValueChange={(value) => setFormData({
-                    ...formData,
-                    link_settings: { ...formData.link_settings, access_type: value }
-                  })}
-                >
-                  <SelectTrigger className="w-[140px] h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">公開</SelectItem>
-                    <SelectItem value="members_only">僅成員</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="expiration" className="text-sm">連結有效期（天數）</Label>
-                <Input
-                  id="expiration"
-                  type="number"
-                  min="1"
-                  placeholder="不設限（留空表示永久有效）"
-                  value={formData.link_settings.expiration_days || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    link_settings: { 
-                      ...formData.link_settings, 
-                      expiration_days: e.target.value ? parseInt(e.target.value) : null 
-                    }
-                  })}
-                  className="h-9"
-                />
-                <p className="text-xs text-slate-500">
-                  {formData.link_settings.expiration_days 
-                    ? `連結將在 ${formData.link_settings.expiration_days} 天後過期`
-                    : '連結永久有效'}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 

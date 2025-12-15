@@ -68,31 +68,17 @@ export default function GroupBuy() {
   });
 
   const handleCreate = async (data) => {
-    const { products, organizer_id, link_settings, ...groupBuyData } = data;
+    const { products, organizer_id, ...groupBuyData } = data;
     
     // Find organizer member
     const organizerMember = members.find(m => m.id === organizer_id);
     if (!organizerMember) return;
     
-    // Generate unique shareable link ID
-    const shareable_link_id = `gb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Calculate link expiration if set
-    let link_expiration = null;
-    if (link_settings?.expiration_days) {
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + link_settings.expiration_days);
-      link_expiration = expirationDate.toISOString();
-    }
-    
-    // Create group buy with link settings
+    // Create group buy
     const groupBuy = await createGroupBuy.mutateAsync({
       ...groupBuyData,
       organizer_id: organizer_id,
-      organizer_name: organizerMember.name,
-      shareable_link_id,
-      link_expiration,
-      link_access_type: link_settings?.access_type || 'public'
+      organizer_name: organizerMember.name
     });
     
     // Create products if any

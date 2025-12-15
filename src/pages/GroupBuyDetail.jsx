@@ -613,52 +613,6 @@ export default function GroupBuyDetail() {
                   )}
                 </div>
 
-                {/* Shareable Link */}
-                {groupBuy.shareable_link_id && (
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <Link2 className="w-4 h-4" />
-                      <span className="font-semibold">分享連結</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        readOnly
-                        value={`${window.location.origin}${createPageUrl('PublicGroupBuy')}?link=${groupBuy.shareable_link_id}`}
-                        className="text-xs bg-slate-50"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            `${window.location.origin}${createPageUrl('PublicGroupBuy')}?link=${groupBuy.shareable_link_id}`
-                          );
-                          toast.success('連結已複製！');
-                        }}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <Badge variant="outline" className="text-slate-600">
-                        {groupBuy.link_access_type === 'public' ? '公開訪問' : '僅限成員'}
-                      </Badge>
-                      {groupBuy.link_expiration && (
-                        <Badge variant="outline" className={
-                          new Date(groupBuy.link_expiration) < new Date() 
-                            ? 'text-red-600 border-red-300'
-                            : 'text-green-600 border-green-300'
-                        }>
-                          {new Date(groupBuy.link_expiration) < new Date() 
-                            ? '已過期'
-                            : `有效至 ${format(new Date(groupBuy.link_expiration), 'yyyy/MM/dd')}`
-                          }
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 {isOrganizer && (
                   <div className="space-y-2 border-t pt-4">
                     {(isOpen || groupBuy.status === 'closed') && (
