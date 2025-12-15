@@ -52,11 +52,10 @@ export default function GroupBuy() {
     mutationFn: (data) => base44.entities.GroupBuy.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groupBuys'] });
-      setShowCreate(false);
-      toast.success('團購已成功建立！');
     },
     onError: (error) => {
       toast.error('建立團購失敗：' + error.message);
+      setShowCreate(false);
     }
   });
 
@@ -90,6 +89,9 @@ export default function GroupBuy() {
         });
       }
     }
+    
+    // Return the created group buy for sharing
+    return groupBuy;
   };
 
   // Find current user's member
