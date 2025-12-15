@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import imageCompression from 'browser-image-compression';
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -122,9 +123,10 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       if (!formData.image_url && uploadedUrls.length > 0) {
         setFormData({ ...formData, image_url: uploadedUrls[0] });
       }
+      toast.success(`成功上傳 ${uploadedUrls.length} 張圖片！`);
     } catch (error) {
-      const toast = await import('sonner');
-      toast.toast.error('上傳失敗：' + error.message);
+      console.error('Upload error:', error);
+      toast.error('上傳失敗：' + error.message);
     } finally {
       setUploading(false);
     }
@@ -172,15 +174,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
       if (result.products && result.products.length > 0) {
         setProducts(result.products);
-        const toast = await import('sonner');
-        toast.toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
+        toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
       } else {
-        const toast = await import('sonner');
-        toast.toast.warning('未能識別出產品資訊，請手動輸入。');
+        toast.warning('未能識別出產品資訊，請手動輸入。');
       }
     } catch (error) {
-      const toast = await import('sonner');
-      toast.toast.error('AI 分析失敗：' + error.message);
+      console.error('AI analysis error:', error);
+      toast.error('AI 分析失敗：' + error.message);
     } finally {
       setAnalyzing(false);
     }
@@ -210,14 +210,12 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
-      const toast = await import('sonner');
-      toast.toast.error('請輸入團購標題！');
+      toast.error('請輸入團購標題！');
       return;
     }
 
     if (!formData.organizer_id) {
-      const toast = await import('sonner');
-      toast.toast.error('請選擇開團者！');
+      toast.error('請選擇開團者！');
       return;
     }
 
