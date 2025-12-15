@@ -473,44 +473,42 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <table className="w-full">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-2 py-2 text-sm font-semibold text-slate-700">商品名稱</th>
-                    <th className="text-right px-2 py-2 text-sm font-semibold text-slate-700 w-20">單價</th>
-                    <th className="text-left px-2 py-2 text-sm font-semibold text-slate-700 w-24">說明</th>
-                    <th className="text-center px-2 py-2 text-sm font-semibold text-slate-700 w-12"></th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">商品名稱</th>
+                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-32">單價</th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">說明</th>
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {products.map((product, index) =>
                   <tr key={index}>
-                      <td className="px-2 py-2">
+                      <td className="px-3 py-2">
                         <Input
                         value={product.product_name}
                         onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
                         placeholder="洋芋片、口紅..."
-                        className="h-9 text-base font-medium" />
+                        className="h-9" />
 
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="px-3 py-2">
                         <Input
                         type="number"
                         min="0"
-                        max="999"
                         value={product.price}
                         onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
                         placeholder="0"
                         className="h-9 text-right" />
 
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="px-3 py-2">
                         <Input
                         value={product.description}
                         onChange={(e) => updateProduct(index, 'description', e.target.value)}
-                        placeholder="規格..."
-                        maxLength={4}
+                        placeholder="規格、說明..."
                         className="h-9" />
 
                       </td>
-                      <td className="px-2 py-2 text-center">
+                      <td className="px-3 py-2 text-center">
                         {products.length > 1 &&
                       <Button
                         variant="ghost"
