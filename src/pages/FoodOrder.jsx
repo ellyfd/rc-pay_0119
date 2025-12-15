@@ -164,15 +164,15 @@ export default function FoodOrder() {
                 返回
               </Button>
             </Link>
-            <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
               <Link to={createPageUrl('AdminOrders')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500 w-full">
+                <Button variant="ghost" className="text-white hover:bg-emerald-500">
                   <Settings className="w-5 h-5 mr-2" />
                   訂單管理
                 </Button>
               </Link>
               <Link to={createPageUrl('ProductManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500 w-full">
+                <Button variant="ghost" className="text-white hover:bg-emerald-500">
                   <Settings className="w-5 h-5 mr-2" />
                   產品管理
                 </Button>
