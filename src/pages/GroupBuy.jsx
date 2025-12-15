@@ -190,11 +190,11 @@ export default function GroupBuy() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Filters and Sort */}
-        <div className="mb-6 flex flex-wrap gap-3 items-center">
+        <div className="mb-6 flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-500" />
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-[140px] sm:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -206,7 +206,7 @@ export default function GroupBuy() {
           </div>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[140px] sm:w-[160px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
