@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet, Copy } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet, Copy, Users as UsersIcon } from "lucide-react";
+import DiscountProgressBar from "@/components/groupbuy/DiscountProgressBar";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -59,7 +60,8 @@ export default function GroupBuyDetail() {
       const allGroupBuys = await base44.entities.GroupBuy.list();
       return allGroupBuys.find(gb => gb.id === groupBuyId);
     },
-    enabled: !!groupBuyId
+    enabled: !!groupBuyId,
+    staleTime: 30000 // Cache for 30 seconds
   });
 
   const { data: items = [], isLoading: itemsLoading } = useQuery({
@@ -68,12 +70,15 @@ export default function GroupBuyDetail() {
       const allItems = await base44.entities.GroupBuyItem.list('-created_date');
       return allItems.filter(item => item.group_buy_id === groupBuyId);
     },
-    enabled: !!groupBuyId
+    enabled: !!groupBuyId,
+    select: (items) => items, // Can add transformation here
+    staleTime: 10000 // Cache for 10 seconds
   });
 
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('name')
+    queryFn: () => base44.entities.Member.list('name'),
+    staleTime: 60000 // Cache for 1 minute
   });
 
   useEffect(() => {
@@ -94,7 +99,8 @@ export default function GroupBuyDetail() {
       const allProducts = await base44.entities.GroupBuyProduct.list('-created_date');
       return allProducts.filter(p => p.group_buy_id === groupBuyId);
     },
-    enabled: !!groupBuyId
+    enabled: !!groupBuyId,
+    staleTime: 30000 // Cache for 30 seconds
   });
 
   const updateGroupBuy = useMutation({
@@ -570,6 +576,16 @@ export default function GroupBuyDetail() {
                     </div>
                   )}
                 </div>
+
+                {/* Discount Progress Bar */}
+                {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
+                  <div className="border-t pt-4">
+                    <DiscountProgressBar 
+                      discountRules={groupBuy.discount_rules}
+                      currentQuantity={getTotalQuantity()}
+                    />
+                  </div>
+                )}
 
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-2">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import imageCompression from 'browser-image-compression';
 import {
   Dialog,
   DialogContent,
@@ -71,7 +72,21 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
 
     setUploading(true);
     try {
-      const result = await base44.integrations.Core.UploadFile({ file });
+      // Compress image before upload
+      let fileToUpload = file;
+      if (file.type.startsWith('image/')) {
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true
+        };
+        try {
+          fileToUpload = await imageCompression(file, options);
+        } catch (compressionError) {
+          console.warn('圖片壓縮失敗，使用原始檔案', compressionError);
+        }
+      }
+      const result = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       setFormData({ ...formData, image_url: result.file_url });
     } catch (error) {
       alert('上傳失敗：' + error.message);

@@ -34,7 +34,14 @@ export default function GroupBuy() {
 
   const { data: groupBuys = [], isLoading } = useQuery({
     queryKey: ['groupBuys'],
-    queryFn: () => base44.entities.GroupBuy.list('-created_date')
+    queryFn: () => base44.entities.GroupBuy.list('-created_date'),
+    select: (data) => data // Can add transformation here if needed
+  });
+
+  const { data: allGroupBuyItems = [] } = useQuery({
+    queryKey: ['allGroupBuyItems'],
+    queryFn: () => base44.entities.GroupBuyItem.list(),
+    select: (items) => items // Fetch once and reuse
   });
 
   const createGroupBuy = useMutation({
@@ -166,6 +173,7 @@ export default function GroupBuy() {
                     groupBuy={groupBuy}
                     currentUser={currentUser}
                     members={members}
+                    items={allGroupBuyItems}
                   />
                 ))}
               </div>
@@ -186,6 +194,7 @@ export default function GroupBuy() {
                     groupBuy={groupBuy}
                     currentUser={currentUser}
                     members={members}
+                    items={allGroupBuyItems}
                   />
                 ))}
               </div>

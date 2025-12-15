@@ -3,13 +3,25 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Package, Users, Calendar, ExternalLink, Plus, Eye } from "lucide-react";
+import DiscountProgressBar from "./DiscountProgressBar";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
-export default function GroupBuyCard({ groupBuy, currentUser, members }) {
+export default function GroupBuyCard({ groupBuy, currentUser, members, items = [] }) {
   const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
   const isOpen = groupBuy.status === 'open';
+
+  // Calculate total quantity for this group buy
+  const totalQuantity = items
+    .filter(item => item.group_buy_id === groupBuy.id)
+    .reduce((sum, item) => {
+      const isSplitItem = item.note && item.note.includes('平分');
+      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+        return sum;
+      }
+      return sum + item.quantity;
+    }, 0);
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -74,6 +86,14 @@ export default function GroupBuyCard({ groupBuy, currentUser, members }) {
             </a>
           )}
         </div>
+
+        {/* Discount Progress */}
+        {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
+          <DiscountProgressBar 
+            discountRules={groupBuy.discount_rules}
+            currentQuantity={totalQuantity}
+          />
+        )}
 
         {/* Actions */}
         <div className="pt-2">
