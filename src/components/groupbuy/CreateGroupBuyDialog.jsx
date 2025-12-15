@@ -470,13 +470,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             <Label className="mb-2 block">預設商品列表（選填）</Label>
             <p className="text-xs text-slate-500 mb-3">新增商品讓參與者更方便選購，也可以稍後再新增</p>
             <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
+              <table className="w-full table-auto">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">商品名稱</th>
-                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-32">單價</th>
-                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">說明</th>
-                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[40%]">商品名稱</th>
+                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-[15%]">單價</th>
+                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[30%]">說明</th>
+                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-[15%]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
