@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2, Sparkles, FileText } from "lucide-react";
+import { Upload, Plus, Trash2, Sparkles, FileText, Link2, Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -30,7 +30,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     image_url: '',
     deadline: '',
     note: '',
-    organizer_id: ''
+    organizer_id: '',
+    link_settings: {
+      expiration_days: null,
+      access_type: 'public'
+    }
   });
   const [discountRules, setDiscountRules] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
@@ -233,7 +237,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       image_url: '',
       deadline: '',
       note: '',
-      organizer_id: ''
+      organizer_id: '',
+      link_settings: {
+        expiration_days: null,
+        access_type: 'public'
+      }
     });
     setImageUrls([]);
     setProducts([{
@@ -534,6 +542,62 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               <Plus className="w-4 h-4 mr-2" />
               新增商品
             </Button>
+          </div>
+
+          {/* Link Settings */}
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-purple-600" />
+              <h3 className="font-semibold text-slate-800">分享連結設定</h3>
+            </div>
+
+            <div className="space-y-3 bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-slate-600" />
+                  <Label htmlFor="access-type" className="text-sm font-medium">訪問權限</Label>
+                </div>
+                <Select
+                  value={formData.link_settings.access_type}
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    link_settings: { ...formData.link_settings, access_type: value }
+                  })}
+                >
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">公開</SelectItem>
+                    <SelectItem value="members_only">僅成員</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expiration" className="text-sm font-medium">連結有效期（天數）</Label>
+                <Input
+                  id="expiration"
+                  type="number"
+                  min="1"
+                  placeholder="不設限（留空表示永久有效）"
+                  value={formData.link_settings.expiration_days || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    link_settings: { 
+                      ...formData.link_settings, 
+                      expiration_days: e.target.value ? parseInt(e.target.value) : null 
+                    }
+                  })}
+                  className="h-9"
+                />
+                <p className="text-xs text-slate-500">
+                  {formData.link_settings.expiration_days 
+                    ? `連結將在 ${formData.link_settings.expiration_days} 天後過期`
+                    : '連結永久有效'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
