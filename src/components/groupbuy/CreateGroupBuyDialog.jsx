@@ -30,7 +30,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     product_link: '',
     image_url: '',
     deadline: '',
-    note: '',
     organizer_id: ''
   });
   const [discountRules, setDiscountRules] = useState([]);
@@ -233,7 +232,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       product_link: '',
       image_url: '',
       deadline: '',
-      note: '',
       organizer_id: ''
     });
     setImageUrls([]);
@@ -376,16 +374,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               type="date"
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
-
-          </div>
-
-          {/* Note */}
-          <div>
-            <Label>備註</Label>
-            <Input
-              value={formData.note}
-              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-              placeholder="其他說明..." />
 
           </div>
 
