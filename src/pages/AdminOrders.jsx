@@ -277,41 +277,41 @@ export default function AdminOrders() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Date and Status Selection */}
         <Card className="p-3 sm:p-4 mb-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <label className="font-semibold text-slate-700 text-sm sm:text-base whitespace-nowrap">訂餐日期：</label>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">訂餐日期：</label>
               <Input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full sm:w-48 text-sm"
+                className="w-32 sm:w-36 text-xs sm:text-sm"
               />
-              <div className="flex gap-2">
-                <Button
-                  variant={orderStatus === 'pending' ? 'default' : 'outline'}
-                  onClick={() => setOrderStatus('pending')}
-                  className={`flex-1 sm:flex-none text-xs sm:text-sm ${orderStatus === 'pending' ? 'bg-emerald-600' : ''}`}
-                >
-                  待處理
-                </Button>
-                <Button
-                  variant={orderStatus === 'completed' ? 'default' : 'outline'}
-                  onClick={() => setOrderStatus('completed')}
-                  className={`flex-1 sm:flex-none text-xs sm:text-sm ${orderStatus === 'completed' ? 'bg-slate-600' : ''}`}
-                >
-                  已完成
-                </Button>
-              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant={orderStatus === 'pending' ? 'default' : 'outline'}
+                onClick={() => setOrderStatus('pending')}
+                className={`text-xs sm:text-sm ${orderStatus === 'pending' ? 'bg-emerald-600' : ''}`}
+              >
+                待處理
+              </Button>
+              <Button
+                variant={orderStatus === 'completed' ? 'default' : 'outline'}
+                onClick={() => setOrderStatus('completed')}
+                className={`text-xs sm:text-sm ${orderStatus === 'completed' ? 'bg-slate-600' : ''}`}
+              >
+                已完成
+              </Button>
             </div>
             {orders.length > 0 && (
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
-                <div className="text-left sm:text-right">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="text-right">
                   <p className="text-xs sm:text-sm text-slate-500">訂單數</p>
-                  <p className="text-lg sm:text-xl font-bold text-slate-800">{orders.length}</p>
+                  <p className="text-sm sm:text-xl font-bold text-slate-800">{orders.length}</p>
                 </div>
-                <div className="text-left sm:text-right">
+                <div className="text-right">
                   <p className="text-xs sm:text-sm text-slate-500">總金額</p>
-                  <p className="text-lg sm:text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
+                  <p className="text-sm sm:text-xl font-bold text-emerald-600">${totalAmount.toLocaleString()}</p>
                 </div>
                 {currentUser?.role === 'admin' && orderStatus === 'pending' && (
                   <Button
