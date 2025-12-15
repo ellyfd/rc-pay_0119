@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import imageCompression from 'browser-image-compression';
 import {
   Dialog,
   DialogContent,
@@ -92,7 +93,21 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     try {
       const uploadedUrls = [];
       for (const file of files) {
-        const result = await base44.integrations.Core.UploadFile({ file: file });
+        // Compress image before upload
+        let fileToUpload = file;
+        if (file.type.startsWith('image/')) {
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true
+          };
+          try {
+            fileToUpload = await imageCompression(file, options);
+          } catch (compressionError) {
+            console.warn('圖片壓縮失敗，使用原始檔案', compressionError);
+          }
+        }
+        const result = await base44.integrations.Core.UploadFile({ file: fileToUpload });
         uploadedUrls.push(result.file_url);
       }
       
@@ -128,42 +143,33 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
     setAnalyzing(true);
     try {
-      const jsonSchema = {
-        type: "array",
-        items: {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `請分析這些圖片，提取出所有產品資訊。請以JSON格式回傳產品列表，每個產品包含：product_name（產品名稱）、price（價格，如果沒有明確價格請設為0）、description（規格或說明）。`,
+        file_urls: imageUrls,
+        response_json_schema: {
           type: "object",
           properties: {
-            product_name: { type: "string" },
-            price: { type: "number" },
-            description: { type: "string" }
+            products: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  product_name: { type: "string" },
+                  price: { type: "number" },
+                  description: { type: "string" }
+                },
+                required: ["product_name", "price"]
+              }
+            }
           },
-          required: ["product_name", "price"]
+          required: ["products"]
         }
-      };
+      });
 
-      let allProducts = [];
-      
-      // Process each image
-      for (const imageUrl of imageUrls) {
-        try {
-          const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-            file_url: imageUrl,
-            json_schema: jsonSchema
-          });
-
-          if (result.status === 'success' && result.output) {
-            const products = Array.isArray(result.output) ? result.output : [result.output];
-            allProducts = [...allProducts, ...products];
-          }
-        } catch (error) {
-          console.warn('Failed to extract from image:', imageUrl, error);
-        }
-      }
-
-      if (allProducts.length > 0) {
-        setProducts(allProducts);
+      if (result.products && result.products.length > 0) {
+        setProducts(result.products);
         const toast = await import('sonner');
-        toast.toast.success(`AI 成功識別 ${allProducts.length} 個產品！`);
+        toast.toast.success(`AI 成功識別 ${result.products.length} 個產品！`);
       } else {
         const toast = await import('sonner');
         toast.toast.warning('未能識別出產品資訊，請手動輸入。');
