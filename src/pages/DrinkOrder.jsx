@@ -110,6 +110,12 @@ export default function DrinkOrder() {
 
         const totalAmount = memberItems.reduce((sum, item) => sum + item.price, 0);
 
+        // 檢查餘額是否足夠
+        if ((fromMember.balance || 0) < totalAmount) {
+          toast.error(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}`);
+          return;
+        }
+
         // 建立轉帳交易
         await createTransaction.mutateAsync({
           type: 'transfer',
