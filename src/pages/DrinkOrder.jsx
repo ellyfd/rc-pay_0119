@@ -461,7 +461,7 @@ export default function DrinkOrder() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-xs min-w-[600px]">
+              <table className="w-full text-xs min-w-[700px]">
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 py-1.5 text-center">
@@ -470,6 +470,7 @@ export default function DrinkOrder() {
                     <th className="px-2 py-1.5 text-left whitespace-nowrap">成員</th>
                     <th className="px-2 py-1.5 text-left w-full">訂購內容</th>
                     <th className="px-2 py-1.5 text-right whitespace-nowrap">金額</th>
+                    <th className="px-2 py-1.5 text-right whitespace-nowrap">成員小計</th>
                     <th className="px-2 py-1.5 text-left whitespace-nowrap">支付</th>
                     <th className="px-2 py-1.5 text-center whitespace-nowrap">操作</th>
                   </tr>
@@ -519,6 +520,13 @@ export default function DrinkOrder() {
                           className="h-8 text-xs text-right min-w-[70px]"
                         />
                       </td>
+                      <td className="px-2 py-1.5 text-right">
+                        {order.member_name && memberSubtotals[order.member_name] && (
+                          <span className="text-xs font-semibold text-cyan-600">
+                            ${memberSubtotals[order.member_name].toLocaleString()}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-2 py-1.5">
                         <Select
                           value={order.payment_method}
@@ -548,21 +556,6 @@ export default function DrinkOrder() {
                 </tbody>
               </table>
             </div>
-
-            {/* Member Subtotals */}
-            {Object.keys(memberSubtotals).length > 0 && (
-              <div className="mt-4 p-3 bg-slate-50 rounded-lg">
-                <div className="text-sm font-semibold mb-2 text-slate-700">成員小計：</div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {Object.entries(memberSubtotals).map(([name, total]) => (
-                    <div key={name} className="flex justify-between items-center text-xs bg-white px-2 py-1.5 rounded border">
-                      <span className="font-medium text-slate-700">{name}</span>
-                      <span className="font-semibold text-cyan-600">${total.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <div className="text-lg font-semibold">
