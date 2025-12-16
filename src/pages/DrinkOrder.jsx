@@ -461,7 +461,7 @@ export default function DrinkOrder() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-xs min-w-[700px]">
+              <table className="w-full text-xs min-w-[500px]">
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-2 py-1.5 text-center">
@@ -470,8 +470,6 @@ export default function DrinkOrder() {
                     <th className="px-2 py-1.5 text-left whitespace-nowrap">成員</th>
                     <th className="px-2 py-1.5 text-left w-full">訂購內容</th>
                     <th className="px-2 py-1.5 text-right whitespace-nowrap">金額</th>
-                    <th className="px-2 py-1.5 text-right whitespace-nowrap">成員小計</th>
-                    <th className="px-2 py-1.5 text-left whitespace-nowrap">支付</th>
                     <th className="px-2 py-1.5 text-center whitespace-nowrap">操作</th>
                   </tr>
                 </thead>
@@ -519,27 +517,6 @@ export default function DrinkOrder() {
                           onChange={(e) => updateOrder(order.id, 'price', parseFloat(e.target.value) || 0)}
                           className="h-8 text-xs text-right min-w-[70px]"
                         />
-                      </td>
-                      <td className="px-2 py-1.5 text-right">
-                        {order.member_name && memberSubtotals[order.member_name] && (
-                          <span className="text-xs font-semibold text-cyan-600">
-                            ${memberSubtotals[order.member_name].toLocaleString()}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <Select
-                          value={order.payment_method}
-                          onValueChange={(value) => updateOrder(order.id, 'payment_method', value)}
-                        >
-                          <SelectTrigger className="h-8 text-xs min-w-[70px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="balance">餘額</SelectItem>
-                            <SelectItem value="cash">現金</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </td>
                       <td className="px-2 py-1.5 text-center">
                         <Button
