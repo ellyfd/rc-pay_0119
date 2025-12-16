@@ -112,19 +112,20 @@ export default function DrinkOrder() {
       toast.info('AI 正在分析訂單...');
       
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `請仔細分析這張圖片，這是飲料訂單（可能是 Uber Eats、手寫單或任何形式）。
+        prompt: `This is a drink order receipt/screenshot (possibly from Uber Eats, food delivery app, or handwritten order).
 
-      第一步：請先看清楚圖片中所有的文字和數字。
-      第二步：找出圖片中的所有飲料品項名稱（可能包含珍珠奶茶、紅茶、綠茶、咖啡等等）。
-      第三步：找出每個品項對應的價格（通常在品項旁邊或下方）。
-      第四步：找出客製化選項（如：少冰、半糖、微糖、去冰等）。
-      第五步：看看是否有標註成員名字或備註。
+      CRITICAL: Extract ALL drink items visible in the image. Do not skip any items.
 
-      **重要：請把圖片中看到的所有飲料品項都提取出來，一項都不要漏！**
+      Instructions:
+      1. Read all text in the image carefully
+      2. Identify every drink item (examples: bubble tea, coffee, juice, smoothie, etc.)
+      3. For each item, find its price (usually a number like 50, 65, 80, etc.)
+      4. Note any customizations (ice level, sugar level, etc.)
+      5. Check if there are any member names or notes
 
-      如果某個飲料出現多次或數量大於1，請分別列出每一份。
+      If an item appears multiple times or has quantity > 1, list each one separately.
 
-      請回傳以下格式：`,
+      Return ALL items you see, even if you're not 100% certain. It's better to include everything than to miss items.`,
         file_urls: [fileUrl],
         response_json_schema: {
           type: "object",
