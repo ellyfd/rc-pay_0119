@@ -442,50 +442,71 @@ export default function DrinkOrder() {
                     <thead className="bg-white border-b-2 border-emerald-200">
                       <tr>
                         <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700">成員</th>
-                        <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700">品項數</th>
+                        <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700">訂購內容</th>
+                        <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700">各項金額</th>
                         <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700">總金額</th>
-                        <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700">付款方式</th>
+                        <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700">支付方式</th>
+                        <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 w-16">確認</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-emerald-100">
                       {(() => {
-                        const summary = analyzedOrders.reduce((acc, order) => {
+                        const groupedByMember = analyzedOrders.reduce((acc, order) => {
                           const key = order.member_name || '未指定';
                           if (!acc[key]) {
-                            acc[key] = {
-                              member_name: key,
-                              count: 0,
-                              total: 0,
-                              payment_method: order.payment_method
-                            };
+                            acc[key] = [];
                           }
-                          acc[key].count += order.quantity || 1;
-                          acc[key].total += order.price * (order.quantity || 1);
+                          acc[key].push(order);
                           return acc;
                         }, {});
                         
-                        return Object.values(summary).map((item, idx) => (
-                          <tr key={idx} className="bg-white hover:bg-emerald-50">
-                            <td className="px-3 py-3 font-medium text-slate-800">{item.member_name}</td>
-                            <td className="px-3 py-3 text-right text-slate-700">{item.count} 項</td>
-                            <td className="px-3 py-3 text-right font-bold text-emerald-600 text-lg">${item.total.toLocaleString()}</td>
-                            <td className="px-3 py-3 text-center">
-                              <Badge className={item.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
-                                {item.payment_method === 'cash' ? '現金' : 'RC Pay'}
-                              </Badge>
-                            </td>
-                          </tr>
-                        ));
+                        return Object.entries(groupedByMember).map(([memberName, orders], idx) => {
+                          const memberTotal = orders.reduce((sum, o) => sum + (o.price * (o.quantity || 1)), 0);
+                          const firstOrder = orders[0];
+                          
+                          return (
+                            <React.Fragment key={idx}>
+                              {orders.map((order, orderIdx) => (
+                                <tr key={`${idx}-${orderIdx}`} className="bg-white hover:bg-emerald-50">
+                                  {orderIdx === 0 && (
+                                    <td className="px-3 py-3 font-medium text-slate-800 align-top" rowSpan={orders.length}>
+                                      {memberName}
+                                    </td>
+                                  )}
+                                  <td className="px-3 py-3 text-slate-700">
+                                    {order.drink_name}
+                                    {order.note && <span className="text-xs text-slate-500 ml-1">({order.note})</span>}
+                                  </td>
+                                  <td className="px-3 py-3 text-right text-slate-700">
+                                    ${order.price} × {order.quantity || 1} = ${(order.price * (order.quantity || 1)).toLocaleString()}
+                                  </td>
+                                  {orderIdx === 0 && (
+                                    <>
+                                      <td className="px-3 py-3 text-right font-bold text-emerald-600 text-lg align-top" rowSpan={orders.length}>
+                                        ${memberTotal.toLocaleString()}
+                                      </td>
+                                      <td className="px-3 py-3 text-center align-top" rowSpan={orders.length}>
+                                        <Badge className={firstOrder.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                                          {firstOrder.payment_method === 'cash' ? '現金' : 'RC Pay'}
+                                        </Badge>
+                                      </td>
+                                      <td className="px-3 py-3 text-center align-top" rowSpan={orders.length}>
+                                        <input type="checkbox" className="w-5 h-5 accent-emerald-600" />
+                                      </td>
+                                    </>
+                                  )}
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          );
+                        });
                       })()}
                       <tr className="bg-emerald-100 font-bold">
-                        <td className="px-3 py-3 text-slate-800">總計</td>
-                        <td className="px-3 py-3 text-right text-slate-800">
-                          {analyzedOrders.reduce((sum, o) => sum + (o.quantity || 1), 0)} 項
-                        </td>
+                        <td colSpan="3" className="px-3 py-3 text-right text-slate-800">總計</td>
                         <td className="px-3 py-3 text-right text-emerald-700 text-xl">
                           ${analyzedOrders.reduce((sum, o) => sum + (o.price * (o.quantity || 1)), 0).toLocaleString()}
                         </td>
-                        <td></td>
+                        <td colSpan="2"></td>
                       </tr>
                     </tbody>
                   </table>
