@@ -58,15 +58,78 @@ export default function DrinkOrder() {
     }
   });
 
+  const createTransaction = useMutation({
+    mutationFn: async (data) => base44.entities.Transaction.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
+  });
+
+  const updateMember = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
+  });
+
+  const updateOrderPayer = async (orderId, payerId) => {
+    const payer = members.find(m => m.id === payerId);
+    if (!payer) return;
+
+    await updateOrder.mutateAsync({
+      id: orderId,
+      data: { 
+        payer_id: payerId,
+        payer_name: payer.name
+      }
+    });
+  };
+
   const updateOrderItemPayment = async (orderId, itemIndex, field, value) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
     const updatedItems = [...order.items];
+    const oldValue = updatedItems[itemIndex][field];
     updatedItems[itemIndex] = {
       ...updatedItems[itemIndex],
       [field]: value
     };
+
+    // 如果是勾選已支付，且支付方式為 rcpay，需要建立轉帳交易
+    if (field === 'paid' && value === true && updatedItems[itemIndex].payment_method === 'rcpay') {
+      const item = updatedItems[itemIndex];
+      if (!item.member_id || !order.payer_id) {
+        toast.warning('請先選擇訂單支付人和成員！');
+        return;
+      }
+      
+      const fromMember = members.find(m => m.id === item.member_id);
+      const toMember = members.find(m => m.id === order.payer_id);
+      
+      if (!fromMember || !toMember) return;
+
+      // 建立轉帳交易
+      await createTransaction.mutateAsync({
+        type: 'transfer',
+        amount: item.price,
+        wallet_type: 'balance',
+        from_member_id: fromMember.id,
+        to_member_id: toMember.id,
+        from_member_name: fromMember.name,
+        to_member_name: toMember.name,
+        note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料 - ${item.item_name}`
+      });
+
+      // 更新成員餘額
+      await updateMember.mutateAsync({
+        id: fromMember.id,
+        data: { balance: (fromMember.balance || 0) - item.price }
+      });
+
+      await updateMember.mutateAsync({
+        id: toMember.id,
+        data: { balance: (toMember.balance || 0) + item.price }
+      });
+
+      toast.success(`${fromMember.name} 已轉帳 $${item.price} 給 ${toMember.name}`);
+    }
 
     await updateOrder.mutateAsync({
       id: orderId,
@@ -471,13 +534,28 @@ export default function DrinkOrder() {
               {orders.map(order => (
                 <div key={order.id} className="p-4">
                   <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <span className="text-sm text-slate-500">
-                        {format(new Date(order.created_date), 'HH:mm')}
-                      </span>
-                      <span className="ml-3 text-sm font-semibold text-orange-600">
-                        ${order.total_amount.toLocaleString()}
-                      </span>
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <span className="text-sm text-slate-500">
+                          {format(new Date(order.created_date), 'HH:mm')}
+                        </span>
+                        <span className="ml-3 text-sm font-semibold text-orange-600">
+                          ${order.total_amount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-slate-600">訂單支付人：</label>
+                        <select
+                          value={order.payer_id || ''}
+                          onChange={(e) => updateOrderPayer(order.id, e.target.value)}
+                          className="px-2 py-1 border rounded text-sm"
+                        >
+                          <option value="">選擇支付人</option>
+                          {members.map(m => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <Button
                       variant="ghost"
@@ -507,10 +585,11 @@ export default function DrinkOrder() {
                             <td className="px-3 py-2 text-right">${item.price}</td>
                             <td className="px-3 py-2">
                               <select
-                                value={item.payment_method || 'balance'}
+                                value={item.payment_method || 'rcpay'}
                                 onChange={(e) => updateOrderItemPayment(order.id, idx, 'payment_method', e.target.value)}
                                 className="px-2 py-1 border rounded text-xs"
                               >
+                                <option value="rcpay">RCPay錢包</option>
                                 <option value="balance">餘額</option>
                                 <option value="cash">現金</option>
                               </select>
