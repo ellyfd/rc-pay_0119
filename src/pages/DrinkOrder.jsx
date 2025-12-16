@@ -81,54 +81,60 @@ export default function DrinkOrder() {
     });
   };
 
-  const updateOrderItemPayment = async (orderId, itemIndex, field, value) => {
+  const updateMemberPayment = async (orderId, memberId, field, value) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
-    const updatedItems = [...order.items];
-    const oldValue = updatedItems[itemIndex][field];
-    updatedItems[itemIndex] = {
-      ...updatedItems[itemIndex],
-      [field]: value
-    };
+    const updatedItems = order.items.map(item => {
+      if (item.member_id === memberId) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    });
 
     // 如果是勾選已支付，且支付方式為 rcpay，需要建立轉帳交易
-    if (field === 'paid' && value === true && updatedItems[itemIndex].payment_method === 'rcpay') {
-      const item = updatedItems[itemIndex];
-      if (!item.member_id || !order.payer_id) {
-        toast.warning('請先選擇訂單支付人和成員！');
-        return;
+    if (field === 'paid' && value === true) {
+      const memberItems = updatedItems.filter(item => item.member_id === memberId);
+      const paymentMethod = memberItems[0]?.payment_method || 'cash';
+      
+      if (paymentMethod === 'rcpay') {
+        if (!memberId || !order.payer_id) {
+          toast.warning('請先選擇訂單支付人和成員！');
+          return;
+        }
+        
+        const fromMember = members.find(m => m.id === memberId);
+        const toMember = members.find(m => m.id === order.payer_id);
+        
+        if (!fromMember || !toMember) return;
+
+        const totalAmount = memberItems.reduce((sum, item) => sum + item.price, 0);
+
+        // 建立轉帳交易
+        await createTransaction.mutateAsync({
+          type: 'transfer',
+          amount: totalAmount,
+          wallet_type: 'balance',
+          from_member_id: fromMember.id,
+          to_member_id: toMember.id,
+          from_member_name: fromMember.name,
+          to_member_name: toMember.name,
+          note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料`
+        });
+
+        // 更新成員餘額
+        await updateMember.mutateAsync({
+          id: fromMember.id,
+          data: { balance: (fromMember.balance || 0) - totalAmount }
+        });
+
+        await updateMember.mutateAsync({
+          id: toMember.id,
+          data: { balance: (toMember.balance || 0) + totalAmount }
+        });
+
+        toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
       }
-      
-      const fromMember = members.find(m => m.id === item.member_id);
-      const toMember = members.find(m => m.id === order.payer_id);
-      
-      if (!fromMember || !toMember) return;
-
-      // 建立轉帳交易
-      await createTransaction.mutateAsync({
-        type: 'transfer',
-        amount: item.price,
-        wallet_type: 'balance',
-        from_member_id: fromMember.id,
-        to_member_id: toMember.id,
-        from_member_name: fromMember.name,
-        to_member_name: toMember.name,
-        note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料 - ${item.item_name}`
-      });
-
-      // 更新成員餘額
-      await updateMember.mutateAsync({
-        id: fromMember.id,
-        data: { balance: (fromMember.balance || 0) - item.price }
-      });
-
-      await updateMember.mutateAsync({
-        id: toMember.id,
-        data: { balance: (toMember.balance || 0) + item.price }
-      });
-
-      toast.success(`${fromMember.name} 已轉帳 $${item.price} 給 ${toMember.name}`);
     }
 
     await updateOrder.mutateAsync({
@@ -589,39 +595,52 @@ export default function DrinkOrder() {
                             memberGroups[key].push({ ...item, idx });
                           });
 
-                          return Object.entries(memberGroups).map(([memberId, items], groupIdx) => (
-                            <React.Fragment key={groupIdx}>
-                              {items.map((item, itemIdx) => (
-                                <tr key={item.idx} className={itemIdx === 0 ? 'border-t-2 border-slate-300' : ''}>
-                                  <td className="px-3 py-2">{item.member_name}</td>
-                                  <td className="px-3 py-2">{item.item_name}</td>
-                                  <td className="px-3 py-2 text-right">${item.price}</td>
-                                  <td className="px-3 py-2 text-right font-semibold text-orange-600">
-                                    {itemIdx === 0 && `$${items.reduce((sum, i) => sum + i.price, 0)}`}
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <select
-                                      value={item.payment_method || 'cash'}
-                                      onChange={(e) => updateOrderItemPayment(order.id, item.idx, 'payment_method', e.target.value)}
-                                      className="px-2 py-1 border rounded text-xs"
-                                    >
-                                      <option value="cash">現金</option>
-                                      <option value="rcpay">RCPay錢包</option>
-                                      <option value="balance">餘額</option>
-                                    </select>
-                                  </td>
-                                  <td className="px-3 py-2 text-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={item.paid || false}
-                                      onChange={(e) => updateOrderItemPayment(order.id, item.idx, 'paid', e.target.checked)}
-                                      className="w-4 h-4 cursor-pointer"
-                                    />
-                                  </td>
-                                </tr>
-                              ))}
-                            </React.Fragment>
-                          ));
+                          return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
+                            const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
+                            const firstItem = items[0];
+                            
+                            return (
+                              <React.Fragment key={groupIdx}>
+                                {items.map((item, itemIdx) => (
+                                  <tr key={item.idx} className={itemIdx === 0 ? 'border-t-2 border-slate-300' : ''}>
+                                    {itemIdx === 0 && (
+                                      <td className="px-3 py-2 font-medium" rowSpan={items.length}>
+                                        {item.member_name}
+                                      </td>
+                                    )}
+                                    <td className="px-3 py-2">{item.item_name}</td>
+                                    <td className="px-3 py-2 text-right">${item.price}</td>
+                                    {itemIdx === 0 && (
+                                      <>
+                                        <td className="px-3 py-2 text-right font-semibold text-orange-600" rowSpan={items.length}>
+                                          ${memberTotal}
+                                        </td>
+                                        <td className="px-3 py-2" rowSpan={items.length}>
+                                          <select
+                                            value={firstItem.payment_method || 'cash'}
+                                            onChange={(e) => updateMemberPayment(order.id, item.member_id, 'payment_method', e.target.value)}
+                                            className="px-2 py-1 border rounded text-xs"
+                                          >
+                                            <option value="cash">現金</option>
+                                            <option value="rcpay">RCPay錢包</option>
+                                            <option value="balance">餘額</option>
+                                          </select>
+                                        </td>
+                                        <td className="px-3 py-2 text-center" rowSpan={items.length}>
+                                          <input
+                                            type="checkbox"
+                                            checked={firstItem.paid || false}
+                                            onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
+                                            className="w-4 h-4 cursor-pointer"
+                                          />
+                                        </td>
+                                      </>
+                                    )}
+                                  </tr>
+                                ))}
+                              </React.Fragment>
+                            );
+                          });
                         })()}
                       </tbody>
                     </table>
