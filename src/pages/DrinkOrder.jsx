@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Upload, Sparkles, Save, Trash2, Edit2, Coffee } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Save, Trash2, Edit2, Coffee, Wallet, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -631,12 +631,37 @@ export default function DrinkOrder() {
                                           </select>
                                         </td>
                                         <td className="px-3 py-2 text-center" rowSpan={items.length}>
-                                          <input
-                                            type="checkbox"
-                                            checked={firstItem.paid || false}
-                                            onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
-                                            className="w-4 h-4 cursor-pointer"
-                                          />
+                                          {firstItem.payment_method === 'balance' ? (
+                                            <Button
+                                              size="sm"
+                                              onClick={() => updateMemberPayment(order.id, item.member_id, 'paid', true)}
+                                              disabled={firstItem.paid}
+                                              className={`h-8 text-xs ${
+                                                firstItem.paid 
+                                                  ? 'bg-green-100 text-green-700 cursor-not-allowed' 
+                                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                              }`}
+                                            >
+                                              {firstItem.paid ? (
+                                                <>
+                                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                                  已支付
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <Wallet className="w-3 h-3 mr-1" />
+                                                  確認支付
+                                                </>
+                                              )}
+                                            </Button>
+                                          ) : (
+                                            <input
+                                              type="checkbox"
+                                              checked={firstItem.paid || false}
+                                              onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
+                                              className="w-4 h-4 cursor-pointer"
+                                            />
+                                          )}
                                         </td>
                                       </>
                                     )}
