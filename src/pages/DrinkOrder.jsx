@@ -625,49 +625,62 @@ export default function DrinkOrder() {
                                         <td className="px-3 py-2 text-right font-semibold text-orange-600" rowSpan={items.length}>
                                           ${memberTotal}
                                         </td>
-                                        <td className="px-3 py-2" rowSpan={items.length}>
-                                          <select
-                                            value={firstItem.payment_method || 'cash'}
-                                            onChange={(e) => updateMemberPayment(order.id, item.member_id, 'payment_method', e.target.value)}
-                                            className="px-2 py-1 border rounded text-xs"
-                                          >
-                                            <option value="cash">現金</option>
-                                            <option value="balance">餘額</option>
-                                          </select>
-                                        </td>
-                                        <td className="px-3 py-2 text-center" rowSpan={items.length}>
-                                          {firstItem.payment_method === 'balance' ? (
-                                            <Button
-                                              size="sm"
-                                              onClick={() => updateMemberPayment(order.id, item.member_id, 'paid', true)}
-                                              disabled={firstItem.paid}
-                                              className={`h-8 text-xs ${
-                                                firstItem.paid 
-                                                  ? 'bg-green-100 text-green-700 cursor-not-allowed' 
-                                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                              }`}
-                                            >
-                                              {firstItem.paid ? (
-                                                <>
-                                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                                  已支付
-                                                </>
+                                        {item.member_id === order.payer_id ? (
+                                          <>
+                                            <td className="px-3 py-2 text-center text-slate-500 text-xs" rowSpan={items.length}>
+                                              不需支付
+                                            </td>
+                                            <td className="px-3 py-2 text-center" rowSpan={items.length}>
+                                              <span className="text-green-600 text-xs">✓ 支付人</span>
+                                            </td>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <td className="px-3 py-2" rowSpan={items.length}>
+                                              <select
+                                                value={firstItem.payment_method || 'cash'}
+                                                onChange={(e) => updateMemberPayment(order.id, item.member_id, 'payment_method', e.target.value)}
+                                                className="px-2 py-1 border rounded text-xs"
+                                              >
+                                                <option value="cash">現金</option>
+                                                <option value="balance">餘額</option>
+                                              </select>
+                                            </td>
+                                            <td className="px-3 py-2 text-center" rowSpan={items.length}>
+                                              {firstItem.payment_method === 'balance' ? (
+                                                <Button
+                                                  size="sm"
+                                                  onClick={() => updateMemberPayment(order.id, item.member_id, 'paid', true)}
+                                                  disabled={firstItem.paid}
+                                                  className={`h-8 text-xs ${
+                                                    firstItem.paid 
+                                                      ? 'bg-green-100 text-green-700 cursor-not-allowed' 
+                                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                  }`}
+                                                >
+                                                  {firstItem.paid ? (
+                                                    <>
+                                                      <CheckCircle className="w-3 h-3 mr-1" />
+                                                      已支付
+                                                    </>
+                                                  ) : (
+                                                    <>
+                                                      <Wallet className="w-3 h-3 mr-1" />
+                                                      確認支付
+                                                    </>
+                                                  )}
+                                                </Button>
                                               ) : (
-                                                <>
-                                                  <Wallet className="w-3 h-3 mr-1" />
-                                                  確認支付
-                                                </>
+                                                <input
+                                                  type="checkbox"
+                                                  checked={firstItem.paid || false}
+                                                  onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
+                                                  className="w-4 h-4 cursor-pointer"
+                                                />
                                               )}
-                                            </Button>
-                                          ) : (
-                                            <input
-                                              type="checkbox"
-                                              checked={firstItem.paid || false}
-                                              onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
-                                              className="w-4 h-4 cursor-pointer"
-                                            />
-                                          )}
-                                        </td>
+                                            </td>
+                                          </>
+                                        )}
                                       </>
                                     )}
                                   </tr>
