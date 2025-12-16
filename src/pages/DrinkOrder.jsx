@@ -404,10 +404,10 @@ export default function DrinkOrder() {
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="px-3 py-2 text-center w-12">勾選</th>
-                    <th className="px-3 py-2 text-left">成員</th>
+                    <th className="px-3 py-2 text-left w-32">成員</th>
                     <th className="px-3 py-2 text-left">訂購內容</th>
-                    <th className="px-3 py-2 text-right">金額</th>
-                    <th className="px-3 py-2 text-left">支付方式</th>
+                    <th className="px-3 py-2 text-right w-24">金額</th>
+                    <th className="px-3 py-2 text-left w-28">支付方式</th>
                     <th className="px-3 py-2 text-center w-16">操作</th>
                   </tr>
                 </thead>
@@ -425,7 +425,7 @@ export default function DrinkOrder() {
                           value={order.member_id}
                           onValueChange={(value) => updateOrder(order.id, 'member_id', value)}
                         >
-                          <SelectTrigger className="w-32">
+                          <SelectTrigger className="w-full min-w-28">
                             <SelectValue placeholder="選擇成員" />
                           </SelectTrigger>
                           <SelectContent>
