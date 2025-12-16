@@ -209,7 +209,9 @@ export default function DrinkOrder() {
             member_id: matchedMember?.id || '',
             member_name: matchedMember?.name || item.member_name || '',
             item_name: item.item_name,
-            price: item.price
+            price: item.price,
+            payment_method: 'cash',
+            paid: false
           };
         });
         setOrderItems(processedItems);
@@ -270,7 +272,9 @@ export default function DrinkOrder() {
       member_id: '',
       member_name: '',
       item_name: '',
-      price: 0
+      price: 0,
+      payment_method: 'cash',
+      paid: false
     }]);
   };
 
