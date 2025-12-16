@@ -189,20 +189,29 @@ export default function DrinkOrder() {
 - 金額顯示在產品名稱的水平右側位置
 - 請忽略其他備註細節，只提取產品名稱和價格
 
+**訂購人名稱辨識：**
+- 如果成員名字後面有 "(you)" 標記，代表此人是訂單支付者
+- 在提取成員名字時，請將 "(you)" 移除，只保留實際名字
+- 如果有發現 "(you)" 標記，請額外記錄這個人是支付者
+
 **請提取以下資訊：**
 1. 每個產品項目的名稱和價格
-2. 如果圖片中有顯示訂購人的名字，請一併提取
+2. 每個產品的訂購人名字（去除 "(you)" 標記）
+3. 誰是訂單支付者（有 "(you)" 標記的人）
 
-請回傳 JSON 格式的資料，包含一個訂單項目陣列。每個項目包含：
-- member_name: 訂購人名字（如果圖片中有的話，否則留空）
-- item_name: 飲料/產品名稱
-- price: 價格（數字，不含貨幣符號）
+請回傳 JSON 格式的資料：
+- payer_name: 訂單支付者名字（有 "(you)" 標記的人，如果有的話）
+- items: 訂單項目陣列，每個項目包含：
+  - member_name: 訂購人名字（已移除 "(you)"）
+  - item_name: 飲料/產品名稱
+  - price: 價格（數字，不含貨幣符號）
 
 請仔細辨識每一個帶有數字標記的項目，確保不遺漏任何產品。`,
         file_urls: [uploadedImageUrl],
         response_json_schema: {
           type: "object",
           properties: {
+            payer_name: { type: "string" },
             items: {
               type: "array",
               items: {
@@ -235,7 +244,23 @@ export default function DrinkOrder() {
           };
         });
         setOrderItems(processedItems);
-        toast.success(`AI 成功識別 ${processedItems.length} 個項目！`);
+        
+        // 如果AI識別到支付者，自動填入
+        if (result.payer_name) {
+          const payerMember = members.find(m => 
+            m.name.includes(result.payer_name)
+          );
+          if (payerMember) {
+            // 這裡暫時儲存，等儲存訂單時會用到
+            setOrderItems(prev => prev.map(item => ({
+              ...item,
+              _suggested_payer_id: payerMember.id,
+              _suggested_payer_name: payerMember.name
+            })));
+          }
+        }
+        
+        toast.success(`AI 成功識別 ${processedItems.length} 個項目！${result.payer_name ? ` 支付者：${result.payer_name}` : ''}`);
       } else {
         toast.warning('AI 未能識別出訂單資訊');
       }
@@ -253,13 +278,22 @@ export default function DrinkOrder() {
     }
 
     const totalAmount = orderItems.reduce((sum, item) => sum + (item.price || 0), 0);
+    
+    // 檢查是否有AI建議的支付者
+    const suggestedPayerId = orderItems[0]?._suggested_payer_id;
+    const suggestedPayerName = orderItems[0]?._suggested_payer_name;
+    
+    // 清理items，移除臨時欄位
+    const cleanedItems = orderItems.map(({ _suggested_payer_id, _suggested_payer_name, ...item }) => item);
 
     await createOrder.mutateAsync({
       order_date: orderDate,
       image_url: uploadedImageUrl,
-      items: orderItems,
+      items: cleanedItems,
       total_amount: totalAmount,
       shipping_fee: shippingFee,
+      payer_id: suggestedPayerId || undefined,
+      payer_name: suggestedPayerName || undefined,
       status: 'pending'
     });
 
