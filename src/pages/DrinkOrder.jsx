@@ -89,8 +89,8 @@ export default function DrinkOrder() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('請上傳圖片檔案！');
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast.error('請上傳圖片或 PDF 檔案！');
       return;
     }
 
@@ -334,7 +334,7 @@ export default function DrinkOrder() {
                 <Sparkles className="w-6 h-6 text-purple-600" />
                 <h2 className="text-xl font-bold text-slate-800">AI 智能辨識</h2>
               </div>
-              <p className="text-slate-600 mb-4">拍照或上傳 Uber Eats 訂單截圖，AI 自動辨識飲料和價格</p>
+              <p className="text-slate-600 mb-4">拍照或上傳 Uber Eats 訂單截圖或 PDF 明細，AI 自動辨識飲料和價格</p>
               
               <Button
                 onClick={() => fileInputRef.current?.click()}
@@ -342,13 +342,13 @@ export default function DrinkOrder() {
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 text-lg"
               >
                 <Camera className="w-5 h-5 mr-2" />
-                {uploading ? '上傳中...' : analyzing ? 'AI 分析中...' : '上傳訂單截圖'}
+                {uploading ? '上傳中...' : analyzing ? 'AI 分析中...' : '上傳截圖或 PDF'}
               </Button>
               
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,.pdf"
                 capture="environment"
                 onChange={handleFileUpload}
                 className="hidden"
@@ -376,7 +376,14 @@ export default function DrinkOrder() {
 
             {imageUrl && (
               <div className="mb-4">
-                <img src={imageUrl} alt="訂單截圖" className="max-w-xs rounded-lg border" />
+                {imageUrl.endsWith('.pdf') ? (
+                  <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-2">
+                    <Coffee className="w-4 h-4" />
+                    查看 PDF 明細
+                  </a>
+                ) : (
+                  <img src={imageUrl} alt="訂單截圖" className="max-w-xs rounded-lg border" />
+                )}
               </div>
             )}
 
