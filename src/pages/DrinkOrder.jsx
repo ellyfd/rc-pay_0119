@@ -17,6 +17,7 @@ export default function DrinkOrder() {
   const [uploading, setUploading] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -194,11 +195,16 @@ export default function DrinkOrder() {
 
   const handleBatchFillMember = (memberId) => {
     if (!memberId) return;
+    if (selectedItems.length === 0) {
+      toast.warning('請先勾選要填入的項目！');
+      return;
+    }
+    
     const member = members.find(m => m.id === memberId);
     if (!member) return;
 
-    const newItems = orderItems.map(item => {
-      if (!item.member_id) {
+    const newItems = orderItems.map((item, index) => {
+      if (selectedItems.includes(index)) {
         return {
           ...item,
           member_id: memberId,
@@ -208,7 +214,24 @@ export default function DrinkOrder() {
       return item;
     });
     setOrderItems(newItems);
-    toast.success(`已批次填入 ${member.name}`);
+    setSelectedItems([]);
+    toast.success(`已為 ${selectedItems.length} 個項目填入 ${member.name}`);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.length === orderItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(orderItems.map((_, index) => index));
+    }
+  };
+
+  const toggleSelectItem = (index) => {
+    if (selectedItems.includes(index)) {
+      setSelectedItems(selectedItems.filter(i => i !== index));
+    } else {
+      setSelectedItems([...selectedItems, index]);
+    }
   };
 
   return (
@@ -320,18 +343,34 @@ export default function DrinkOrder() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
+              <table className="w-full min-w-[650px]">
                 <thead className="bg-slate-50 border-b">
                   <tr>
+                    <th className="text-center px-3 py-3 text-sm font-semibold text-slate-700 w-[50px]">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.length === orderItems.length && orderItems.length > 0}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[25%]">成員</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[40%]">訂購內容</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[35%]">訂購內容</th>
                     <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700 w-[20%]">金額</th>
                     <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700 w-[15%]">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {orderItems.map((item, index) => (
-                    <tr key={index} className="hover:bg-slate-50">
+                    <tr key={index} className={`hover:bg-slate-50 ${selectedItems.includes(index) ? 'bg-blue-50' : ''}`}>
+                      <td className="px-3 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(index)}
+                          onChange={() => toggleSelectItem(index)}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <select
                           value={item.member_id}
@@ -377,7 +416,7 @@ export default function DrinkOrder() {
                     </tr>
                   ))}
                   <tr className="bg-orange-50 font-bold">
-                    <td colSpan="2" className="px-4 py-3 text-right text-slate-800">總金額</td>
+                    <td colSpan="3" className="px-4 py-3 text-right text-slate-800">總金額</td>
                     <td className="px-4 py-3 text-right text-orange-600 text-lg">
                       ${getTotalAmount().toLocaleString()}
                     </td>
