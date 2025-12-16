@@ -112,20 +112,20 @@ export default function DrinkOrder() {
       toast.info('AI 正在分析訂單...');
       
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `This is a drink order receipt/screenshot (possibly from Uber Eats, food delivery app, or handwritten order).
+        prompt: `請仔細分析這張 Uber Eats 或飲料訂單的圖片/PDF。
+        
+請提取以下資訊：
+1. 每個人點的飲料名稱和價格
+2. 如果圖片中有備註成員名稱，請一併提取
+3. 每項飲料的單價
 
-      CRITICAL: Extract ALL drink items visible in the image. Do not skip any items.
+請回傳 JSON 格式的訂單列表，每筆訂單包含：
+- member_name: 成員名稱（如果圖片中沒有標示，請留空字串）
+- drink_name: 飲料名稱（包含規格，例如：珍珠奶茶（大杯）、美式咖啡（熱）等）
+- price: 單價（數字）
+- note: 備註（如果有特殊要求，例如：少冰、半糖等）
 
-      Instructions:
-      1. Read all text in the image carefully
-      2. Identify every drink item (examples: bubble tea, coffee, juice, smoothie, etc.)
-      3. For each item, find its price (usually a number like 50, 65, 80, etc.)
-      4. Note any customizations (ice level, sugar level, etc.)
-      5. Check if there are any member names or notes
-
-      If an item appears multiple times or has quantity > 1, list each one separately.
-
-      Return ALL items you see, even if you're not 100% certain. It's better to include everything than to miss items.`,
+請確保價格是數字格式，不要包含貨幣符號。`,
         file_urls: [fileUrl],
         response_json_schema: {
           type: "object",
@@ -315,39 +315,6 @@ export default function DrinkOrder() {
   const totalAmount = orders.filter(o => o.checked).reduce((sum, o) => sum + (o.price || 0), 0);
   const pendingTotal = existingOrders.filter(o => o.status === 'pending').reduce((sum, o) => sum + o.price, 0);
 
-  // Batch operations
-  const checkedOrders = orders.filter(o => o.checked);
-  const hasChecked = checkedOrders.length > 0;
-
-  const handleBatchUpdateMember = (memberId) => {
-    setOrders(orders.map(order => 
-      order.checked ? { ...order, member_id: memberId, member_name: allMembers.find(m => m.id === memberId)?.name || '' } : order
-    ));
-  };
-
-  const handleBatchUpdatePayment = (paymentMethod) => {
-    setOrders(orders.map(order => 
-      order.checked ? { ...order, payment_method: paymentMethod } : order
-    ));
-  };
-
-  const toggleAllChecked = () => {
-    const allChecked = orders.every(o => o.checked);
-    setOrders(orders.map(order => ({ ...order, checked: !allChecked })));
-  };
-
-  // Calculate subtotals by member
-  const memberSubtotals = orders
-    .filter(o => o.checked && o.member_id)
-    .reduce((acc, order) => {
-      const memberName = order.member_name || '未選擇';
-      if (!acc[memberName]) {
-        acc[memberName] = 0;
-      }
-      acc[memberName] += order.price || 0;
-      return acc;
-    }, {});
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Header */}
@@ -422,55 +389,26 @@ export default function DrinkOrder() {
         {/* Orders Table */}
         {orders.length > 0 && (
           <Card className="p-6">
-            <div className="flex flex-col gap-3 mb-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">訂單明細</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">訂單明細</h2>
+              <div className="flex gap-2">
                 <Button onClick={addManualOrder} variant="outline" size="sm">
                   <Upload className="w-4 h-4 mr-2" />
                   手動新增
                 </Button>
               </div>
-              
-              {/* Batch Operations */}
-              {hasChecked && (
-                <div className="flex flex-wrap items-center gap-2 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
-                  <span className="text-sm font-medium text-cyan-900">批量操作 ({checkedOrders.length} 項)：</span>
-                  <Select onValueChange={handleBatchUpdateMember}>
-                    <SelectTrigger className="w-32 h-8 text-xs">
-                      <SelectValue placeholder="批改成員" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allMembers.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select onValueChange={handleBatchUpdatePayment}>
-                    <SelectTrigger className="w-28 h-8 text-xs">
-                      <SelectValue placeholder="批改支付" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="balance">餘額</SelectItem>
-                      <SelectItem value="cash">現金</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-xs min-w-[500px]">
+              <table className="w-full text-xs">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="px-2 py-1.5 text-center">
-                      <Checkbox checked={orders.every(o => o.checked)} onCheckedChange={toggleAllChecked} />
-                    </th>
-                    <th className="px-2 py-1.5 text-left whitespace-nowrap">成員</th>
-                    <th className="px-2 py-1.5 text-left w-full">訂購內容</th>
-                    <th className="px-2 py-1.5 text-right whitespace-nowrap">金額</th>
-                    <th className="px-2 py-1.5 text-center whitespace-nowrap">操作</th>
+                    <th className="px-2 py-1.5 text-center w-10">勾選</th>
+                    <th className="px-2 py-1.5 text-left w-28">成員</th>
+                    <th className="px-2 py-1.5 text-left">訂購內容</th>
+                    <th className="px-2 py-1.5 text-right w-20">金額</th>
+                    <th className="px-2 py-1.5 text-left w-24">支付</th>
+                    <th className="px-2 py-1.5 text-center w-12">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -487,7 +425,7 @@ export default function DrinkOrder() {
                           value={order.member_id}
                           onValueChange={(value) => updateOrder(order.id, 'member_id', value)}
                         >
-                          <SelectTrigger className="h-8 text-xs min-w-[80px]">
+                          <SelectTrigger className="w-full h-8 text-xs">
                             <SelectValue placeholder="選擇" />
                           </SelectTrigger>
                           <SelectContent>
@@ -504,7 +442,7 @@ export default function DrinkOrder() {
                           value={order.drink_name}
                           onChange={(e) => updateOrder(order.id, 'drink_name', e.target.value)}
                           placeholder="珍珠奶茶（大杯）"
-                          className="h-8 text-xs"
+                          className="w-full h-8 text-xs"
                         />
                         {order.note && (
                           <div className="text-[10px] text-slate-500 mt-0.5">備註: {order.note}</div>
@@ -515,8 +453,22 @@ export default function DrinkOrder() {
                           type="number"
                           value={order.price}
                           onChange={(e) => updateOrder(order.id, 'price', parseFloat(e.target.value) || 0)}
-                          className="h-8 text-xs text-right min-w-[70px]"
+                          className="w-full h-8 text-xs text-right"
                         />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <Select
+                          value={order.payment_method}
+                          onValueChange={(value) => updateOrder(order.id, 'payment_method', value)}
+                        >
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="balance">餘額</SelectItem>
+                            <SelectItem value="cash">現金</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </td>
                       <td className="px-2 py-1.5 text-center">
                         <Button
