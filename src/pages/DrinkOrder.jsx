@@ -92,12 +92,12 @@ export default function DrinkOrder() {
       return item;
     });
 
-    // 如果是勾選已支付，且支付方式為 rcpay，需要建立轉帳交易
+    // 如果是勾選已支付，且支付方式為餘額，需要建立轉帳交易
     if (field === 'paid' && value === true) {
       const memberItems = updatedItems.filter(item => item.member_id === memberId);
       const paymentMethod = memberItems[0]?.payment_method || 'cash';
       
-      if (paymentMethod === 'rcpay') {
+      if (paymentMethod === 'balance') {
         if (!memberId || !order.payer_id) {
           toast.warning('請先選擇訂單支付人和成員！');
           return;
@@ -626,7 +626,6 @@ export default function DrinkOrder() {
                                             className="px-2 py-1 border rounded text-xs"
                                           >
                                             <option value="cash">現金</option>
-                                            <option value="rcpay">RCPay錢包</option>
                                             <option value="balance">餘額</option>
                                           </select>
                                         </td>
