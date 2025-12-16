@@ -488,7 +488,7 @@ export default function DrinkOrder() {
                           value={order.member_id}
                           onValueChange={(value) => updateOrder(order.id, 'member_id', value)}
                         >
-                          <SelectTrigger className="w-full h-8 text-xs">
+                          <SelectTrigger className="h-8 text-xs min-w-[80px]">
                             <SelectValue placeholder="選擇" />
                           </SelectTrigger>
                           <SelectContent>
@@ -505,7 +505,7 @@ export default function DrinkOrder() {
                           value={order.drink_name}
                           onChange={(e) => updateOrder(order.id, 'drink_name', e.target.value)}
                           placeholder="珍珠奶茶（大杯）"
-                          className="w-full h-8 text-xs"
+                          className="h-8 text-xs"
                         />
                         {order.note && (
                           <div className="text-[10px] text-slate-500 mt-0.5">備註: {order.note}</div>
@@ -516,7 +516,7 @@ export default function DrinkOrder() {
                           type="number"
                           value={order.price}
                           onChange={(e) => updateOrder(order.id, 'price', parseFloat(e.target.value) || 0)}
-                          className="w-full h-8 text-xs text-right"
+                          className="h-8 text-xs text-right min-w-[70px]"
                         />
                       </td>
                       <td className="px-2 py-1.5">
@@ -524,7 +524,7 @@ export default function DrinkOrder() {
                           value={order.payment_method}
                           onValueChange={(value) => updateOrder(order.id, 'payment_method', value)}
                         >
-                          <SelectTrigger className="w-full h-8 text-xs">
+                          <SelectTrigger className="h-8 text-xs min-w-[70px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
