@@ -315,6 +315,39 @@ export default function DrinkOrder() {
   const totalAmount = orders.filter(o => o.checked).reduce((sum, o) => sum + (o.price || 0), 0);
   const pendingTotal = existingOrders.filter(o => o.status === 'pending').reduce((sum, o) => sum + o.price, 0);
 
+  // Batch operations
+  const checkedOrders = orders.filter(o => o.checked);
+  const hasChecked = checkedOrders.length > 0;
+
+  const handleBatchUpdateMember = (memberId) => {
+    setOrders(orders.map(order => 
+      order.checked ? { ...order, member_id: memberId, member_name: allMembers.find(m => m.id === memberId)?.name || '' } : order
+    ));
+  };
+
+  const handleBatchUpdatePayment = (paymentMethod) => {
+    setOrders(orders.map(order => 
+      order.checked ? { ...order, payment_method: paymentMethod } : order
+    ));
+  };
+
+  const toggleAllChecked = () => {
+    const allChecked = orders.every(o => o.checked);
+    setOrders(orders.map(order => ({ ...order, checked: !allChecked })));
+  };
+
+  // Calculate subtotals by member
+  const memberSubtotals = orders
+    .filter(o => o.checked && o.member_id)
+    .reduce((acc, order) => {
+      const memberName = order.member_name || '未選擇';
+      if (!acc[memberName]) {
+        acc[memberName] = 0;
+      }
+      acc[memberName] += order.price || 0;
+      return acc;
+    }, {});
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Header */}
