@@ -18,6 +18,7 @@ export default function DrinkOrder() {
   const [orderItems, setOrderItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [shippingFee, setShippingFee] = useState(0);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -108,7 +109,13 @@ export default function DrinkOrder() {
         
         if (!fromMember || !toMember) return;
 
-        const totalAmount = memberItems.reduce((sum, item) => sum + item.price, 0);
+        const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
+        
+        // 計算該成員需分攤的運費
+        const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
+        const totalMembers = allMemberIds.length;
+        const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+        const totalAmount = Math.round(itemTotal + shippingPerMember);
 
         // 檢查餘額是否足夠
         if ((fromMember.balance || 0) < totalAmount) {
@@ -245,11 +252,13 @@ export default function DrinkOrder() {
       image_url: uploadedImageUrl,
       items: orderItems,
       total_amount: totalAmount,
+      shipping_fee: shippingFee,
       status: 'pending'
     });
 
     setOrderItems([]);
     setUploadedImageUrl('');
+    setShippingFee(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -520,20 +529,33 @@ export default function DrinkOrder() {
                 </tbody>
               </table>
             </div>
-            <div className="p-4 bg-slate-50 border-t flex justify-between">
-              <Button
-                variant="outline"
-                onClick={addEmptyItem}
-              >
-                + 新增項目
-              </Button>
-              <Button
-                onClick={handleSaveOrder}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                儲存訂單
-              </Button>
+            <div className="p-4 bg-slate-50 border-t space-y-3">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">運費：</label>
+                <Input
+                  type="number"
+                  value={shippingFee}
+                  onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                  className="w-32 text-sm"
+                />
+                <span className="text-xs text-slate-500">（將平均分攤給每位成員）</span>
+              </div>
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={addEmptyItem}
+                >
+                  + 新增項目
+                </Button>
+                <Button
+                  onClick={handleSaveOrder}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  儲存訂單
+                </Button>
+              </div>
             </div>
           </Card>
         )}
@@ -550,7 +572,7 @@ export default function DrinkOrder() {
               {orders.map(order => (
                 <div key={order.id} className="p-4">
                   <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                       <div>
                         <span className="text-sm text-slate-500">
                           {format(new Date(order.created_date), 'HH:mm')}
@@ -558,6 +580,11 @@ export default function DrinkOrder() {
                         <span className="ml-3 text-sm font-semibold text-orange-600">
                           ${order.total_amount.toLocaleString()}
                         </span>
+                        {order.shipping_fee > 0 && (
+                          <span className="ml-2 text-sm text-slate-600">
+                            （含運費 ${order.shipping_fee}）
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <label className="text-sm text-slate-600">訂單支付人：</label>
@@ -583,13 +610,15 @@ export default function DrinkOrder() {
                     </Button>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[800px] text-sm">
+                    <table className="w-full min-w-[900px] text-sm">
                       <thead className="bg-slate-50">
                         <tr>
                           <th className="text-left px-3 py-2 text-slate-700">成員</th>
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
                           <th className="text-right px-3 py-2 text-slate-700">小計</th>
+                          <th className="text-right px-3 py-2 text-slate-700">運費</th>
+                          <th className="text-right px-3 py-2 text-slate-700">支付金額</th>
                           <th className="text-left px-3 py-2 text-slate-700">支付方式</th>
                           <th className="text-center px-3 py-2 text-slate-700">已支付</th>
                         </tr>
@@ -605,8 +634,12 @@ export default function DrinkOrder() {
                             memberGroups[key].push({ ...item, idx });
                           });
 
+                          const totalMembers = Object.keys(memberGroups).length;
+                          const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+
                           return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
                             const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
+                            const memberPaymentAmount = memberTotal + shippingPerMember;
                             const firstItem = items[0];
                             
                             return (
@@ -622,8 +655,14 @@ export default function DrinkOrder() {
                                     <td className="px-3 py-2 text-right">${item.price}</td>
                                     {itemIdx === 0 && (
                                       <>
-                                        <td className="px-3 py-2 text-right font-semibold text-orange-600" rowSpan={items.length}>
+                                        <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                           ${memberTotal}
+                                        </td>
+                                        <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
+                                          ${shippingPerMember.toFixed(0)}
+                                        </td>
+                                        <td className="px-3 py-2 text-right font-bold text-orange-600" rowSpan={items.length}>
+                                          ${Math.round(memberPaymentAmount)}
                                         </td>
                                         {item.member_id === order.payer_id ? (
                                           <>
