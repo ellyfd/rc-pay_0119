@@ -348,7 +348,6 @@ export default function DrinkOrder() {
               accept="image/*,application/pdf"
               onChange={handleFileUpload}
               className="hidden"
-              capture="environment"
             />
             
             <Button
