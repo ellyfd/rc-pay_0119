@@ -166,6 +166,21 @@ export default function DrinkOrder() {
 
         setAnalyzedOrders(processedOrders);
         toast.success(`AI 成功識別 ${result.orders.length} 筆訂單！`);
+        
+        // Auto-save orders
+        try {
+          for (const order of processedOrders) {
+            if (order.member_id && order.drink_name && order.price) {
+              await createOrder.mutateAsync(order);
+            }
+          }
+          setAnalyzedOrders([]);
+          setUploadedFileUrl('');
+          toast.success('所有訂單已自動建立！');
+        } catch (error) {
+          console.error('自動建立訂單失敗:', error);
+          toast.error('部分訂單建立失敗，請檢查並手動調整');
+        }
       } else {
         toast.warning('AI 未能識別出訂單資訊，請手動輸入');
       }
