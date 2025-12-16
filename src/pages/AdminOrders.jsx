@@ -256,7 +256,7 @@ export default function AdminOrders() {
               <h1 className="text-2xl font-bold">訂單管理</h1>
               <p className="text-emerald-100 text-sm">查詢訂單紀錄與統一結帳</p>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row gap-2">
               <Link to={createPageUrl('OrderHistoryByDate')}>
                 <Button variant="ghost" className="text-white hover:bg-emerald-500 w-full">
                   <Calendar className="w-4 h-4 mr-2" />
@@ -277,7 +277,7 @@ export default function AdminOrders() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Date and Status Selection */}
         <Card className="p-3 sm:p-4 mb-6">
-          <div className="flex items-center justify-between gap-4 mb-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
             <div className="flex items-center gap-2">
               <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">訂餐日期：</label>
               <Input
@@ -287,7 +287,7 @@ export default function AdminOrders() {
                 className="w-36 text-sm"
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row gap-2">
               <Button
                 variant={orderStatus === 'pending' ? 'default' : 'outline'}
                 onClick={() => setOrderStatus('pending')}
