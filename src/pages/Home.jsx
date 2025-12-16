@@ -245,12 +245,19 @@ export default function Home() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <Link to={createPageUrl('FoodOrder')}>
             <Button className="w-full bg-emerald-600 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-emerald-700">
               <UtensilsCrossed className="w-4 h-4 md:w-5 md:h-5" />
               <span className="hidden sm:inline md:mr-0">七分飽訂餐</span>
               <span className="sm:hidden">訂餐</span>
+            </Button>
+          </Link>
+          <Link to={createPageUrl('DrinkOrder')}>
+            <Button className="w-full bg-orange-600 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-orange-700">
+              <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline md:mr-0">訂飲料</span>
+              <span className="sm:hidden">飲料</span>
             </Button>
           </Link>
           <Button
