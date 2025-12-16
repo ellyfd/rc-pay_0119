@@ -422,14 +422,42 @@ export default function DrinkOrder() {
         {/* Orders Table */}
         {orders.length > 0 && (
           <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">訂單明細</h2>
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-3 mb-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">訂單明細</h2>
                 <Button onClick={addManualOrder} variant="outline" size="sm">
                   <Upload className="w-4 h-4 mr-2" />
                   手動新增
                 </Button>
               </div>
+              
+              {/* Batch Operations */}
+              {hasChecked && (
+                <div className="flex flex-wrap items-center gap-2 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
+                  <span className="text-sm font-medium text-cyan-900">批量操作 ({checkedOrders.length} 項)：</span>
+                  <Select onValueChange={handleBatchUpdateMember}>
+                    <SelectTrigger className="w-32 h-8 text-xs">
+                      <SelectValue placeholder="批改成員" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allMembers.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select onValueChange={handleBatchUpdatePayment}>
+                    <SelectTrigger className="w-28 h-8 text-xs">
+                      <SelectValue placeholder="批改支付" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="balance">餘額</SelectItem>
+                      <SelectItem value="cash">現金</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             <div className="overflow-x-auto">
