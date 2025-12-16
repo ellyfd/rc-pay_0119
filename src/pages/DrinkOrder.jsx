@@ -651,15 +651,19 @@ export default function DrinkOrder() {
                     </Button>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[900px] text-sm">
+                    <table className={`w-full ${order.shipping_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
                       <thead className="bg-slate-50">
                         <tr>
                           <th className="text-left px-3 py-2 text-slate-700">成員</th>
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
                           <th className="text-right px-3 py-2 text-slate-700">小計</th>
-                          <th className="text-right px-3 py-2 text-slate-700">運費</th>
-                          <th className="text-right px-3 py-2 text-slate-700">支付金額</th>
+                          {order.shipping_fee > 0 && (
+                            <>
+                              <th className="text-right px-3 py-2 text-slate-700">運費</th>
+                              <th className="text-right px-3 py-2 text-slate-700">支付金額</th>
+                            </>
+                          )}
                           <th className="text-left px-3 py-2 text-slate-700">支付方式</th>
                           <th className="text-center px-3 py-2 text-slate-700">已支付</th>
                         </tr>
@@ -699,12 +703,16 @@ export default function DrinkOrder() {
                                         <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                           ${memberTotal}
                                         </td>
-                                        <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                          ${shippingPerMember.toFixed(0)}
-                                        </td>
-                                        <td className="px-3 py-2 text-right font-bold text-orange-600" rowSpan={items.length}>
-                                          ${Math.round(memberPaymentAmount)}
-                                        </td>
+                                        {order.shipping_fee > 0 && (
+                                          <>
+                                            <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
+                                              ${shippingPerMember.toFixed(0)}
+                                            </td>
+                                            <td className="px-3 py-2 text-right font-bold text-orange-600" rowSpan={items.length}>
+                                              ${Math.round(memberPaymentAmount)}
+                                            </td>
+                                          </>
+                                        )}
                                         {item.member_id === order.payer_id ? (
                                           <>
                                             <td className="px-3 py-2 text-center text-slate-500 text-xs" rowSpan={items.length}>
