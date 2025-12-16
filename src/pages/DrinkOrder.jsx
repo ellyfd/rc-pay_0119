@@ -58,6 +58,22 @@ export default function DrinkOrder() {
     }
   });
 
+  const updateOrderItemPayment = async (orderId, itemIndex, field, value) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const updatedItems = [...order.items];
+    updatedItems[itemIndex] = {
+      ...updatedItems[itemIndex],
+      [field]: value
+    };
+
+    await updateOrder.mutateAsync({
+      id: orderId,
+      data: { items: updatedItems }
+    });
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -473,12 +489,14 @@ export default function DrinkOrder() {
                     </Button>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[500px] text-sm">
+                    <table className="w-full min-w-[800px] text-sm">
                       <thead className="bg-slate-50">
                         <tr>
                           <th className="text-left px-3 py-2 text-slate-700">成員</th>
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
+                          <th className="text-left px-3 py-2 text-slate-700">支付方式</th>
+                          <th className="text-center px-3 py-2 text-slate-700">已支付</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
@@ -487,6 +505,24 @@ export default function DrinkOrder() {
                             <td className="px-3 py-2">{item.member_name}</td>
                             <td className="px-3 py-2">{item.item_name}</td>
                             <td className="px-3 py-2 text-right">${item.price}</td>
+                            <td className="px-3 py-2">
+                              <select
+                                value={item.payment_method || 'balance'}
+                                onChange={(e) => updateOrderItemPayment(order.id, idx, 'payment_method', e.target.value)}
+                                className="px-2 py-1 border rounded text-xs"
+                              >
+                                <option value="balance">餘額</option>
+                                <option value="cash">現金</option>
+                              </select>
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <input
+                                type="checkbox"
+                                checked={item.paid || false}
+                                onChange={(e) => updateOrderItemPayment(order.id, idx, 'paid', e.target.checked)}
+                                className="w-4 h-4 cursor-pointer"
+                              />
+                            </td>
                           </tr>
                         ))}
                       </tbody>
