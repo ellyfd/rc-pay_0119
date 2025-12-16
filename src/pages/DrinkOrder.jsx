@@ -192,6 +192,25 @@ export default function DrinkOrder() {
     return orderItems.reduce((sum, item) => sum + (item.price || 0), 0);
   };
 
+  const handleBatchFillMember = (memberId) => {
+    if (!memberId) return;
+    const member = members.find(m => m.id === memberId);
+    if (!member) return;
+
+    const newItems = orderItems.map(item => {
+      if (!item.member_id) {
+        return {
+          ...item,
+          member_id: memberId,
+          member_name: member.name
+        };
+      }
+      return item;
+    });
+    setOrderItems(newItems);
+    toast.success(`已批次填入 ${member.name}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
       <div className="bg-orange-600 text-white">
@@ -284,8 +303,21 @@ export default function DrinkOrder() {
         {/* 訂單表格 */}
         {orderItems.length > 0 && (
           <Card>
-            <div className="p-4 bg-slate-50 border-b">
+            <div className="p-4 bg-slate-50 border-b flex items-center justify-between">
               <h3 className="font-semibold text-slate-800">訂單明細</h3>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-600">批次填入成員：</label>
+                <select
+                  onChange={(e) => handleBatchFillMember(e.target.value)}
+                  className="px-3 py-1 border rounded text-sm"
+                  defaultValue=""
+                >
+                  <option value="">選擇成員</option>
+                  {members.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px]">
