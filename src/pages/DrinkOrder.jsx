@@ -124,9 +124,7 @@ export default function DrinkOrder() {
             member_id: matchedMember?.id || '',
             member_name: matchedMember?.name || item.member_name || '',
             item_name: item.item_name,
-            price: item.price,
-            payment_method: 'balance',
-            paid: false
+            price: item.price
           };
         });
         setOrderItems(processedItems);
@@ -187,30 +185,13 @@ export default function DrinkOrder() {
       member_id: '',
       member_name: '',
       item_name: '',
-      price: 0,
-      payment_method: 'balance',
-      paid: false
+      price: 0
     }]);
   };
 
   const getTotalAmount = () => {
     return orderItems.reduce((sum, item) => sum + (item.price || 0), 0);
   };
-
-  const getMemberSubtotal = (memberId) => {
-    return orderItems
-      .filter(item => item.member_id === memberId)
-      .reduce((sum, item) => sum + (item.price || 0), 0);
-  };
-
-  const groupedByMember = orderItems.reduce((acc, item, index) => {
-    const key = item.member_id || 'unassigned';
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push({ ...item, originalIndex: index });
-    return acc;
-  }, {});
 
   const handleBatchFillMember = (memberId) => {
     if (!memberId) return;
@@ -362,7 +343,7 @@ export default function DrinkOrder() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px]">
+              <table className="w-full min-w-[650px]">
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th className="text-center px-3 py-3 text-sm font-semibold text-slate-700 w-[50px]">
@@ -373,104 +354,69 @@ export default function DrinkOrder() {
                         className="w-4 h-4 cursor-pointer"
                       />
                     </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[18%]">成員</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[25%]">訂購內容</th>
-                    <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700 w-[12%]">金額</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[12%]">支付方式</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700 w-[10%]">已支付</th>
-                    <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700 w-[12%]">小計</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700 w-[10%]">操作</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[25%]">成員</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[35%]">訂購內容</th>
+                    <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700 w-[20%]">金額</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700 w-[15%]">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {Object.entries(groupedByMember).map(([memberId, items]) => (
-                    <React.Fragment key={memberId}>
-                      {items.map((item, idx) => {
-                        const index = item.originalIndex;
-                        const isFirstInGroup = idx === 0;
-                        const groupSize = items.length;
-                        return (
-                          <tr key={index} className={`hover:bg-slate-50 ${selectedItems.includes(index) ? 'bg-blue-50' : ''}`}>
-                            <td className="px-3 py-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedItems.includes(index)}
-                                onChange={() => toggleSelectItem(index)}
-                                className="w-4 h-4 cursor-pointer"
-                              />
-                            </td>
-                            <td className="px-4 py-3">
-                              <select
-                                value={item.member_id}
-                                onChange={(e) => updateItem(index, 'member_id', e.target.value)}
-                                className="w-full px-2 py-1 border rounded text-sm"
-                              >
-                                <option value="">選擇成員</option>
-                                {members.map(m => (
-                                  <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                              </select>
-                              {!item.member_id && item.member_name && (
-                                <div className="text-xs text-amber-600 mt-1">AI識別: {item.member_name}</div>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              <Input
-                                value={item.item_name}
-                                onChange={(e) => updateItem(index, 'item_name', e.target.value)}
-                                placeholder="飲料名稱"
-                                className="text-sm"
-                              />
-                            </td>
-                            <td className="px-4 py-3">
-                              <Input
-                                type="number"
-                                value={item.price}
-                                onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
-                                placeholder="0"
-                                className="text-sm text-right"
-                              />
-                            </td>
-                            <td className="px-4 py-3">
-                              <select
-                                value={item.payment_method || 'balance'}
-                                onChange={(e) => updateItem(index, 'payment_method', e.target.value)}
-                                className="w-full px-2 py-1 border rounded text-sm"
-                              >
-                                <option value="balance">餘額</option>
-                                <option value="cash">現金</option>
-                              </select>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={item.paid || false}
-                                onChange={(e) => updateItem(index, 'paid', e.target.checked)}
-                                className="w-4 h-4 cursor-pointer"
-                              />
-                            </td>
-                            {isFirstInGroup ? (
-                              <td className="px-4 py-3 text-right font-semibold text-orange-600 bg-orange-50" rowSpan={groupSize}>
-                                ${getMemberSubtotal(memberId).toLocaleString()}
-                              </td>
-                            ) : null}
-                            <td className="px-4 py-3 text-center">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeItem(index)}
-                                className="h-8 w-8 text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </React.Fragment>
+                  {orderItems.map((item, index) => (
+                    <tr key={index} className={`hover:bg-slate-50 ${selectedItems.includes(index) ? 'bg-blue-50' : ''}`}>
+                      <td className="px-3 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(index)}
+                          onChange={() => toggleSelectItem(index)}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={item.member_id}
+                          onChange={(e) => updateItem(index, 'member_id', e.target.value)}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                        >
+                          <option value="">選擇成員</option>
+                          {members.map(m => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </select>
+                        {!item.member_id && item.member_name && (
+                          <div className="text-xs text-amber-600 mt-1">AI識別: {item.member_name}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Input
+                          value={item.item_name}
+                          onChange={(e) => updateItem(index, 'item_name', e.target.value)}
+                          placeholder="飲料名稱"
+                          className="text-sm"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <Input
+                          type="number"
+                          value={item.price}
+                          onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="text-sm text-right"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(index)}
+                          className="h-8 w-8 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
                   ))}
                   <tr className="bg-orange-50 font-bold">
-                    <td colSpan="6" className="px-4 py-3 text-right text-slate-800">總金額</td>
+                    <td colSpan="3" className="px-4 py-3 text-right text-slate-800">總金額</td>
                     <td className="px-4 py-3 text-right text-orange-600 text-lg">
                       ${getTotalAmount().toLocaleString()}
                     </td>
@@ -527,14 +473,12 @@ export default function DrinkOrder() {
                     </Button>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[650px] text-sm">
+                    <table className="w-full min-w-[500px] text-sm">
                       <thead className="bg-slate-50">
                         <tr>
                           <th className="text-left px-3 py-2 text-slate-700">成員</th>
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
-                          <th className="text-left px-3 py-2 text-slate-700">支付</th>
-                          <th className="text-center px-3 py-2 text-slate-700">已付</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
@@ -543,14 +487,6 @@ export default function DrinkOrder() {
                             <td className="px-3 py-2">{item.member_name}</td>
                             <td className="px-3 py-2">{item.item_name}</td>
                             <td className="px-3 py-2 text-right">${item.price}</td>
-                            <td className="px-3 py-2">
-                              <span className={`text-xs px-2 py-0.5 rounded ${item.payment_method === 'cash' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {item.payment_method === 'cash' ? '現金' : '餘額'}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              {item.paid ? '✓' : '-'}
-                            </td>
                           </tr>
                         ))}
                       </tbody>
