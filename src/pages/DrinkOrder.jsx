@@ -549,33 +549,32 @@ export default function DrinkOrder() {
               </table>
             </div>
 
-            {/* Member Subtotals */}
-            {Object.keys(memberSubtotals).length > 0 && (
-              <div className="mt-4 p-3 bg-slate-50 rounded-lg">
-                <div className="text-sm font-semibold mb-2 text-slate-700">成員小計：</div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {Object.entries(memberSubtotals).map(([name, total]) => (
-                    <div key={name} className="flex justify-between items-center text-xs bg-white px-2 py-1.5 rounded border">
-                      <span className="font-medium text-slate-700">{name}</span>
-                      <span className="font-semibold text-cyan-600">${total.toLocaleString()}</span>
+            <div className="mt-4 pt-4 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-lg font-semibold">
+                    總金額：<span className="text-cyan-600">${totalAmount.toLocaleString()}</span>
+                  </div>
+                  {Object.keys(memberSubtotals).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {Object.entries(memberSubtotals).map(([name, total]) => (
+                        <span key={name} className="text-xs bg-slate-100 px-2 py-1 rounded">
+                          <span className="font-medium text-slate-600">{name}</span>
+                          <span className="ml-1 font-semibold text-cyan-600">${total.toLocaleString()}</span>
+                        </span>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
+                <Button
+                  onClick={handleSubmitOrders}
+                  disabled={orders.filter(o => o.checked).length === 0}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  建立訂單
+                </Button>
               </div>
-            )}
-
-            <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <div className="text-lg font-semibold">
-                總金額：<span className="text-cyan-600">${totalAmount.toLocaleString()}</span>
-              </div>
-              <Button
-                onClick={handleSubmitOrders}
-                disabled={orders.filter(o => o.checked).length === 0}
-                className="bg-cyan-600 hover:bg-cyan-700"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                建立訂單
-              </Button>
             </div>
           </Card>
         )}
