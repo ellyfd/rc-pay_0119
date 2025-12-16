@@ -573,37 +573,56 @@ export default function DrinkOrder() {
                           <th className="text-left px-3 py-2 text-slate-700">成員</th>
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
+                          <th className="text-right px-3 py-2 text-slate-700">小計</th>
                           <th className="text-left px-3 py-2 text-slate-700">支付方式</th>
                           <th className="text-center px-3 py-2 text-slate-700">已支付</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y">
-                        {order.items?.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="px-3 py-2">{item.member_name}</td>
-                            <td className="px-3 py-2">{item.item_name}</td>
-                            <td className="px-3 py-2 text-right">${item.price}</td>
-                            <td className="px-3 py-2">
-                              <select
-                                value={item.payment_method || 'rcpay'}
-                                onChange={(e) => updateOrderItemPayment(order.id, idx, 'payment_method', e.target.value)}
-                                className="px-2 py-1 border rounded text-xs"
-                              >
-                                <option value="rcpay">RCPay錢包</option>
-                                <option value="balance">餘額</option>
-                                <option value="cash">現金</option>
-                              </select>
-                            </td>
-                            <td className="px-3 py-2 text-center">
-                              <input
-                                type="checkbox"
-                                checked={item.paid || false}
-                                onChange={(e) => updateOrderItemPayment(order.id, idx, 'paid', e.target.checked)}
-                                className="w-4 h-4 cursor-pointer"
-                              />
-                            </td>
-                          </tr>
-                        ))}
+                      <tbody>
+                        {(() => {
+                          const memberGroups = {};
+                          order.items?.forEach((item, idx) => {
+                            const key = item.member_id || item.member_name;
+                            if (!memberGroups[key]) {
+                              memberGroups[key] = [];
+                            }
+                            memberGroups[key].push({ ...item, idx });
+                          });
+
+                          return Object.entries(memberGroups).map(([memberId, items], groupIdx) => (
+                            <React.Fragment key={groupIdx}>
+                              {items.map((item, itemIdx) => (
+                                <tr key={item.idx} className={itemIdx === 0 ? 'border-t-2 border-slate-300' : ''}>
+                                  <td className="px-3 py-2">{item.member_name}</td>
+                                  <td className="px-3 py-2">{item.item_name}</td>
+                                  <td className="px-3 py-2 text-right">${item.price}</td>
+                                  <td className="px-3 py-2 text-right font-semibold text-orange-600">
+                                    {itemIdx === 0 && `$${items.reduce((sum, i) => sum + i.price, 0)}`}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <select
+                                      value={item.payment_method || 'cash'}
+                                      onChange={(e) => updateOrderItemPayment(order.id, item.idx, 'payment_method', e.target.value)}
+                                      className="px-2 py-1 border rounded text-xs"
+                                    >
+                                      <option value="cash">現金</option>
+                                      <option value="rcpay">RCPay錢包</option>
+                                      <option value="balance">餘額</option>
+                                    </select>
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={item.paid || false}
+                                      onChange={(e) => updateOrderItemPayment(order.id, item.idx, 'paid', e.target.checked)}
+                                      className="w-4 h-4 cursor-pointer"
+                                    />
+                                  </td>
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ));
+                        })()}
                       </tbody>
                     </table>
                   </div>
