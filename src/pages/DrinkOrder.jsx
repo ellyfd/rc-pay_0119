@@ -359,16 +359,15 @@ export default function DrinkOrder() {
                 <>上傳中...</>
               ) : (
                 <>
-                  <Camera className="w-4 h-4 mr-2" />
-                  拍照/上傳
+                  <Upload className="w-4 h-4 mr-2" />
+                  上傳圖片/PDF
                 </>
               )}
             </Button>
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.pdf"
-              capture="environment"
+              accept="image/*,image/jpeg,image/png,image/heic,.pdf,application/pdf"
               onChange={handleFileUpload}
               className="hidden"
             />
