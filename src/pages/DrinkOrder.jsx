@@ -381,7 +381,7 @@ export default function DrinkOrder() {
 
           {uploadedFileUrl && (
             <div className="mt-3">
-              <img src={uploadedFileUrl} alt="上傳的訂單" className="max-w-md rounded-lg border" />
+              <img src={uploadedFileUrl} alt="上傳的訂單" className="w-24 h-24 object-cover rounded-lg border cursor-pointer hover:opacity-80" onClick={() => window.open(uploadedFileUrl, '_blank')} />
             </div>
           )}
         </Card>
