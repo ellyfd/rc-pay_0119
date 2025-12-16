@@ -431,12 +431,73 @@ export default function DrinkOrder() {
                 </Card>
               ))}
               
+              {/* Payment Summary Table */}
+              <Card className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300">
+                <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  支付摘要
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-white border-b-2 border-emerald-200">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700">成員</th>
+                        <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700">品項數</th>
+                        <th className="px-3 py-2 text-right text-sm font-semibold text-slate-700">總金額</th>
+                        <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700">付款方式</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-emerald-100">
+                      {(() => {
+                        const summary = analyzedOrders.reduce((acc, order) => {
+                          const key = order.member_name || '未指定';
+                          if (!acc[key]) {
+                            acc[key] = {
+                              member_name: key,
+                              count: 0,
+                              total: 0,
+                              payment_method: order.payment_method
+                            };
+                          }
+                          acc[key].count += order.quantity || 1;
+                          acc[key].total += order.price * (order.quantity || 1);
+                          return acc;
+                        }, {});
+                        
+                        return Object.values(summary).map((item, idx) => (
+                          <tr key={idx} className="bg-white hover:bg-emerald-50">
+                            <td className="px-3 py-3 font-medium text-slate-800">{item.member_name}</td>
+                            <td className="px-3 py-3 text-right text-slate-700">{item.count} 項</td>
+                            <td className="px-3 py-3 text-right font-bold text-emerald-600 text-lg">${item.total.toLocaleString()}</td>
+                            <td className="px-3 py-3 text-center">
+                              <Badge className={item.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                                {item.payment_method === 'cash' ? '現金' : 'RC Pay'}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ));
+                      })()}
+                      <tr className="bg-emerald-100 font-bold">
+                        <td className="px-3 py-3 text-slate-800">總計</td>
+                        <td className="px-3 py-3 text-right text-slate-800">
+                          {analyzedOrders.reduce((sum, o) => sum + (o.quantity || 1), 0)} 項
+                        </td>
+                        <td className="px-3 py-3 text-right text-emerald-700 text-xl">
+                          ${analyzedOrders.reduce((sum, o) => sum + (o.price * (o.quantity || 1)), 0).toLocaleString()}
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+
               <Button
                 onClick={handleSaveAnalyzedOrders}
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-6 text-lg"
               >
                 <CheckCircle className="w-5 h-5 mr-2" />
-                儲存所有訂單
+                確認並儲存所有訂單
               </Button>
             </div>
           )}
