@@ -181,17 +181,24 @@ export default function DrinkOrder() {
     setAnalyzing(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `請仔細分析這張 Uber Eats 訂單圖片，提取以下資訊：
-1. 每個人點的飲料名稱和價格
+        prompt: `請仔細分析這張 Uber Eats 訂單圖片，特別注意以下格式：
+
+**訂單項目的辨識方式：**
+- 每個產品的左側會有一個數字標記（例如：框框內的數字 1、2、3 等）
+- 產品名稱在數字標記的右側
+- 金額顯示在產品名稱的水平右側位置
+- 請忽略其他備註細節，只提取產品名稱和價格
+
+**請提取以下資訊：**
+1. 每個產品項目的名稱和價格
 2. 如果圖片中有顯示訂購人的名字，請一併提取
-3. 計算每個人的小計
 
 請回傳 JSON 格式的資料，包含一個訂單項目陣列。每個項目包含：
 - member_name: 訂購人名字（如果圖片中有的話，否則留空）
-- item_name: 飲料名稱
-- price: 價格（數字）
+- item_name: 飲料/產品名稱
+- price: 價格（數字，不含貨幣符號）
 
-請確保價格是數字格式，不要包含貨幣符號。`,
+請仔細辨識每一個帶有數字標記的項目，確保不遺漏任何產品。`,
         file_urls: [uploadedImageUrl],
         response_json_schema: {
           type: "object",
