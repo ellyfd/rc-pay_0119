@@ -400,33 +400,33 @@ export default function DrinkOrder() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="px-3 py-2 text-center w-12">勾選</th>
-                    <th className="px-3 py-2 text-left w-32">成員</th>
-                    <th className="px-3 py-2 text-left">訂購內容</th>
-                    <th className="px-3 py-2 text-right w-24">金額</th>
-                    <th className="px-3 py-2 text-left w-28">支付方式</th>
-                    <th className="px-3 py-2 text-center w-16">操作</th>
+                    <th className="px-2 py-1.5 text-center w-10">勾選</th>
+                    <th className="px-2 py-1.5 text-left w-28">成員</th>
+                    <th className="px-2 py-1.5 text-left">訂購內容</th>
+                    <th className="px-2 py-1.5 text-right w-20">金額</th>
+                    <th className="px-2 py-1.5 text-left w-24">支付</th>
+                    <th className="px-2 py-1.5 text-center w-12">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {orders.map((order) => (
                     <tr key={order.id} className={!order.checked ? 'opacity-50' : ''}>
-                      <td className="px-3 py-2 text-center">
+                      <td className="px-2 py-1.5 text-center">
                         <Checkbox
                           checked={order.checked}
                           onCheckedChange={(checked) => updateOrder(order.id, 'checked', checked)}
                         />
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-1.5">
                         <Select
                           value={order.member_id}
                           onValueChange={(value) => updateOrder(order.id, 'member_id', value)}
                         >
-                          <SelectTrigger className="w-full min-w-28">
-                            <SelectValue placeholder="選擇成員" />
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            <SelectValue placeholder="選擇" />
                           </SelectTrigger>
                           <SelectContent>
                             {allMembers.map((member) => (
@@ -437,31 +437,31 @@ export default function DrinkOrder() {
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-1.5">
                         <Input
                           value={order.drink_name}
                           onChange={(e) => updateOrder(order.id, 'drink_name', e.target.value)}
                           placeholder="珍珠奶茶（大杯）"
-                          className="w-full"
+                          className="w-full h-8 text-xs"
                         />
                         {order.note && (
-                          <div className="text-xs text-slate-500 mt-1">備註: {order.note}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">備註: {order.note}</div>
                         )}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-1.5">
                         <Input
                           type="number"
                           value={order.price}
                           onChange={(e) => updateOrder(order.id, 'price', parseFloat(e.target.value) || 0)}
-                          className="w-24 text-right"
+                          className="w-full h-8 text-xs text-right"
                         />
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-1.5">
                         <Select
                           value={order.payment_method}
                           onValueChange={(value) => updateOrder(order.id, 'payment_method', value)}
                         >
-                          <SelectTrigger className="w-24">
+                          <SelectTrigger className="w-full h-8 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -470,14 +470,14 @@ export default function DrinkOrder() {
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="px-3 py-2 text-center">
+                      <td className="px-2 py-1.5 text-center">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => removeOrder(order.id)}
-                          className="h-8 w-8 text-red-500 hover:text-red-700"
+                          className="h-7 w-7 text-red-500 hover:text-red-700"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </td>
                     </tr>
