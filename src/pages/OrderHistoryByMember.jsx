@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatGMT8 } from "@/components/utils/timezone";
 
 export default function OrderHistoryByMember() {
   const [selectedMemberId, setSelectedMemberId] = useState('');
@@ -220,7 +219,7 @@ export default function OrderHistoryByMember() {
                                   <tr key={order.id} className="border-b hover:bg-slate-50">
                                     <td className="px-3 py-3">
                                       <div className="text-sm text-slate-700">
-                                        {formatGMT8(order.created_date, 'HH:mm')}
+                                        {format(new Date(order.created_date), 'HH:mm')}
                                       </div>
                                     </td>
                                     <td className="px-3 py-3">

@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
-import { formatGMT8 } from "@/components/utils/timezone";
 
 export default function OrderHistoryByDate() {
   const [startDate, setStartDate] = useState('');
@@ -198,7 +197,7 @@ export default function OrderHistoryByDate() {
                                     <td className="px-3 py-3">
                                       <div className="font-medium text-slate-800">{order.member_name}</div>
                                       <div className="text-xs text-slate-500">
-                                        {formatGMT8(order.created_date, 'HH:mm')}
+                                        {format(new Date(order.created_date), 'HH:mm')}
                                       </div>
                                     </td>
                                     <td className="px-3 py-3">

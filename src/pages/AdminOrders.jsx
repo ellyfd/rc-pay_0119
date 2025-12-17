@@ -10,7 +10,6 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import EditOrderDialog from "@/components/food/EditOrderDialog";
-import { formatGMT8 } from "@/components/utils/timezone";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -246,10 +245,10 @@ export default function AdminOrders() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <div className="bg-emerald-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link to={createPageUrl('Home')}>
+          <Link to={createPageUrl('FoodOrder')}>
             <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-4 -ml-2">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              返回首頁
+              返回訂餐
             </Button>
           </Link>
           <div className="flex items-center justify-between">
@@ -372,7 +371,7 @@ export default function AdminOrders() {
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                             <div className="font-medium text-slate-800 leading-tight">{order.member_name}</div>
                             <div className="text-[10px] sm:text-xs text-slate-500">
-                              {formatGMT8(order.created_date, 'HH:mm')}
+                              {format(new Date(order.created_date), 'HH:mm')}
                             </div>
                           </td>
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3">

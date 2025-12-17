@@ -1,7 +1,6 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { toGMT8, formatGMT8 } from "@/components/utils/timezone";
 
 export default function TransactionItem({ transaction }) {
   const getDescription = () => {
@@ -31,8 +30,8 @@ export default function TransactionItem({ transaction }) {
   };
 
   const getRelativeTime = () => {
-    const now = new Date(new Date().getTime() + (8 * 60 * 60 * 1000)); // 當前時間轉 GMT+8
-    const transactionDate = toGMT8(transaction.created_date);
+    const now = new Date();
+    const transactionDate = new Date(transaction.created_date);
     const diffInMs = now - transactionDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMs / 3600000);
@@ -43,10 +42,10 @@ export default function TransactionItem({ transaction }) {
 
     if (diffInMinutes < 1) return '剛剛';
     if (diffInMinutes < 60) return `${diffInMinutes} 分鐘前`;
-    if (diffInHours < 24 && isToday) return `今天 ${formatGMT8(transaction.created_date, 'HH:mm')}`;
-    if (isYesterday) return `昨天 ${formatGMT8(transaction.created_date, 'HH:mm')}`;
+    if (diffInHours < 24 && isToday) return `今天 ${format(transactionDate, 'HH:mm')}`;
+    if (isYesterday) return `昨天 ${format(transactionDate, 'HH:mm')}`;
     if (diffInDays < 7) return `${diffInDays} 天前`;
-    return formatGMT8(transaction.created_date, 'yyyy/MM/dd HH:mm');
+    return format(transactionDate, 'yyyy/MM/dd HH:mm');
   };
 
   const getAmountColor = () => {
