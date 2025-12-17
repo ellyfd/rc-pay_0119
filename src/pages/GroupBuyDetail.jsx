@@ -36,6 +36,7 @@ export default function GroupBuyDetail() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [showSelectMember, setShowSelectMember] = useState(false);
   const [userMember, setUserMember] = useState(null);
+  const [actualCharges, setActualCharges] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -402,6 +403,19 @@ export default function GroupBuyDetail() {
   // Check if all items are paid (for settled status)
   const allPaid = items.length > 0 && items.every(item => item.paid);
   const isSettled = groupBuy.status === 'completed' && allPaid;
+
+  // Check if discount creates decimals
+  const hasDiscountDecimals = () => {
+    if (!groupBuy.discount_rules || groupBuy.discount_rules.length === 0) return false;
+    const discount = getApplicableDiscount();
+    if (!discount) return false;
+    
+    return items.some(item => {
+      const discountedPrice = getDiscountedPrice(item.price);
+      const itemTotal = discountedPrice * item.quantity;
+      return itemTotal % 1 !== 0;
+    });
+  };
 
   // Group items by member
   const memberSummary = items.reduce((acc, item) => {
@@ -815,6 +829,9 @@ export default function GroupBuyDetail() {
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
                         )}
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小結</th>
+                        {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">實際支付</th>
+                        )}
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
                         )}
@@ -912,6 +929,22 @@ export default function GroupBuyDetail() {
                                 </span>
                               </td>
                             ) : null}
+                            {itemIdx === 0 && hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
+                              <td 
+                                className="px-4 py-3 text-right align-top"
+                                rowSpan={summary.items.length}
+                              >
+                                <input
+                                  type="number"
+                                  value={actualCharges[summary.member_id] ?? Math.round(summary.total)}
+                                  onChange={(e) => {
+                                    const newCharges = { ...actualCharges, [summary.member_id]: parseFloat(e.target.value) || 0 };
+                                    setActualCharges(newCharges);
+                                  }}
+                                  className="w-20 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </td>
+                            )}
                             {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
                               <td 
                                 className="px-4 py-3 align-top"
@@ -1001,6 +1034,14 @@ export default function GroupBuyDetail() {
                         <td className="px-4 py-3 text-right text-lg text-purple-600">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
+                        {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
+                          <td className="px-4 py-3 text-right text-lg text-orange-600">
+                            ${memberSummary.reduce((sum, m) => {
+                              const actualCharge = actualCharges[m.member_id] ?? Math.round(m.total);
+                              return sum + actualCharge;
+                            }, 0).toLocaleString()}
+                          </td>
+                        )}
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <td></td>
                         )}
