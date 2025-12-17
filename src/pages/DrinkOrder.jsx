@@ -53,10 +53,33 @@ export default function DrinkOrder() {
   });
 
   const deleteOrder = useMutation({
-    mutationFn: (id) => base44.entities.DrinkOrder.delete(id),
+    mutationFn: async (id) => {
+      const order = orders.find(o => o.id === id);
+      if (order) {
+        // 先刪除相關的交易記錄
+        const allTransactions = await base44.entities.Transaction.list();
+        const orderDateStr = format(new Date(order.order_date), 'yyyy/MM/dd');
+        const relatedTransactions = allTransactions.filter(t => 
+          t.note && t.note.includes(`${orderDateStr} 飲料`)
+        );
+        
+        for (const transaction of relatedTransactions) {
+          // 檢查交易的成員是否在此訂單中
+          const memberIds = [...new Set(order.items?.map(i => i.member_id))];
+          if (memberIds.includes(transaction.from_member_id) || memberIds.includes(transaction.to_member_id)) {
+            await base44.entities.Transaction.delete(transaction.id);
+          }
+        }
+      }
+      
+      // 刪除訂單
+      return base44.entities.DrinkOrder.delete(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drinkOrders'] });
-      toast.success('訂單已刪除！');
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      toast.success('訂單及相關交易已刪除！');
     }
   });
 
