@@ -757,11 +757,6 @@ export default function DrinkOrder() {
                         <span className="ml-3 text-sm font-semibold text-orange-600">
                           ${order.total_amount.toLocaleString()}
                         </span>
-                        {order.shipping_fee > 0 && (
-                          <span className="ml-2 text-sm text-slate-600">
-                            （含運費 ${order.shipping_fee}）
-                          </span>
-                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <label className="text-sm text-slate-600">訂單支付人：</label>
@@ -918,14 +913,14 @@ export default function DrinkOrder() {
                                               ${memberPaymentAmount.toFixed(2)}
                                             </td>
                                             <td className="px-3 py-2 text-right" rowSpan={items.length}>
-                                              <Input
+                                              <input
                                                 type="number"
                                                 value={actualCharge}
                                                 onChange={(e) => {
                                                   const newCharges = { ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 };
                                                   setActualCharges(newCharges);
                                                 }}
-                                                className="w-20 h-8 text-right font-bold text-orange-600 border-orange-300 focus:border-orange-500"
+                                                className="w-16 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                               />
                                             </td>
                                           </>
@@ -996,14 +991,13 @@ export default function DrinkOrder() {
                         })()}
                         {order.shipping_fee > 0 && (
                           <tr className="bg-orange-50 font-bold border-t-2">
-                            <td colSpan="2" className="px-3 py-3 text-right">總計</td>
-                            <td className="px-3 py-3 text-right">
+                            <td colSpan="3" className="px-3 py-3 text-right">總計</td>
+                            <td className="px-3 py-3 text-right text-slate-700">
                               ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
                             </td>
+                            <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee}</td>
                             <td className="px-3 py-3 text-right">-</td>
-                            <td className="px-3 py-3 text-right">${order.shipping_fee}</td>
-                            <td className="px-3 py-3 text-right">-</td>
-                            <td className="px-3 py-3 text-right text-orange-600 text-lg">
+                            <td className="px-3 py-3 text-right text-orange-600 text-base">
                               ${(() => {
                                 const memberGroups = {};
                                 order.items?.forEach(item => {
