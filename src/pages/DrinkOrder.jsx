@@ -8,6 +8,7 @@ import { ArrowLeft, Upload, Sparkles, Save, Trash2, Edit2, Coffee, Wallet, Check
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { toast } from "sonner";
 
 export default function DrinkOrder() {
@@ -750,7 +751,7 @@ export default function DrinkOrder() {
                     <div className="flex items-center gap-4 flex-wrap">
                       <div>
                         <span className="text-sm text-slate-500">
-                          {format(new Date(order.created_date), 'HH:mm')}
+                            {formatTaiwanTime(order.created_date, 'HH:mm')}
                         </span>
                         <span className="ml-3 text-sm font-semibold text-orange-600">
                           ${order.total_amount.toLocaleString()}

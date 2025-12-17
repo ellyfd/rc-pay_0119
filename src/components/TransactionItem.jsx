@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { toTaiwanTime, getTaiwanNow, formatTaiwanTime } from "@/components/utils/dateUtils";
 
 export default function TransactionItem({ transaction }) {
   const getDescription = () => {
@@ -30,12 +30,8 @@ export default function TransactionItem({ transaction }) {
   };
 
   const getRelativeTime = () => {
-    // Convert UTC to Taiwan time (UTC+8)
-    const utcDate = new Date(transaction.created_date);
-    const taiwanDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
-    
-    const now = new Date();
-    const taiwanNow = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const taiwanDate = toTaiwanTime(transaction.created_date);
+    const taiwanNow = getTaiwanNow();
     
     const diffInMs = taiwanNow - taiwanDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
@@ -47,10 +43,10 @@ export default function TransactionItem({ transaction }) {
 
     if (diffInMinutes < 1) return '剛剛';
     if (diffInMinutes < 60) return `${diffInMinutes} 分鐘前`;
-    if (diffInHours < 24 && isToday) return `今天 ${format(taiwanDate, 'HH:mm')}`;
-    if (isYesterday) return `昨天 ${format(taiwanDate, 'HH:mm')}`;
+    if (diffInHours < 24 && isToday) return `今天 ${formatTaiwanTime(transaction.created_date, 'HH:mm')}`;
+    if (isYesterday) return `昨天 ${formatTaiwanTime(transaction.created_date, 'HH:mm')}`;
     if (diffInDays < 7) return `${diffInDays} 天前`;
-    return format(taiwanDate, 'yyyy/MM/dd HH:mm');
+    return formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm');
   };
 
   const getAmountColor = () => {
