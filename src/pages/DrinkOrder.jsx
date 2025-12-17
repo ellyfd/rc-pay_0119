@@ -21,6 +21,7 @@ export default function DrinkOrder() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [manualAdjustment, setManualAdjustment] = useState(0);
+  const [actualCharges, setActualCharges] = useState({});
   const [feeDetails, setFeeDetails] = useState({
     delivery_fee: 0,
     service_fee: 0,
@@ -866,22 +867,12 @@ export default function DrinkOrder() {
 
                           const totalMembers = Object.keys(memberGroups).length;
                           const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
-                          
-                          // 儲存每個成員的實際收費（預設為四捨五入）
-                          const [actualCharges, setActualCharges] = useState(() => {
-                            const charges = {};
-                            Object.keys(memberGroups).forEach(memberId => {
-                              const items = memberGroups[memberId];
-                              const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
-                              charges[memberId] = Math.round(memberTotal + shippingPerMember);
-                            });
-                            return charges;
-                          });
 
                           return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
                             const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
                             const memberPaymentAmount = memberTotal + shippingPerMember;
-                            const actualCharge = actualCharges[memberId] ?? Math.round(memberPaymentAmount);
+                            const chargeKey = `${order.id}_${memberId}`;
+                            const actualCharge = actualCharges[chargeKey] ?? Math.round(memberPaymentAmount);
                             const firstItem = items[0];
                             
                             return (
@@ -931,7 +922,7 @@ export default function DrinkOrder() {
                                                 type="number"
                                                 value={actualCharge}
                                                 onChange={(e) => {
-                                                  const newCharges = { ...actualCharges, [memberId]: parseFloat(e.target.value) || 0 };
+                                                  const newCharges = { ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 };
                                                   setActualCharges(newCharges);
                                                 }}
                                                 className="w-20 h-8 text-right font-bold text-orange-600 border-orange-300 focus:border-orange-500"
