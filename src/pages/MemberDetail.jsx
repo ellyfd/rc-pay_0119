@@ -417,14 +417,14 @@ export default function MemberDetail() {
           ) : (
             <Card className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[600px] text-xs sm:text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">時間</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">類型</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">錢包</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">說明</th>
-                      <th className="px-4 py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -470,30 +470,38 @@ export default function MemberDetail() {
 
                       return (
                         <tr key={transaction.id} className="border-b hover:bg-slate-50">
-                          <td className="px-4 py-3 text-slate-600">
-                            {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap">
+                            <div className="hidden sm:block">
+                              {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
+                            </div>
+                            <div className="sm:hidden">
+                              {formatTaiwanTime(transaction.created_date, 'MM/dd HH:mm')}
+                            </div>
                           </td>
-                          <td className="px-4 py-3">
-                            <Badge className={
+                          <td className="px-2 sm:px-4 py-2 sm:py-3">
+                            <Badge className={`text-xs ${
                               transaction.type === 'deposit' ? 'bg-emerald-500' :
                               transaction.type === 'withdraw' ? 'bg-red-500' :
                               'bg-blue-500'
-                            }>
+                            }`}>
                               {getTypeLabel()}
                             </Badge>
+                            <div className="sm:hidden text-[10px] text-slate-500 mt-1">
+                              {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+                            </div>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
                             <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
                               {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            <div>{getDescription()}</div>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-700">
+                            <div className="line-clamp-2">{getDescription()}</div>
                             {transaction.note && (
-                              <div className="text-xs text-slate-500 mt-1">{transaction.note}</div>
+                              <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
                             )}
                           </td>
-                          <td className={`px-4 py-3 text-right font-bold ${getAmountColor()}`}>
+                          <td className={`px-2 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap ${getAmountColor()}`}>
                             {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
                             ${transaction.amount?.toLocaleString()}
                           </td>
