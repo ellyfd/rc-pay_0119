@@ -32,20 +32,29 @@ export default function TransactionItem({ transaction }) {
   const getRelativeTime = () => {
     const now = new Date();
     const transactionDate = new Date(transaction.created_date);
-    const diffInMs = now - transactionDate;
+    
+    // Convert to Taiwan timezone (UTC+8)
+    const taiwanOffset = 8 * 60; // minutes
+    const localOffset = now.getTimezoneOffset(); // minutes from UTC
+    const offsetDiff = taiwanOffset + localOffset;
+    
+    const taiwanNow = new Date(now.getTime() + offsetDiff * 60000);
+    const taiwanTransactionDate = new Date(transactionDate.getTime() + offsetDiff * 60000);
+    
+    const diffInMs = taiwanNow - taiwanTransactionDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMs / 3600000);
     const diffInDays = Math.floor(diffInMs / 86400000);
 
-    const isToday = now.toDateString() === transactionDate.toDateString();
-    const isYesterday = new Date(now - 86400000).toDateString() === transactionDate.toDateString();
+    const isToday = taiwanNow.toDateString() === taiwanTransactionDate.toDateString();
+    const isYesterday = new Date(taiwanNow - 86400000).toDateString() === taiwanTransactionDate.toDateString();
 
     if (diffInMinutes < 1) return '剛剛';
     if (diffInMinutes < 60) return `${diffInMinutes} 分鐘前`;
-    if (diffInHours < 24 && isToday) return `今天 ${format(transactionDate, 'HH:mm')}`;
-    if (isYesterday) return `昨天 ${format(transactionDate, 'HH:mm')}`;
+    if (diffInHours < 24 && isToday) return `今天 ${format(taiwanTransactionDate, 'HH:mm')}`;
+    if (isYesterday) return `昨天 ${format(taiwanTransactionDate, 'HH:mm')}`;
     if (diffInDays < 7) return `${diffInDays} 天前`;
-    return format(transactionDate, 'yyyy/MM/dd HH:mm');
+    return format(taiwanTransactionDate, 'yyyy/MM/dd HH:mm');
   };
 
   const getAmountColor = () => {
