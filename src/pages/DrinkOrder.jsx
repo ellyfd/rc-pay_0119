@@ -740,24 +740,19 @@ export default function DrinkOrder() {
         {/* 今日訂單列表 */}
         {orders.length > 0 && (
           <Card>
-            <div className="p-4 bg-slate-50 border-b">
+            <div className="p-4 bg-slate-50 border-b flex items-center justify-between">
               <h3 className="font-semibold text-slate-800">
                 {format(new Date(orderDate), 'yyyy/MM/dd')} 的訂單
               </h3>
+              <div className="text-sm text-slate-500">
+                {orders.map(order => formatTaiwanTime(order.created_date, 'HH:mm')).join(', ')}
+              </div>
             </div>
             <div className="divide-y">
               {orders.map(order => (
                 <div key={order.id} className="p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-4 flex-wrap">
-                      <div>
-                        <span className="text-sm text-slate-500">
-                            {formatTaiwanTime(order.created_date, 'HH:mm')}
-                        </span>
-                        <span className="ml-3 text-sm font-semibold text-orange-600">
-                          ${order.total_amount.toLocaleString()}
-                        </span>
-                      </div>
                       <div className="flex items-center gap-2">
                         <label className="text-sm text-slate-600">訂單支付人：</label>
                         <select
