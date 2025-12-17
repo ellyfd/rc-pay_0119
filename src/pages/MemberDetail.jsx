@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-import TransactionItem from "@/components/TransactionItem";
+import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -407,31 +406,105 @@ export default function MemberDetail() {
           </div>
 
           {transactionsLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <Card key={i} className="p-4 animate-pulse">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-200" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
-                      <div className="h-3 bg-slate-200 rounded w-20" />
-                    </div>
-                    <div className="h-6 bg-slate-200 rounded w-16" />
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <Card className="p-8 text-center">
+              <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-600 rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-slate-500">載入中...</p>
+            </Card>
           ) : memberTransactions.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <Wallet className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500">尚無交易紀錄</p>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {memberTransactions.map((transaction) => (
-                <TransactionItem key={transaction.id} transaction={transaction} />
-              ))}
-            </div>
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">時間</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">類型</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">錢包</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b">說明</th>
+                      <th className="px-4 py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {memberTransactions.map((transaction) => {
+                      const getDescription = () => {
+                        switch (transaction.type) {
+                          case 'deposit':
+                            return `${transaction.to_member_name}`;
+                          case 'withdraw':
+                            return `${transaction.from_member_name}`;
+                          case 'transfer':
+                            return `${transaction.from_member_name} → ${transaction.to_member_name}`;
+                          default:
+                            return '';
+                        }
+                      };
+
+                      const getTypeLabel = () => {
+                        switch (transaction.type) {
+                          case 'deposit':
+                            return '入帳';
+                          case 'withdraw':
+                            return '出帳';
+                          case 'transfer':
+                            return '轉帳';
+                          default:
+                            return '';
+                        }
+                      };
+
+                      const getAmountColor = () => {
+                        switch (transaction.type) {
+                          case 'deposit':
+                            return 'text-emerald-600';
+                          case 'withdraw':
+                            return 'text-red-500';
+                          case 'transfer':
+                            return 'text-blue-600';
+                          default:
+                            return 'text-slate-600';
+                        }
+                      };
+
+                      return (
+                        <tr key={transaction.id} className="border-b hover:bg-slate-50">
+                          <td className="px-4 py-3 text-slate-600">
+                            {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={
+                              transaction.type === 'deposit' ? 'bg-emerald-500' :
+                              transaction.type === 'withdraw' ? 'bg-red-500' :
+                              'bg-blue-500'
+                            }>
+                              {getTypeLabel()}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
+                              {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-slate-700">
+                            <div>{getDescription()}</div>
+                            {transaction.note && (
+                              <div className="text-xs text-slate-500 mt-1">{transaction.note}</div>
+                            )}
+                          </td>
+                          <td className={`px-4 py-3 text-right font-bold ${getAmountColor()}`}>
+                            {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
+                            ${transaction.amount?.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           )}
         </section>
       </div>
