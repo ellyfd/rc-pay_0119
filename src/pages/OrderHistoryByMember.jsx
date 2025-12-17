@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatGMT8 } from "@/components/utils/timezone";
+import { formatGMT8 } from "@/utils/timezone";
 
 export default function OrderHistoryByMember() {
   const [selectedMemberId, setSelectedMemberId] = useState('');

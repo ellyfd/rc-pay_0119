@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { formatGMT8 } from "@/components/utils/timezone";
+import { formatGMT8 } from "@/utils/timezone";
 
 export default function DrinkOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
