@@ -18,7 +18,7 @@ export default function DrinkOrder() {
   const [orderItems, setOrderItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [otherFee, setOtherFee] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
@@ -155,11 +155,11 @@ export default function DrinkOrder() {
 
         const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
         
-        // 計算該成員需分攤的其它費用
+        // 計算該成員需分攤的運費
         const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
         const totalMembers = allMemberIds.length;
-        const feePerMember = totalMembers > 0 ? (order.other_fee || 0) / totalMembers : 0;
-        const totalAmount = Math.round(itemTotal + feePerMember);
+        const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+        const totalAmount = Math.round(itemTotal + shippingPerMember);
 
         // 檢查餘額是否足夠
         if ((fromMember.balance || 0) < totalAmount) {
@@ -338,7 +338,7 @@ export default function DrinkOrder() {
       image_url: uploadedImageUrl,
       items: cleanedItems,
       total_amount: totalAmount,
-      other_fee: otherFee,
+      shipping_fee: shippingFee,
       payer_id: suggestedPayerId || undefined,
       payer_name: suggestedPayerName || undefined,
       status: 'pending'
@@ -346,7 +346,7 @@ export default function DrinkOrder() {
 
     setOrderItems([]);
     setUploadedImageUrl('');
-    setOtherFee(0);
+    setShippingFee(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -619,42 +619,16 @@ export default function DrinkOrder() {
               </table>
             </div>
             <div className="p-4 bg-slate-50 border-t space-y-3">
-              <div className="flex items-center gap-3 flex-wrap">
-                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">其它費用：</label>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">運費：</label>
                 <Input
                   type="number"
-                  value={otherFee}
-                  onChange={(e) => setOtherFee(parseFloat(e.target.value) || 0)}
+                  value={shippingFee}
+                  onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
                   placeholder="0"
                   className="w-32 text-sm"
                 />
-                <span className="text-xs text-slate-500">（平均分攤）</span>
-                <div className="flex items-center gap-2 ml-auto">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const itemTotal = getTotalAmount();
-                      const result = prompt('請輸入計算公式，例如：總金額的10%請輸入「0.1」，固定金額60請輸入「60」\n\n當前訂單小計：$' + itemTotal);
-                      if (result) {
-                        const num = parseFloat(result);
-                        if (!isNaN(num)) {
-                          if (num < 1 && num > 0) {
-                            // 百分比
-                            setOtherFee(Math.round(itemTotal * num));
-                          } else {
-                            // 固定金額
-                            setOtherFee(num);
-                          }
-                        }
-                      }
-                    }}
-                    className="text-xs"
-                  >
-                    計算
-                  </Button>
-                </div>
+                <span className="text-xs text-slate-500">（將平均分攤給每位成員）</span>
               </div>
               <div className="flex justify-between">
                 <Button
@@ -695,9 +669,9 @@ export default function DrinkOrder() {
                         <span className="ml-3 text-sm font-semibold text-orange-600">
                           ${order.total_amount.toLocaleString()}
                         </span>
-                        {order.other_fee > 0 && (
+                        {order.shipping_fee > 0 && (
                           <span className="ml-2 text-sm text-slate-600">
-                            （含其它費用 ${order.other_fee}）
+                            （含運費 ${order.shipping_fee}）
                           </span>
                         )}
                       </div>
@@ -756,7 +730,7 @@ export default function DrinkOrder() {
                     </div>
                   )}
                   <div className="overflow-x-auto">
-                    <table className={`w-full ${order.other_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
+                    <table className={`w-full ${order.shipping_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
                       <thead className="bg-slate-50">
                         <tr>
                           <th className="text-center px-2 py-2 text-slate-700 w-12">
@@ -781,9 +755,9 @@ export default function DrinkOrder() {
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
                           <th className="text-right px-3 py-2 text-slate-700">小計</th>
-                          {order.other_fee > 0 && (
+                          {order.shipping_fee > 0 && (
                             <>
-                              <th className="text-right px-3 py-2 text-slate-700">其它費用</th>
+                              <th className="text-right px-3 py-2 text-slate-700">運費</th>
                               <th className="text-right px-3 py-2 text-slate-700">支付金額</th>
                             </>
                           )}
@@ -803,11 +777,11 @@ export default function DrinkOrder() {
                           });
 
                           const totalMembers = Object.keys(memberGroups).length;
-                          const feePerMember = totalMembers > 0 ? (order.other_fee || 0) / totalMembers : 0;
+                          const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
 
                           return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
                             const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
-                            const memberPaymentAmount = memberTotal + feePerMember;
+                            const memberPaymentAmount = memberTotal + shippingPerMember;
                             const firstItem = items[0];
                             
                             return (
@@ -844,10 +818,10 @@ export default function DrinkOrder() {
                                         <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                           ${memberTotal}
                                         </td>
-                                        {order.other_fee > 0 && (
+                                        {order.shipping_fee > 0 && (
                                           <>
                                             <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                              ${feePerMember.toFixed(0)}
+                                              ${shippingPerMember.toFixed(0)}
                                             </td>
                                             <td className="px-3 py-2 text-right font-bold text-orange-600" rowSpan={items.length}>
                                               ${Math.round(memberPaymentAmount)}
