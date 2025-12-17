@@ -22,17 +22,18 @@ const colors = [
 export default function EditMemberDialog({ open, onOpenChange, member, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
-    alias: '',
+    alias: [],
     avatar_color: 'blue',
     user_emails: []
   });
   const [newEmail, setNewEmail] = useState('');
+  const [newAlias, setNewAlias] = useState('');
 
   useEffect(() => {
     if (member) {
       setFormData({
         name: member.name || '',
-        alias: member.alias || '',
+        alias: member.alias || [],
         avatar_color: member.avatar_color || 'blue',
         user_emails: member.user_emails || []
       });
@@ -57,6 +58,23 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
     setFormData({
       ...formData,
       user_emails: formData.user_emails.filter(e => e !== email)
+    });
+  };
+
+  const handleAddAlias = () => {
+    if (!newAlias.trim()) return;
+    if (formData.alias.includes(newAlias.trim())) {
+      alert('此別名已存在');
+      return;
+    }
+    setFormData({ ...formData, alias: [...formData.alias, newAlias.trim()] });
+    setNewAlias('');
+  };
+
+  const handleRemoveAlias = (alias) => {
+    setFormData({
+      ...formData,
+      alias: formData.alias.filter(a => a !== alias)
     });
   };
 
@@ -87,11 +105,33 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
 
           <div>
             <Label>別名（選填）</Label>
-            <Input
-              value={formData.alias}
-              onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
-              placeholder="其他軟體的用戶名稱"
-            />
+            <div className="flex gap-2">
+              <Input
+                value={newAlias}
+                onChange={(e) => setNewAlias(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAlias())}
+                placeholder="輸入別名後按 Enter"
+              />
+              <Button type="button" onClick={handleAddAlias} variant="outline">
+                新增
+              </Button>
+            </div>
+            {formData.alias.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.alias.map((alias, idx) => (
+                  <div key={idx} className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full text-sm">
+                    <span>{alias}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAlias(alias)}
+                      className="text-slate-500 hover:text-red-600 ml-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

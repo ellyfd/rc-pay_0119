@@ -21,7 +21,8 @@ const colorMap = {
 
 export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
   const [name, setName] = useState('');
-  const [alias, setAlias] = useState('');
+  const [aliases, setAliases] = useState([]);
+  const [newAlias, setNewAlias] = useState('');
   const [selectedColor, setSelectedColor] = useState('blue');
   const [loading, setLoading] = useState(false);
 
@@ -32,15 +33,29 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
     setLoading(true);
     await onAdd({ 
       name: name.trim(), 
-      alias: alias.trim() || undefined,
+      alias: aliases.length > 0 ? aliases : undefined,
       avatar_color: selectedColor, 
       balance: 0 
     });
     setLoading(false);
     setName('');
-    setAlias('');
+    setAliases([]);
+    setNewAlias('');
     setSelectedColor('blue');
     onOpenChange(false);
+  };
+
+  const handleAddAlias = () => {
+    if (!newAlias.trim()) return;
+    if (aliases.includes(newAlias.trim())) {
+      return;
+    }
+    setAliases([...aliases, newAlias.trim()]);
+    setNewAlias('');
+  };
+
+  const handleRemoveAlias = (aliasToRemove) => {
+    setAliases(aliases.filter(a => a !== aliasToRemove));
   };
 
   return (
@@ -63,13 +78,35 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
 
           <div className="space-y-2">
             <Label htmlFor="alias" className="text-slate-700">別名（選填）</Label>
-            <Input
-              id="alias"
-              value={alias}
-              onChange={(e) => setAlias(e.target.value)}
-              placeholder="其他軟體的用戶名稱"
-              className="h-12"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="alias"
+                value={newAlias}
+                onChange={(e) => setNewAlias(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAlias())}
+                placeholder="輸入別名後按 Enter"
+                className="h-12"
+              />
+              <Button type="button" onClick={handleAddAlias} variant="outline" className="h-12">
+                新增
+              </Button>
+            </div>
+            {aliases.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {aliases.map((alias, idx) => (
+                  <div key={idx} className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full text-sm">
+                    <span>{alias}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAlias(alias)}
+                      className="text-slate-500 hover:text-red-600 ml-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">

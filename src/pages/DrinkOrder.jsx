@@ -276,9 +276,10 @@ export default function DrinkOrder() {
         const processedItems = result.items.map(item => {
           const matchedMember = members.find(m => {
             if (!item.member_name) return false;
-            // 先比對別名，再比對姓名
-            return (m.alias && item.member_name.includes(m.alias)) || 
-                   m.name.includes(item.member_name);
+            // 先比對別名陣列，再比對姓名
+            const aliasMatch = m.alias && Array.isArray(m.alias) && 
+              m.alias.some(a => item.member_name.includes(a));
+            return aliasMatch || m.name.includes(item.member_name);
           });
           return {
             member_id: matchedMember?.id || '',
@@ -290,13 +291,14 @@ export default function DrinkOrder() {
           };
         });
         setOrderItems(processedItems);
-        
+
         // 如果AI識別到支付者，自動填入
         if (result.payer_name) {
-          const payerMember = members.find(m => 
-            (m.alias && result.payer_name.includes(m.alias)) || 
-            m.name.includes(result.payer_name)
-          );
+          const payerMember = members.find(m => {
+            const aliasMatch = m.alias && Array.isArray(m.alias) && 
+              m.alias.some(a => result.payer_name.includes(a));
+            return aliasMatch || m.name.includes(result.payer_name);
+          });
           if (payerMember) {
             // 這裡暫時儲存，等儲存訂單時會用到
             setOrderItems(prev => prev.map(item => ({
