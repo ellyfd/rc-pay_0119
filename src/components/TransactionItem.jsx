@@ -95,6 +95,9 @@ export default function TransactionItem({ transaction }) {
         {transaction.note && (
           <p className="text-xs md:text-sm text-slate-500 truncate mt-0.5 md:mt-1">{transaction.note}</p>
         )}
+        <p className="text-xs text-slate-400 mt-0.5 md:mt-1">
+          {getRelativeTime()}
+        </p>
       </div>
       <div className={`font-bold text-base md:text-lg ${getAmountColor()} whitespace-nowrap`}>
         {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
