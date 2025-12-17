@@ -18,8 +18,8 @@ export default function DrinkOrder() {
   const [orderItems, setOrderItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [shippingFee, setShippingFee] = useState(0);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [manualAdjustment, setManualAdjustment] = useState(0);
   const [feeDetails, setFeeDetails] = useState({
     delivery_fee: 0,
     service_fee: 0,
@@ -331,7 +331,6 @@ export default function DrinkOrder() {
         const service = result.service_fee || 0;
         const deliveryDisc = result.delivery_discount || 0;
         const rewards = result.member_rewards || 0;
-        const otherFees = delivery + service + deliveryDisc + rewards;
 
         setFeeDetails({
           delivery_fee: delivery,
@@ -339,7 +338,7 @@ export default function DrinkOrder() {
           delivery_discount: deliveryDisc,
           member_rewards: rewards
         });
-        setShippingFee(otherFees > 0 ? otherFees : 0);
+        setManualAdjustment(0);
 
         // 如果AI識別到支付者，自動填入
         if (result.payer_name) {
@@ -358,7 +357,8 @@ export default function DrinkOrder() {
           }
         }
         
-        const feeMsg = otherFees > 0 ? ` 其它費用：$${otherFees}` : '';
+        const otherFees = delivery + service + deliveryDisc + rewards;
+        const feeMsg = otherFees > 0 ? ` 費用總計：$${otherFees}` : '';
         toast.success(`AI 成功識別 ${processedItems.length} 個項目！${result.payer_name ? ` 支付者：${result.payer_name}` : ''}${feeMsg}`);
         } else {
         toast.warning('AI 未能識別出訂單資訊');
@@ -385,6 +385,8 @@ export default function DrinkOrder() {
     // 清理items，移除臨時欄位
     const cleanedItems = orderItems.map(({ _suggested_payer_id, _suggested_payer_name, ...item }) => item);
 
+    const shippingFee = feeDetails.delivery_fee + feeDetails.service_fee + feeDetails.delivery_discount + feeDetails.member_rewards + manualAdjustment;
+
     await createOrder.mutateAsync({
       order_date: orderDate,
       image_url: uploadedImageUrl,
@@ -398,7 +400,7 @@ export default function DrinkOrder() {
 
     setOrderItems([]);
     setUploadedImageUrl('');
-    setShippingFee(0);
+    setManualAdjustment(0);
     setFeeDetails({
       delivery_fee: 0,
       service_fee: 0,
@@ -690,28 +692,30 @@ export default function DrinkOrder() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">外送費優惠：</span>
-                    <span className="font-medium">${feeDetails.delivery_discount}</span>
+                    <span className="font-medium text-green-600">${feeDetails.delivery_discount}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">會員獎勵：</span>
-                    <span className="font-medium">${feeDetails.member_rewards}</span>
+                    <span className="font-medium text-green-600">${feeDetails.member_rewards}</span>
                   </div>
-                </div>
-                <div className="flex justify-between pt-2 border-t">
+                  </div>
+                  <div className="flex items-center gap-3 pt-2">
+                  <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">手動調整：</label>
+                  <Input
+                    type="number"
+                    value={manualAdjustment}
+                    onChange={(e) => setManualAdjustment(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-32 text-sm"
+                  />
+                  </div>
+                  <div className="flex justify-between pt-2 border-t">
                   <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
-                  <span className="text-sm font-bold text-orange-600">${shippingFee}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">手動調整：</label>
-                <Input
-                  type="number"
-                  value={shippingFee}
-                  onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  className="w-32 text-sm"
-                />
-              </div>
+                  <span className="text-sm font-bold text-orange-600">
+                    ${feeDetails.delivery_fee + feeDetails.service_fee + feeDetails.delivery_discount + feeDetails.member_rewards + manualAdjustment}
+                  </span>
+                  </div>
+                  </div>
               <div className="flex justify-between">
                 <Button
                   variant="outline"
