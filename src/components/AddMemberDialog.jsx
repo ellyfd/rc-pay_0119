@@ -21,6 +21,7 @@ const colorMap = {
 
 export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
   const [name, setName] = useState('');
+  const [alias, setAlias] = useState('');
   const [selectedColor, setSelectedColor] = useState('blue');
   const [loading, setLoading] = useState(false);
 
@@ -29,9 +30,15 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
     if (!name.trim()) return;
     
     setLoading(true);
-    await onAdd({ name: name.trim(), avatar_color: selectedColor, balance: 0 });
+    await onAdd({ 
+      name: name.trim(), 
+      alias: alias.trim() || undefined,
+      avatar_color: selectedColor, 
+      balance: 0 
+    });
     setLoading(false);
     setName('');
+    setAlias('');
     setSelectedColor('blue');
     onOpenChange(false);
   };
@@ -50,6 +57,17 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="輸入成員姓名"
+              className="h-12"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="alias" className="text-slate-700">別名（選填）</Label>
+            <Input
+              id="alias"
+              value={alias}
+              onChange={(e) => setAlias(e.target.value)}
+              placeholder="其他軟體的用戶名稱"
               className="h-12"
             />
           </div>
