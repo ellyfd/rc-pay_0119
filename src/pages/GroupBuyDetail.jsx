@@ -825,12 +825,12 @@ export default function GroupBuyDetail() {
                           <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
                         )}
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
-                        {isOrganizer && groupBuy.status !== 'open' && (
-                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
-                        )}
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小結</th>
                         {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">實際支付</th>
+                        )}
+                        {isOrganizer && groupBuy.status !== 'open' && (
+                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
                         )}
                         {isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
@@ -896,29 +896,6 @@ export default function GroupBuyDetail() {
                                 return `$${(discountedPrice * item.quantity).toLocaleString()}`;
                               })()}
                             </td>
-                            {isOrganizer && groupBuy.status !== 'open' && (
-                              <td className="px-4 py-3 text-center">
-                                <select
-                                  value={item.payment_method || ''}
-                                  onChange={(e) => updateItem.mutate({
-                                    id: item.id,
-                                    data: { payment_method: e.target.value }
-                                  })}
-                                  className="text-xs px-2 py-1 rounded border border-slate-300 bg-white text-slate-700"
-                                >
-                                  <option value="">請選擇</option>
-                                  {(() => {
-                                    const member = members.find(m => m.id === item.member_id);
-                                    return member && member.balance > 0 ? (
-                                      <option value="rcpay">RC Pay</option>
-                                    ) : null;
-                                  })()}
-                                  <option value="linepay">Line Pay</option>
-                                  <option value="ipasspay">iPASS Pay</option>
-                                  <option value="cash">現金</option>
-                                </select>
-                              </td>
-                            )}
                             {itemIdx === 0 ? (
                               <td 
                                 className="px-4 py-3 text-right align-top"
@@ -943,6 +920,29 @@ export default function GroupBuyDetail() {
                                   }}
                                   className="w-20 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
+                              </td>
+                            )}
+                            {isOrganizer && groupBuy.status !== 'open' && (
+                              <td className="px-4 py-3 text-center">
+                                <select
+                                  value={item.payment_method || ''}
+                                  onChange={(e) => updateItem.mutate({
+                                    id: item.id,
+                                    data: { payment_method: e.target.value }
+                                  })}
+                                  className="text-xs px-2 py-1 rounded border border-slate-300 bg-white text-slate-700"
+                                >
+                                  <option value="">請選擇</option>
+                                  {(() => {
+                                    const member = members.find(m => m.id === item.member_id);
+                                    return member && member.balance > 0 ? (
+                                      <option value="rcpay">RC Pay</option>
+                                    ) : null;
+                                  })()}
+                                  <option value="linepay">Line Pay</option>
+                                  <option value="ipasspay">iPASS Pay</option>
+                                  <option value="cash">現金</option>
+                                </select>
                               </td>
                             )}
                             {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
@@ -1015,10 +1015,7 @@ export default function GroupBuyDetail() {
                             return sum + item.quantity;
                           }, 0)}
                         </td>
-                        <td colSpan={
-                          (groupBuy.discount_rules?.length > 0 ? 2 : 2) + 
-                          (isOrganizer && groupBuy.status !== 'open' ? 1 : 0)
-                        }></td>
+                        <td colSpan={groupBuy.discount_rules?.length > 0 ? 2 : 2}></td>
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-4 py-3 text-center">
                             {(() => {
