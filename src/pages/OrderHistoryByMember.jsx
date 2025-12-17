@@ -173,114 +173,102 @@ export default function OrderHistoryByMember() {
                   </div>
                 </Card>
 
-                <div className="space-y-6">
-                  {Object.keys(ordersByDate).sort().reverse().map(date => {
-                    const dateOrders = ordersByDate[date];
-                    const dateTotal = dateOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-                    
-                    return (
-                      <Card key={date} className="overflow-hidden">
-                        <div className="bg-slate-50 px-4 py-3 border-b flex items-center justify-between">
-                          <h3 className="font-semibold text-slate-800">
-                            {format(new Date(date), 'yyyy年MM月dd日')}
-                          </h3>
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="text-slate-600">{dateOrders.length} 筆訂單</span>
-                            <span className="font-bold text-emerald-600">${dateTotal.toLocaleString()}</span>
-                          </div>
-                        </div>
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead className="bg-slate-50">
-                              <tr>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">時間</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">餐盒</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">飯量</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">單點</th>
-                                <th className="px-3 py-3 text-center text-sm font-semibold text-slate-700 border-b">付款</th>
-                                <th className="px-3 py-3 text-center text-sm font-semibold text-slate-700 border-b">狀態</th>
-                                <th className="px-3 py-3 text-right text-sm font-semibold text-slate-700 border-b">金額</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {dateOrders.map(order => {
-                                const items = getOrderItems(order.id);
-                                const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
-                                const mealBox = items.find(item => {
-                                  const product = mealBoxes.find(p => p.id === item.product_id);
-                                  return product && product.category === 'meal_box';
-                                });
-                                const sideItems = items.filter(item => {
-                                  const product = sideDishProducts.find(p => p.id === item.product_id);
-                                  return product && product.category === 'side_dish';
-                                });
+                <Card className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">日期</th>
+                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">時間</th>
+                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">餐盒</th>
+                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">飯量</th>
+                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">單點</th>
+                          <th className="px-3 py-3 text-center text-sm font-semibold text-slate-700 border-b">付款</th>
+                          <th className="px-3 py-3 text-center text-sm font-semibold text-slate-700 border-b">狀態</th>
+                          <th className="px-3 py-3 text-right text-sm font-semibold text-slate-700 border-b">金額</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map(order => {
+                          const items = getOrderItems(order.id);
+                          const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
+                          const mealBox = items.find(item => {
+                            const product = mealBoxes.find(p => p.id === item.product_id);
+                            return product && product.category === 'meal_box';
+                          });
+                          const sideItems = items.filter(item => {
+                            const product = sideDishProducts.find(p => p.id === item.product_id);
+                            return product && product.category === 'side_dish';
+                          });
 
-                                return (
-                                  <tr key={order.id} className="border-b hover:bg-slate-50">
-                                    <td className="px-3 py-3">
-                                      <div className="text-sm text-slate-700">
-                                        {format(new Date(order.created_date), 'HH:mm')}
+                          return (
+                            <tr key={order.id} className="border-b hover:bg-slate-50">
+                              <td className="px-3 py-3">
+                                <div className="text-sm text-slate-700">
+                                  {format(new Date(order.order_date), 'MM/dd')}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3">
+                                <div className="text-sm text-slate-700">
+                                  {format(new Date(order.created_date), 'HH:mm')}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3">
+                                {mealBox ? (
+                                  <div className="text-sm text-slate-700">
+                                    {mealBox.product_name}
+                                    <div className="text-xs text-slate-500">${mealBox.price}</div>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400 text-sm">-</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-3">
+                                {mealBox && mealBoxItem ? (
+                                  <span className="text-sm text-slate-700">
+                                    {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
+                                     mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
+                                  </span>
+                                ) : mealBox ? (
+                                  <span className="text-sm text-slate-700">正常</span>
+                                ) : (
+                                  <span className="text-slate-400 text-sm">-</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-3">
+                                {sideItems.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {sideItems.map(item => (
+                                      <div key={item.id} className="text-sm text-slate-700">
+                                        {item.product_name}
+                                        <span className="text-xs text-slate-500 ml-1">${item.price}</span>
                                       </div>
-                                    </td>
-                                    <td className="px-3 py-3">
-                                      {mealBox ? (
-                                        <div className="text-sm text-slate-700">
-                                          {mealBox.product_name}
-                                          <div className="text-xs text-slate-500">${mealBox.price}</div>
-                                        </div>
-                                      ) : (
-                                        <span className="text-slate-400 text-sm">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-3 py-3">
-                                      {mealBox && mealBoxItem ? (
-                                        <span className="text-sm text-slate-700">
-                                          {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
-                                           mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
-                                        </span>
-                                      ) : mealBox ? (
-                                        <span className="text-sm text-slate-700">正常</span>
-                                      ) : (
-                                        <span className="text-slate-400 text-sm">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-3 py-3">
-                                      {sideItems.length > 0 ? (
-                                        <div className="space-y-1">
-                                          {sideItems.map(item => (
-                                            <div key={item.id} className="text-sm text-slate-700">
-                                              {item.product_name}
-                                              <span className="text-xs text-slate-500 ml-1">${item.price}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      ) : (
-                                        <span className="text-slate-400 text-sm">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-3 py-3 text-center">
-                                      <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
-                                        {order.payment_method === 'cash' ? '現金' : '餘額'}
-                                      </Badge>
-                                    </td>
-                                    <td className="px-3 py-3 text-center">
-                                      <Badge className={order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}>
-                                        {order.status === 'completed' ? '已完成' : '待處理'}
-                                      </Badge>
-                                    </td>
-                                    <td className="px-3 py-3 text-right font-bold text-emerald-600">
-                                      ${order.total_amount.toLocaleString()}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400 text-sm">-</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                                  {order.payment_method === 'cash' ? '現金' : '餘額'}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge className={order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}>
+                                  {order.status === 'completed' ? '已完成' : '待處理'}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-3 text-right font-bold text-emerald-600">
+                                ${order.total_amount.toLocaleString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
               </>
             )}
           </>
