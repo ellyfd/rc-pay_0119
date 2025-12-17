@@ -19,6 +19,7 @@ export default function DrinkOrder() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [shippingFee, setShippingFee] = useState(0);
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -80,6 +81,26 @@ export default function DrinkOrder() {
         payer_name: payer.name
       }
     });
+  };
+
+  const batchUpdatePaymentMethod = async (orderId, memberIds, paymentMethod) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const updatedItems = order.items.map(item => {
+      if (memberIds.includes(item.member_id)) {
+        return { ...item, payment_method: paymentMethod };
+      }
+      return item;
+    });
+
+    await updateOrder.mutateAsync({
+      id: orderId,
+      data: { items: updatedItems }
+    });
+
+    setSelectedMembers([]);
+    toast.success(`已為 ${memberIds.length} 位成員設定支付方式`);
   };
 
   const updateMemberPayment = async (orderId, memberId, field, value) => {
@@ -649,10 +670,59 @@ export default function DrinkOrder() {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
+                  {selectedMembers.length > 0 && (
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-700">已選取 {selectedMembers.length} 位成員</span>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-slate-600">批量設定支付方式：</label>
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                batchUpdatePaymentMethod(order.id, selectedMembers, e.target.value);
+                              }
+                            }}
+                            defaultValue=""
+                            className="px-2 py-1 border rounded text-sm"
+                          >
+                            <option value="">選擇方式</option>
+                            <option value="cash">現金</option>
+                            <option value="balance">餘額</option>
+                          </select>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedMembers([])}
+                            className="text-xs h-7"
+                          >
+                            取消選取
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="overflow-x-auto">
                     <table className={`w-full ${order.shipping_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
                       <thead className="bg-slate-50">
                         <tr>
+                          <th className="text-center px-2 py-2 text-slate-700 w-12">
+                            <input
+                              type="checkbox"
+                              checked={(() => {
+                                const memberIds = [...new Set(order.items?.map(i => i.member_id).filter(Boolean))];
+                                return memberIds.length > 0 && memberIds.every(id => selectedMembers.includes(id));
+                              })()}
+                              onChange={(e) => {
+                                const memberIds = [...new Set(order.items?.map(i => i.member_id).filter(Boolean))];
+                                if (e.target.checked) {
+                                  setSelectedMembers([...new Set([...selectedMembers, ...memberIds])]);
+                                } else {
+                                  setSelectedMembers(selectedMembers.filter(id => !memberIds.includes(id)));
+                                }
+                              }}
+                              className="w-4 h-4 cursor-pointer"
+                            />
+                          </th>
                           <th className="text-left px-3 py-2 text-slate-700">成員</th>
                           <th className="text-left px-3 py-2 text-slate-700">項目</th>
                           <th className="text-right px-3 py-2 text-slate-700">金額</th>
@@ -691,9 +761,27 @@ export default function DrinkOrder() {
                                 {items.map((item, itemIdx) => (
                                   <tr key={item.idx} className={itemIdx === 0 ? 'border-t-2 border-slate-300' : ''}>
                                     {itemIdx === 0 && (
-                                      <td className="px-3 py-2 font-medium" rowSpan={items.length}>
-                                        {item.member_name}
-                                      </td>
+                                      <>
+                                        <td className="px-2 py-2 text-center" rowSpan={items.length}>
+                                          {item.member_id && item.member_id !== order.payer_id && (
+                                            <input
+                                              type="checkbox"
+                                              checked={selectedMembers.includes(item.member_id)}
+                                              onChange={(e) => {
+                                                if (e.target.checked) {
+                                                  setSelectedMembers([...selectedMembers, item.member_id]);
+                                                } else {
+                                                  setSelectedMembers(selectedMembers.filter(id => id !== item.member_id));
+                                                }
+                                              }}
+                                              className="w-4 h-4 cursor-pointer"
+                                            />
+                                          )}
+                                        </td>
+                                        <td className="px-3 py-2 font-medium" rowSpan={items.length}>
+                                          {item.member_name}
+                                        </td>
+                                      </>
                                     )}
                                     <td className="px-3 py-2">{item.item_name}</td>
                                     <td className="px-3 py-2 text-right">${item.price}</td>
