@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { toGMT8, formatGMT8 } from "@/components/utils/timezone";
+import { toGMT8, formatGMT8 } from "@/components/timezone";
 
 export default function TransactionItem({ transaction }) {
   const getDescription = () => {
