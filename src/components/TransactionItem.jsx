@@ -30,31 +30,27 @@ export default function TransactionItem({ transaction }) {
   };
 
   const getRelativeTime = () => {
+    // Convert UTC to Taiwan time (UTC+8)
+    const utcDate = new Date(transaction.created_date);
+    const taiwanDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000);
+    
     const now = new Date();
-    const transactionDate = new Date(transaction.created_date);
+    const taiwanNow = new Date(now.getTime() + 8 * 60 * 60 * 1000);
     
-    // Convert to Taiwan timezone (UTC+8)
-    const taiwanOffset = 8 * 60; // minutes
-    const localOffset = now.getTimezoneOffset(); // minutes from UTC
-    const offsetDiff = taiwanOffset + localOffset;
-    
-    const taiwanNow = new Date(now.getTime() + offsetDiff * 60000);
-    const taiwanTransactionDate = new Date(transactionDate.getTime() + offsetDiff * 60000);
-    
-    const diffInMs = taiwanNow - taiwanTransactionDate;
+    const diffInMs = taiwanNow - taiwanDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMs / 3600000);
     const diffInDays = Math.floor(diffInMs / 86400000);
 
-    const isToday = taiwanNow.toDateString() === taiwanTransactionDate.toDateString();
-    const isYesterday = new Date(taiwanNow - 86400000).toDateString() === taiwanTransactionDate.toDateString();
+    const isToday = taiwanNow.toDateString() === taiwanDate.toDateString();
+    const isYesterday = new Date(taiwanNow - 86400000).toDateString() === taiwanDate.toDateString();
 
     if (diffInMinutes < 1) return '剛剛';
     if (diffInMinutes < 60) return `${diffInMinutes} 分鐘前`;
-    if (diffInHours < 24 && isToday) return `今天 ${format(taiwanTransactionDate, 'HH:mm')}`;
-    if (isYesterday) return `昨天 ${format(taiwanTransactionDate, 'HH:mm')}`;
+    if (diffInHours < 24 && isToday) return `今天 ${format(taiwanDate, 'HH:mm')}`;
+    if (isYesterday) return `昨天 ${format(taiwanDate, 'HH:mm')}`;
     if (diffInDays < 7) return `${diffInDays} 天前`;
-    return format(taiwanTransactionDate, 'yyyy/MM/dd HH:mm');
+    return format(taiwanDate, 'yyyy/MM/dd HH:mm');
   };
 
   const getAmountColor = () => {
