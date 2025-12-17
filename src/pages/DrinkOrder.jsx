@@ -692,11 +692,11 @@ export default function DrinkOrder() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">外送費優惠：</span>
-                    <span className="font-medium text-green-600">${feeDetails.delivery_discount}</span>
+                    <span className="font-medium text-green-600">-${feeDetails.delivery_discount}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">會員獎勵：</span>
-                    <span className="font-medium text-green-600">${feeDetails.member_rewards}</span>
+                    <span className="font-medium text-green-600">-${feeDetails.member_rewards}</span>
                   </div>
                   </div>
                   <div className="flex items-center gap-3 pt-2">
