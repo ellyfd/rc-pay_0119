@@ -31,9 +31,19 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
 
   useEffect(() => {
     if (member) {
+      // 處理舊資料：如果 alias 是字串，轉換為陣列
+      let aliasArray = [];
+      if (member.alias) {
+        if (Array.isArray(member.alias)) {
+          aliasArray = member.alias;
+        } else if (typeof member.alias === 'string' && member.alias.trim()) {
+          aliasArray = [member.alias.trim()];
+        }
+      }
+      
       setFormData({
         name: member.name || '',
-        alias: member.alias || [],
+        alias: aliasArray,
         avatar_color: member.avatar_color || 'blue',
         user_emails: member.user_emails || []
       });
