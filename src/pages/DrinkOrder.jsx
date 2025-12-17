@@ -917,16 +917,15 @@ export default function DrinkOrder() {
                                             <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                               ${memberPaymentAmount.toFixed(2)}
                                             </td>
-                                            <td className="px-3 py-2 text-center" rowSpan={items.length}>
+                                            <td className="px-3 py-2 text-right" rowSpan={items.length}>
                                               <Input
-                                                type="text"
+                                                type="number"
                                                 value={actualCharge}
                                                 onChange={(e) => {
-                                                  const value = e.target.value.replace(/[^0-9.]/g, '');
-                                                  const newCharges = { ...actualCharges, [chargeKey]: parseFloat(value) || 0 };
+                                                  const newCharges = { ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 };
                                                   setActualCharges(newCharges);
                                                 }}
-                                                className="w-20 h-8 text-center font-bold text-orange-600 border-orange-300 focus:border-orange-500"
+                                                className="w-20 h-8 text-right font-bold text-orange-600 border-orange-300 focus:border-orange-500"
                                               />
                                             </td>
                                           </>
@@ -997,7 +996,7 @@ export default function DrinkOrder() {
                         })()}
                         {order.shipping_fee > 0 && (
                           <tr className="bg-orange-50 font-bold border-t-2">
-                            <td colSpan="3" className="px-3 py-3 text-right">總計</td>
+                            <td colSpan="2" className="px-3 py-3 text-right">總計</td>
                             <td className="px-3 py-3 text-right">
                               ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
                             </td>
