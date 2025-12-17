@@ -995,6 +995,7 @@ export default function DrinkOrder() {
                             <td className="px-3 py-3 text-right text-slate-700">
                               ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
                             </td>
+                            <td className="px-3 py-3 text-right">-</td>
                             <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee}</td>
                             <td className="px-3 py-3 text-right">-</td>
                             <td className="px-3 py-3 text-right text-orange-600 text-base">
