@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function OrderHistoryByMember() {
@@ -210,7 +211,7 @@ export default function OrderHistoryByMember() {
                               </td>
                               <td className="px-3 py-3">
                                 <div className="text-sm text-slate-700">
-                                  {format(new Date(order.created_date), 'HH:mm')}
+                                  {formatTaiwanTime(order.created_date, 'HH:mm')}
                                 </div>
                               </td>
                               <td className="px-3 py-3">
