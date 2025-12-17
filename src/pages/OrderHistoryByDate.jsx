@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
-import { formatGMT8 } from "@/utils/timezone";
+import { formatGMT8 } from "@/components/timezone";
 
 export default function OrderHistoryByDate() {
   const [startDate, setStartDate] = useState('');

@@ -10,7 +10,7 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import EditOrderDialog from "@/components/food/EditOrderDialog";
-import { formatGMT8 } from "@/utils/timezone";
+import { formatGMT8 } from "@/components/timezone";
 import {
   AlertDialog,
   AlertDialogAction,
