@@ -845,7 +845,8 @@ export default function DrinkOrder() {
                           {order.shipping_fee > 0 && (
                             <>
                               <th className="text-right px-3 py-2 text-slate-700">運費</th>
-                              <th className="text-right px-3 py-2 text-slate-700">支付金額</th>
+                              <th className="text-right px-3 py-2 text-slate-700">小結</th>
+                              <th className="text-right px-3 py-2 text-slate-700">實際收費</th>
                             </>
                           )}
                           <th className="text-left px-3 py-2 text-slate-700">支付方式</th>
@@ -865,10 +866,22 @@ export default function DrinkOrder() {
 
                           const totalMembers = Object.keys(memberGroups).length;
                           const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+                          
+                          // 儲存每個成員的實際收費（預設為四捨五入）
+                          const [actualCharges, setActualCharges] = useState(() => {
+                            const charges = {};
+                            Object.keys(memberGroups).forEach(memberId => {
+                              const items = memberGroups[memberId];
+                              const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
+                              charges[memberId] = Math.round(memberTotal + shippingPerMember);
+                            });
+                            return charges;
+                          });
 
                           return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
                             const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
                             const memberPaymentAmount = memberTotal + shippingPerMember;
+                            const actualCharge = actualCharges[memberId] ?? Math.round(memberPaymentAmount);
                             const firstItem = items[0];
                             
                             return (
@@ -908,10 +921,21 @@ export default function DrinkOrder() {
                                         {order.shipping_fee > 0 && (
                                           <>
                                             <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                              ${shippingPerMember.toFixed(0)}
+                                              ${shippingPerMember.toFixed(2)}
                                             </td>
-                                            <td className="px-3 py-2 text-right font-bold text-orange-600" rowSpan={items.length}>
-                                              ${Math.round(memberPaymentAmount)}
+                                            <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
+                                              ${memberPaymentAmount.toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-2 text-right" rowSpan={items.length}>
+                                              <Input
+                                                type="number"
+                                                value={actualCharge}
+                                                onChange={(e) => {
+                                                  const newCharges = { ...actualCharges, [memberId]: parseFloat(e.target.value) || 0 };
+                                                  setActualCharges(newCharges);
+                                                }}
+                                                className="w-20 h-8 text-right font-bold text-orange-600 border-orange-300 focus:border-orange-500"
+                                              />
                                             </td>
                                           </>
                                         )}
