@@ -274,9 +274,12 @@ export default function DrinkOrder() {
 
       if (result?.items && result.items.length > 0) {
         const processedItems = result.items.map(item => {
-          const matchedMember = members.find(m => 
-            item.member_name && m.name.includes(item.member_name)
-          );
+          const matchedMember = members.find(m => {
+            if (!item.member_name) return false;
+            // 先比對別名，再比對姓名
+            return (m.alias && item.member_name.includes(m.alias)) || 
+                   m.name.includes(item.member_name);
+          });
           return {
             member_id: matchedMember?.id || '',
             member_name: matchedMember?.name || item.member_name || '',
@@ -291,6 +294,7 @@ export default function DrinkOrder() {
         // 如果AI識別到支付者，自動填入
         if (result.payer_name) {
           const payerMember = members.find(m => 
+            (m.alias && result.payer_name.includes(m.alias)) || 
             m.name.includes(result.payer_name)
           );
           if (payerMember) {
