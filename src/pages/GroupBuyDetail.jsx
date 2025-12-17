@@ -825,7 +825,7 @@ export default function GroupBuyDetail() {
                           <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
                         )}
                         <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小結</th>
+                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">個人加總</th>
                         {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
                           <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">實際支付</th>
                         )}
