@@ -119,8 +119,7 @@ export default function DrinkOrder() {
 
         // 檢查餘額是否足夠
         if ((fromMember.balance || 0) < totalAmount) {
-          toast.error(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}`);
-          return;
+          toast.warning(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}，建議充值`);
         }
 
         // 建立轉帳交易
