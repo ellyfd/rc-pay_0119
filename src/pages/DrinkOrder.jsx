@@ -994,6 +994,37 @@ export default function DrinkOrder() {
                             );
                           });
                         })()}
+                        {order.shipping_fee > 0 && (
+                          <tr className="bg-orange-50 font-bold border-t-2">
+                            <td colSpan="2" className="px-3 py-3 text-right">總計</td>
+                            <td className="px-3 py-3 text-right">
+                              ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
+                            </td>
+                            <td className="px-3 py-3 text-right">-</td>
+                            <td className="px-3 py-3 text-right">${order.shipping_fee}</td>
+                            <td className="px-3 py-3 text-right">-</td>
+                            <td className="px-3 py-3 text-right text-orange-600 text-lg">
+                              ${(() => {
+                                const memberGroups = {};
+                                order.items?.forEach(item => {
+                                  const key = item.member_id || item.member_name;
+                                  if (!memberGroups[key]) memberGroups[key] = [];
+                                  memberGroups[key].push(item);
+                                });
+                                return Object.keys(memberGroups).reduce((sum, memberId) => {
+                                  const chargeKey = `${order.id}_${memberId}`;
+                                  const items = memberGroups[memberId];
+                                  const memberTotal = items.reduce((s, i) => s + i.price, 0);
+                                  const totalMembers = Object.keys(memberGroups).length;
+                                  const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+                                  const defaultCharge = Math.round(memberTotal + shippingPerMember);
+                                  return sum + (actualCharges[chargeKey] ?? defaultCharge);
+                                }, 0).toLocaleString();
+                              })()}
+                            </td>
+                            <td colSpan="2"></td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
