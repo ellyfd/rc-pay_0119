@@ -917,7 +917,7 @@ export default function DrinkOrder() {
                                             <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                               ${memberPaymentAmount.toFixed(2)}
                                             </td>
-                                            <td className="px-3 py-2 text-left" rowSpan={items.length}>
+                                            <td className="px-3 py-2 text-center" rowSpan={items.length}>
                                               <Input
                                                 type="text"
                                                 value={actualCharge}
@@ -926,7 +926,7 @@ export default function DrinkOrder() {
                                                   const newCharges = { ...actualCharges, [chargeKey]: parseFloat(value) || 0 };
                                                   setActualCharges(newCharges);
                                                 }}
-                                                className="w-20 h-8 text-left font-bold text-orange-600 border-orange-300 focus:border-orange-500"
+                                                className="w-20 h-8 text-center font-bold text-orange-600 border-orange-300 focus:border-orange-500"
                                               />
                                             </td>
                                           </>
