@@ -22,6 +22,7 @@ const colors = [
 export default function EditMemberDialog({ open, onOpenChange, member, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
+    alias: '',
     avatar_color: 'blue',
     user_emails: []
   });
@@ -31,6 +32,7 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
     if (member) {
       setFormData({
         name: member.name || '',
+        alias: member.alias || '',
         avatar_color: member.avatar_color || 'blue',
         user_emails: member.user_emails || []
       });
@@ -80,6 +82,15 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="請輸入姓名"
+            />
+          </div>
+
+          <div>
+            <Label>別名（選填）</Label>
+            <Input
+              value={formData.alias}
+              onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
+              placeholder="其他軟體的用戶名稱"
             />
           </div>
 
