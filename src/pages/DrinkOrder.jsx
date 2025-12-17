@@ -467,6 +467,7 @@ export default function DrinkOrder() {
                 <Sparkles className="w-5 h-5 text-purple-600" />
                 <h3 className="font-semibold text-purple-900">AI 智慧辨識</h3>
               </div>
+              <p className="text-xs text-purple-700 mb-3">支援上傳 Uber Eats 訂單截圖或電子明細 PDF</p>
               
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
@@ -477,7 +478,7 @@ export default function DrinkOrder() {
                   className="bg-white"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  {uploading ? '上傳中...' : '上傳圖片/PDF'}
+                  {uploading ? '上傳中...' : '上傳訂單圖片或PDF'}
                 </Button>
                 <input
                   ref={fileInputRef}
