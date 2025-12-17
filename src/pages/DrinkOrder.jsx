@@ -223,8 +223,19 @@ export default function DrinkOrder() {
 
     setAnalyzing(true);
     try {
+      // 準備成員別名參考資料
+      const memberAliasReference = members.map(m => {
+        const aliases = Array.isArray(m.alias) ? m.alias : (m.alias ? [m.alias] : []);
+        return `- ${m.name}${aliases.length > 0 ? `（別名：${aliases.join('、')}）` : ''}`;
+      }).join('\n');
+
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `請仔細分析這張 Uber Eats 訂單圖片，特別注意以下格式：
+
+    **系統成員列表與別名參考：**
+    ${memberAliasReference}
+
+    請在識別訂購人名字時，參考上述成員的姓名和別名進行匹配。
 
 **訂單項目的辨識方式：**
 - 每個產品的左側會有一個數字標記（例如：框框內的數字 1、2、3 等）
