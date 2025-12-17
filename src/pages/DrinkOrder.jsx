@@ -758,7 +758,19 @@ export default function DrinkOrder() {
                           ${order.total_amount.toLocaleString()}
                         </span>
                       </div>
-
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-slate-600">訂單支付人：</label>
+                        <select
+                          value={order.payer_id || ''}
+                          onChange={(e) => updateOrderPayer(order.id, e.target.value)}
+                          className="px-2 py-1 border rounded text-sm"
+                        >
+                          <option value="">選擇支付人</option>
+                          {members.map(m => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <Button
                       variant="ghost"
