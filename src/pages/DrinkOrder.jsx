@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { formatGMT8 } from "@/utils/timezone";
 
 export default function DrinkOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -747,11 +748,11 @@ export default function DrinkOrder() {
               {orders.map(order => (
                 <div key={order.id} className="p-4">
                   <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <div>
-                        <span className="text-sm text-slate-500">
-                          {format(new Date(order.created_date), 'HH:mm')}
-                        </span>
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <div>
+                          <span className="text-sm text-slate-500">
+                            {formatGMT8(order.created_date, 'HH:mm')}
+                          </span>
                         <span className="ml-3 text-sm font-semibold text-orange-600">
                           ${order.total_amount.toLocaleString()}
                         </span>
