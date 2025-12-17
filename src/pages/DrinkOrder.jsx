@@ -257,10 +257,10 @@ export default function DrinkOrder() {
 **費用項目辨識：**
 - 外送費（Delivery Fee）
 - 服務費（Service Fee）
-- 外送費優惠（Delivery Discount / 外送費折扣）
-- 會員獎勵（Member Rewards / 會員點數折抵）
+- 外送費優惠（Delivery Discount / 外送費折扣）- 請提取正數值
+- 會員獎勵（Member Rewards / 會員點數折抵）- 請提取正數值
 
-請仔細查找這些費用項目，如果找不到某項費用，請設為 0。
+請仔細查找這些費用項目，如果找不到某項費用，請設為 0。優惠和獎勵請記錄為正數（不要帶負號）。
 
 **請提取以下資訊：**
 1. 每個產品項目的名稱和價格
@@ -357,8 +357,8 @@ export default function DrinkOrder() {
           }
         }
         
-        const otherFees = delivery + service + deliveryDisc + rewards;
-        const feeMsg = otherFees > 0 ? ` 費用總計：$${otherFees}` : '';
+        const otherFees = delivery + service - deliveryDisc - rewards;
+        const feeMsg = otherFees !== 0 ? ` 費用總計：$${otherFees}` : '';
         toast.success(`AI 成功識別 ${processedItems.length} 個項目！${result.payer_name ? ` 支付者：${result.payer_name}` : ''}${feeMsg}`);
         } else {
         toast.warning('AI 未能識別出訂單資訊');
@@ -385,7 +385,7 @@ export default function DrinkOrder() {
     // 清理items，移除臨時欄位
     const cleanedItems = orderItems.map(({ _suggested_payer_id, _suggested_payer_name, ...item }) => item);
 
-    const shippingFee = feeDetails.delivery_fee + feeDetails.service_fee + feeDetails.delivery_discount + feeDetails.member_rewards + manualAdjustment;
+    const shippingFee = feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment;
 
     await createOrder.mutateAsync({
       order_date: orderDate,
@@ -710,10 +710,10 @@ export default function DrinkOrder() {
                   />
                   </div>
                   <div className="flex justify-between pt-2 border-t">
-                  <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
-                  <span className="text-sm font-bold text-orange-600">
-                    ${feeDetails.delivery_fee + feeDetails.service_fee + feeDetails.delivery_discount + feeDetails.member_rewards + manualAdjustment}
-                  </span>
+                    <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
+                    <span className="text-sm font-bold text-orange-600">
+                      ${feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment}
+                    </span>
                   </div>
                   </div>
               <div className="flex justify-between">
