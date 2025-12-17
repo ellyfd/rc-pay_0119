@@ -246,10 +246,10 @@ export default function AdminOrders() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <div className="bg-emerald-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link to={createPageUrl('FoodOrder')}>
+          <Link to={createPageUrl('Home')}>
             <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-4 -ml-2">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              返回訂餐
+              返回首頁
             </Button>
           </Link>
           <div className="flex items-center justify-between">
