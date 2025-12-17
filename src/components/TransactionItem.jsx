@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { toGMT8, formatGMT8 } from "@/components/timezone";
+import { toGMT8, formatGMT8 } from "@/components/utils/timezone";
 
 export default function TransactionItem({ transaction }) {
   const getDescription = () => {
@@ -31,29 +31,15 @@ export default function TransactionItem({ transaction }) {
   };
 
   const getRelativeTime = () => {
-    // 獲取當前 UTC 時間戳
-    const nowUTC = Date.now();
-    const transactionUTC = new Date(transaction.created_date).getTime();
-    
-    // 計算時差
-    const diffInMs = nowUTC - transactionUTC;
+    const now = new Date(new Date().getTime() + (8 * 60 * 60 * 1000)); // 當前時間轉 GMT+8
+    const transactionDate = toGMT8(transaction.created_date);
+    const diffInMs = now - transactionDate;
     const diffInMinutes = Math.floor(diffInMs / 60000);
     const diffInHours = Math.floor(diffInMs / 3600000);
     const diffInDays = Math.floor(diffInMs / 86400000);
 
-    // 轉換為 GMT+8 進行日期比較
-    const nowGMT8 = new Date(nowUTC + (8 * 60 * 60 * 1000));
-    const transactionGMT8 = new Date(transactionUTC + (8 * 60 * 60 * 1000));
-    
-    // 使用 UTC 方法比較日期（因為已經加了 8 小時偏移）
-    const isToday = nowGMT8.getUTCDate() === transactionGMT8.getUTCDate() && 
-                    nowGMT8.getUTCMonth() === transactionGMT8.getUTCMonth() && 
-                    nowGMT8.getUTCFullYear() === transactionGMT8.getUTCFullYear();
-    
-    const yesterdayGMT8 = new Date(nowGMT8.getTime() - 86400000);
-    const isYesterday = yesterdayGMT8.getUTCDate() === transactionGMT8.getUTCDate() && 
-                        yesterdayGMT8.getUTCMonth() === transactionGMT8.getUTCMonth() && 
-                        yesterdayGMT8.getUTCFullYear() === transactionGMT8.getUTCFullYear();
+    const isToday = now.toDateString() === transactionDate.toDateString();
+    const isYesterday = new Date(now - 86400000).toDateString() === transactionDate.toDateString();
 
     if (diffInMinutes < 1) return '剛剛';
     if (diffInMinutes < 60) return `${diffInMinutes} 分鐘前`;
