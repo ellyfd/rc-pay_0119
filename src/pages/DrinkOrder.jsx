@@ -20,6 +20,12 @@ export default function DrinkOrder() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [shippingFee, setShippingFee] = useState(0);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [feeDetails, setFeeDetails] = useState({
+    delivery_fee: 0,
+    service_fee: 0,
+    delivery_discount: 0,
+    member_rewards: 0
+  });
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -248,13 +254,26 @@ export default function DrinkOrder() {
 - 在提取成員名字時，請將 "(you)" 或 "(您)" 移除，只保留實際名字
 - 如果有發現 "(you)" 或 "(您)" 標記，請額外記錄這個人是支付者
 
+**費用項目辨識：**
+- 外送費（Delivery Fee）
+- 服務費（Service Fee）
+- 外送費優惠（Delivery Discount / 外送費折扣）
+- 會員獎勵（Member Rewards / 會員點數折抵）
+
+請仔細查找這些費用項目，如果找不到某項費用，請設為 0。
+
 **請提取以下資訊：**
 1. 每個產品項目的名稱和價格
 2. 每個產品的訂購人名字（去除 "(you)" 或 "(您)" 標記）
 3. 誰是訂單支付者（有 "(you)" 或 "(您)" 標記的人）
+4. 外送費、服務費、外送費優惠、會員獎勵的金額
 
 請回傳 JSON 格式的資料：
 - payer_name: 訂單支付者名字（有 "(you)" 或 "(您)" 標記的人，如果有的話）
+- delivery_fee: 外送費（數字，沒有則為 0）
+- service_fee: 服務費（數字，沒有則為 0）
+- delivery_discount: 外送費優惠（數字，沒有則為 0）
+- member_rewards: 會員獎勵（數字，沒有則為 0）
 - items: 訂單項目陣列，每個項目包含：
   - member_name: 訂購人名字（已移除 "(you)" 和 "(您)"）
   - item_name: 飲料/產品名稱
@@ -266,6 +285,10 @@ export default function DrinkOrder() {
           type: "object",
           properties: {
             payer_name: { type: "string" },
+            delivery_fee: { type: "number" },
+            service_fee: { type: "number" },
+            delivery_discount: { type: "number" },
+            member_rewards: { type: "number" },
             items: {
               type: "array",
               items: {
@@ -303,6 +326,21 @@ export default function DrinkOrder() {
         });
         setOrderItems(processedItems);
 
+        // 處理費用資料
+        const delivery = result.delivery_fee || 0;
+        const service = result.service_fee || 0;
+        const deliveryDisc = result.delivery_discount || 0;
+        const rewards = result.member_rewards || 0;
+        const otherFees = delivery + service - deliveryDisc - rewards;
+
+        setFeeDetails({
+          delivery_fee: delivery,
+          service_fee: service,
+          delivery_discount: deliveryDisc,
+          member_rewards: rewards
+        });
+        setShippingFee(otherFees > 0 ? otherFees : 0);
+
         // 如果AI識別到支付者，自動填入
         if (result.payer_name) {
           const payerMember = members.find(m => {
@@ -320,10 +358,11 @@ export default function DrinkOrder() {
           }
         }
         
-        toast.success(`AI 成功識別 ${processedItems.length} 個項目！${result.payer_name ? ` 支付者：${result.payer_name}` : ''}`);
-      } else {
+        const feeMsg = otherFees > 0 ? ` 其它費用：$${otherFees}` : '';
+        toast.success(`AI 成功識別 ${processedItems.length} 個項目！${result.payer_name ? ` 支付者：${result.payer_name}` : ''}${feeMsg}`);
+        } else {
         toast.warning('AI 未能識別出訂單資訊');
-      }
+        }
     } catch (error) {
       toast.error('AI 分析失敗：' + error.message);
     } finally {
@@ -360,6 +399,12 @@ export default function DrinkOrder() {
     setOrderItems([]);
     setUploadedImageUrl('');
     setShippingFee(0);
+    setFeeDetails({
+      delivery_fee: 0,
+      service_fee: 0,
+      delivery_discount: 0,
+      member_rewards: 0
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -632,8 +677,33 @@ export default function DrinkOrder() {
               </table>
             </div>
             <div className="p-4 bg-slate-50 border-t space-y-3">
+              <div className="space-y-2">
+                <div className="text-sm font-semibold text-slate-700 mb-2">費用明細</div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">外送費：</span>
+                    <span className="font-medium">${feeDetails.delivery_fee}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">服務費：</span>
+                    <span className="font-medium">${feeDetails.service_fee}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">外送費優惠：</span>
+                    <span className="font-medium text-green-600">-${feeDetails.delivery_discount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">會員獎勵：</span>
+                    <span className="font-medium text-green-600">-${feeDetails.member_rewards}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between pt-2 border-t">
+                  <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
+                  <span className="text-sm font-bold text-orange-600">${shippingFee}</span>
+                </div>
+              </div>
               <div className="flex items-center gap-3">
-                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">運費：</label>
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">手動調整：</label>
                 <Input
                   type="number"
                   value={shippingFee}
@@ -641,7 +711,6 @@ export default function DrinkOrder() {
                   placeholder="0"
                   className="w-32 text-sm"
                 />
-                <span className="text-xs text-slate-500">（將平均分攤給每位成員）</span>
               </div>
               <div className="flex justify-between">
                 <Button
