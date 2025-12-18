@@ -13,13 +13,13 @@ import { toast } from "sonner";
 
 export default function DrinkOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState({});
   const [manualAdjustment, setManualAdjustment] = useState(0);
   const [actualCharges, setActualCharges] = useState({});
   const [feeDetails, setFeeDetails] = useState({
@@ -43,6 +43,21 @@ export default function DrinkOrder() {
       return allOrders.filter(order => order.order_date === orderDate);
     }
   });
+
+  const allPaid = (order) => {
+    if (!order.items || order.items.length === 0) return false;
+    const nonPayerItems = order.items.filter(item => item.member_id !== order.payer_id);
+    if (nonPayerItems.length === 0) return true;
+    return nonPayerItems.every(item => item.paid);
+  };
+
+  const handleCompleteOrder = async (orderId) => {
+    await updateOrder.mutateAsync({
+      id: orderId,
+      data: { status: 'completed' }
+    });
+    toast.success('訂單已結案！');
+  };
 
   const createOrder = useMutation({
     mutationFn: (data) => base44.entities.DrinkOrder.create(data),
@@ -130,7 +145,7 @@ export default function DrinkOrder() {
       data: { items: updatedItems }
     });
 
-    setSelectedMembers([]);
+    setSelectedMembers(prev => ({ ...prev, [orderId]: [] }));
     toast.success(`已為 ${memberIds.length} 位成員設定支付方式`);
   };
 
@@ -409,6 +424,7 @@ export default function DrinkOrder() {
       delivery_discount: 0,
       member_rewards: 0
     });
+    setShowCreateDialog(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -511,9 +527,9 @@ export default function DrinkOrder() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* 上傳與分析區 */}
-        <Card className="p-6">
-          <div className="space-y-4">
+        {/* 日期選擇與新增訂單按鈕 */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
               <Input
@@ -523,242 +539,83 @@ export default function DrinkOrder() {
                 className="w-48"
               />
             </div>
-
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-purple-900">AI 智慧辨識</h3>
-              </div>
-              <p className="text-xs text-purple-700 mb-3">支援上傳 Uber Eats 訂單截圖或電子明細 PDF</p>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="bg-white"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {uploading ? '上傳中...' : '上傳訂單圖片或PDF'}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                
-                {uploadedImageUrl && (
-                  <>
-                    <span className="text-sm text-green-600 flex items-center">✓ 已上傳</span>
-                    <Button
-                      type="button"
-                      onClick={handleAnalyze}
-                      disabled={analyzing}
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      {analyzing ? '分析中...' : '🤖 AI 分析訂單'}
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              {uploadedImageUrl && (
-                <div className="mt-3">
-                  <img
-                    src={uploadedImageUrl}
-                    alt="上傳的訂單"
-                    className="max-w-full h-auto max-h-64 rounded-lg border"
-                  />
-                </div>
-              )}
-            </div>
+            <Button
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <Coffee className="w-4 h-4 mr-2" />
+              新增訂單
+            </Button>
           </div>
         </Card>
 
-        {/* 訂單表格 */}
-        {orderItems.length > 0 && (
-          <Card>
-            <div className="p-4 bg-slate-50 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-slate-800">訂單明細</h3>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600">批次填入成員：</label>
-                <select
-                  onChange={(e) => handleBatchFillMember(e.target.value)}
-                  className="px-3 py-1 border rounded text-sm"
-                  defaultValue=""
-                >
-                  <option value="">選擇成員</option>
-                  {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[650px]">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="text-center px-3 py-3 text-sm font-semibold text-slate-700 w-[50px]">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.length === orderItems.length && orderItems.length > 0}
-                        onChange={toggleSelectAll}
-                        className="w-4 h-4 cursor-pointer"
-                      />
-                    </th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[25%]">成員</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[35%]">訂購內容</th>
-                    <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700 w-[20%]">金額</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700 w-[15%]">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {orderItems.map((item, index) => (
-                    <tr key={index} className={`hover:bg-slate-50 ${selectedItems.includes(index) ? 'bg-blue-50' : ''}`}>
-                      <td className="px-3 py-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(index)}
-                          onChange={() => toggleSelectItem(index)}
-                          className="w-4 h-4 cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={item.member_id}
-                          onChange={(e) => updateItem(index, 'member_id', e.target.value)}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        >
-                          <option value="">選擇成員</option>
-                          {members.map(m => (
-                            <option key={m.id} value={m.id}>{m.name}</option>
-                          ))}
-                        </select>
-                        {!item.member_id && item.member_name && (
-                          <div className="text-xs text-amber-600 mt-1">AI識別: {item.member_name}</div>
+        {/* 訂單卡片列表 */}
+        {orders.length === 0 ? (
+          <Card className="p-12 text-center border-dashed">
+            <Coffee className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500">此日期還沒有訂單</p>
+            <p className="text-slate-400 text-sm mt-1">點擊「新增訂單」開始建立</p>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {orders.map(order => {
+              const isPaid = allPaid(order);
+              const isCompleted = order.status === 'completed';
+              const orderSelectedMembers = selectedMembers[order.id] || [];
+              
+              return (
+                <Card key={order.id} className={`overflow-hidden ${isCompleted ? 'border-green-500 border-2' : ''}`}>
+                  <div className={`p-4 border-b flex items-center justify-between ${isCompleted ? 'bg-green-50' : 'bg-slate-50'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-600' : 'bg-orange-600'}`}>
+                        {isCompleted ? (
+                          <CheckCircle className="w-6 h-6 text-white" />
+                        ) : (
+                          <Coffee className="w-6 h-6 text-white" />
                         )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Input
-                          value={item.item_name}
-                          onChange={(e) => updateItem(index, 'item_name', e.target.value)}
-                          placeholder="飲料名稱"
-                          className="text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <Input
-                          type="number"
-                          value={item.price}
-                          onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                          className="text-sm text-right"
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-center">
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-800">
+                          {formatTaiwanTime(order.created_date, 'HH:mm')} 的訂單
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {isCompleted ? '已結案' : isPaid ? '已全部付款' : '待付款'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!isCompleted && isPaid && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleCompleteOrder(order.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          結案
+                        </Button>
+                      )}
+                      {!isCompleted && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeItem(index)}
-                          className="h-8 w-8 text-red-500 hover:text-red-700"
+                          onClick={() => deleteOrder.mutate(order.id)}
+                          className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-orange-50 font-bold">
-                    <td colSpan="3" className="px-4 py-3 text-right text-slate-800">總金額</td>
-                    <td className="px-4 py-3 text-right text-orange-600 text-lg">
-                      ${getTotalAmount().toLocaleString()}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="p-4 bg-slate-50 border-t space-y-3">
-              <div className="space-y-2">
-                <div className="text-sm font-semibold text-slate-700 mb-2">費用明細</div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">外送費：</span>
-                    <span className="font-medium">${feeDetails.delivery_fee}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">服務費：</span>
-                    <span className="font-medium">${feeDetails.service_fee}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">外送費優惠：</span>
-                    <span className="font-medium text-green-600">-${feeDetails.delivery_discount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">會員獎勵：</span>
-                    <span className="font-medium text-green-600">-${feeDetails.member_rewards}</span>
-                  </div>
-                  </div>
-                  <div className="flex items-center gap-3 pt-2">
-                  <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">手動調整：</label>
-                  <Input
-                    type="number"
-                    value={manualAdjustment}
-                    onChange={(e) => setManualAdjustment(parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                    className="w-32 text-sm"
-                  />
-                  </div>
-                  <div className="flex justify-between pt-2 border-t">
-                    <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
-                    <span className="text-sm font-bold text-orange-600">
-                      ${feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment}
-                    </span>
-                  </div>
-                  </div>
-              <div className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={addEmptyItem}
-                >
-                  + 新增項目
-                </Button>
-                <Button
-                  onClick={handleSaveOrder}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  儲存訂單
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
 
-        {/* 今日訂單列表 */}
-        {orders.length > 0 && (
-          <Card>
-            <div className="p-4 bg-slate-50 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-slate-800">
-                {format(new Date(orderDate), 'yyyy/MM/dd')} 的訂單
-              </h3>
-              <div className="text-sm text-slate-500">
-                {orders.map(order => formatTaiwanTime(order.created_date, 'HH:mm')).join(', ')}
-              </div>
-            </div>
-            <div className="divide-y">
-              {orders.map(order => (
-                <div key={order.id} className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-4 flex-wrap">
+                  <div className="p-4">
+                    <div className="flex items-center gap-4 flex-wrap mb-3">
                       <div className="flex items-center gap-2">
                         <label className="text-sm text-slate-600">訂單支付人：</label>
                         <select
                           value={order.payer_id || ''}
                           onChange={(e) => updateOrderPayer(order.id, e.target.value)}
                           className="px-2 py-1 border rounded text-sm"
+                          disabled={isCompleted}
                         >
                           <option value="">選擇支付人</option>
                           {members.map(m => (
@@ -767,261 +624,509 @@ export default function DrinkOrder() {
                         </select>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteOrder.mutate(order.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {selectedMembers.length > 0 && (
-                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-700">已選取 {selectedMembers.length} 位成員</span>
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-slate-600">批量設定支付方式：</label>
-                          <select
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                batchUpdatePaymentMethod(order.id, selectedMembers, e.target.value);
-                              }
-                            }}
-                            defaultValue=""
-                            className="px-2 py-1 border rounded text-sm"
-                          >
-                            <option value="">選擇方式</option>
-                            <option value="cash">現金</option>
-                            <option value="balance">餘額</option>
-                          </select>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedMembers([])}
-                            className="text-xs h-7"
-                          >
-                            取消選取
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div className="overflow-x-auto">
-                    <table className={`w-full ${order.shipping_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className="text-center px-2 py-2 text-slate-700 w-12">
-                            <input
-                              type="checkbox"
-                              checked={(() => {
-                                const memberIds = [...new Set(order.items?.map(i => i.member_id).filter(Boolean))];
-                                return memberIds.length > 0 && memberIds.every(id => selectedMembers.includes(id));
-                              })()}
+
+                    {orderSelectedMembers.length > 0 && !isCompleted && (
+                      <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-700">已選取 {orderSelectedMembers.length} 位成員</span>
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm text-slate-600">批量設定支付方式：</label>
+                            <select
                               onChange={(e) => {
-                                const memberIds = [...new Set(order.items?.map(i => i.member_id).filter(Boolean))];
-                                if (e.target.checked) {
-                                  setSelectedMembers([...new Set([...selectedMembers, ...memberIds])]);
-                                } else {
-                                  setSelectedMembers(selectedMembers.filter(id => !memberIds.includes(id)));
+                                if (e.target.value) {
+                                  batchUpdatePaymentMethod(order.id, orderSelectedMembers, e.target.value);
                                 }
                               }}
-                              className="w-4 h-4 cursor-pointer"
-                            />
-                          </th>
-                          <th className="text-left px-3 py-2 text-slate-700">成員</th>
-                          <th className="text-left px-3 py-2 text-slate-700">項目</th>
-                          <th className="text-right px-3 py-2 text-slate-700">金額</th>
-                          <th className="text-right px-3 py-2 text-slate-700">小計</th>
-                          {order.shipping_fee > 0 && (
-                            <>
-                              <th className="text-right px-3 py-2 text-slate-700">運費</th>
-                              <th className="text-right px-3 py-2 text-slate-700">小結</th>
-                              <th className="text-right px-3 py-2 text-slate-700">實際收費</th>
-                            </>
-                          )}
-                          <th className="text-left px-3 py-2 text-slate-700">支付方式</th>
-                          <th className="text-center px-3 py-2 text-slate-700">已支付</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(() => {
-                          const memberGroups = {};
-                          order.items?.forEach((item, idx) => {
-                            const key = item.member_id || item.member_name;
-                            if (!memberGroups[key]) {
-                              memberGroups[key] = [];
-                            }
-                            memberGroups[key].push({ ...item, idx });
-                          });
+                              defaultValue=""
+                              className="px-2 py-1 border rounded text-sm"
+                            >
+                              <option value="">選擇方式</option>
+                              <option value="cash">現金</option>
+                              <option value="balance">餘額</option>
+                            </select>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedMembers(prev => ({ ...prev, [order.id]: [] }))}
+                              className="text-xs h-7"
+                            >
+                              取消選取
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="overflow-x-auto">
+                      <table className={`w-full ${order.shipping_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
+                        <thead className="bg-slate-50">
+                          <tr>
+                            {!isCompleted && (
+                              <th className="text-center px-2 py-2 text-slate-700 w-12">
+                                <input
+                                  type="checkbox"
+                                  checked={(() => {
+                                    const memberIds = [...new Set(order.items?.map(i => i.member_id).filter(Boolean))];
+                                    return memberIds.length > 0 && memberIds.every(id => orderSelectedMembers.includes(id));
+                                  })()}
+                                  onChange={(e) => {
+                                    const memberIds = [...new Set(order.items?.map(i => i.member_id).filter(Boolean))];
+                                    if (e.target.checked) {
+                                      setSelectedMembers(prev => ({ ...prev, [order.id]: [...new Set([...orderSelectedMembers, ...memberIds])] }));
+                                    } else {
+                                      setSelectedMembers(prev => ({ ...prev, [order.id]: orderSelectedMembers.filter(id => !memberIds.includes(id)) }));
+                                    }
+                                  }}
+                                  className="w-4 h-4 cursor-pointer"
+                                />
+                              </th>
+                            )}
+                            <th className="text-left px-3 py-2 text-slate-700">成員</th>
+                            <th className="text-left px-3 py-2 text-slate-700">項目</th>
+                            <th className="text-right px-3 py-2 text-slate-700">金額</th>
+                            <th className="text-right px-3 py-2 text-slate-700">小計</th>
+                            {order.shipping_fee > 0 && (
+                              <>
+                                <th className="text-right px-3 py-2 text-slate-700">運費</th>
+                                <th className="text-right px-3 py-2 text-slate-700">小結</th>
+                                <th className="text-right px-3 py-2 text-slate-700">實際收費</th>
+                              </>
+                            )}
+                            {!isCompleted && <th className="text-left px-3 py-2 text-slate-700">支付方式</th>}
+                            <th className="text-center px-3 py-2 text-slate-700">已支付</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const memberGroups = {};
+                            order.items?.forEach((item, idx) => {
+                              const key = item.member_id || item.member_name;
+                              if (!memberGroups[key]) {
+                                memberGroups[key] = [];
+                              }
+                              memberGroups[key].push({ ...item, idx });
+                            });
 
-                          const totalMembers = Object.keys(memberGroups).length;
-                          const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+                            const totalMembers = Object.keys(memberGroups).length;
+                            const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
 
-                          return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
-                            const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
-                            const memberPaymentAmount = memberTotal + shippingPerMember;
-                            const chargeKey = `${order.id}_${memberId}`;
-                            const actualCharge = actualCharges[chargeKey] ?? Math.round(memberPaymentAmount);
-                            const firstItem = items[0];
-                            
-                            return (
-                              <React.Fragment key={groupIdx}>
-                                {items.map((item, itemIdx) => (
-                                  <tr key={item.idx} className={itemIdx === 0 ? 'border-t-2 border-slate-300' : ''}>
-                                    {itemIdx === 0 && (
-                                      <>
+                            return Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
+                              const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
+                              const memberPaymentAmount = memberTotal + shippingPerMember;
+                              const chargeKey = `${order.id}_${memberId}`;
+                              const actualCharge = actualCharges[chargeKey] ?? Math.round(memberPaymentAmount);
+                              const firstItem = items[0];
+                              
+                              return (
+                                <React.Fragment key={groupIdx}>
+                                  {items.map((item, itemIdx) => (
+                                    <tr key={item.idx} className={itemIdx === 0 ? 'border-t-2 border-slate-300' : ''}>
+                                      {itemIdx === 0 && !isCompleted && (
                                         <td className="px-2 py-2 text-center" rowSpan={items.length}>
                                           {item.member_id && item.member_id !== order.payer_id && (
                                             <input
                                               type="checkbox"
-                                              checked={selectedMembers.includes(item.member_id)}
+                                              checked={orderSelectedMembers.includes(item.member_id)}
                                               onChange={(e) => {
                                                 if (e.target.checked) {
-                                                  setSelectedMembers([...selectedMembers, item.member_id]);
+                                                  setSelectedMembers(prev => ({ ...prev, [order.id]: [...orderSelectedMembers, item.member_id] }));
                                                 } else {
-                                                  setSelectedMembers(selectedMembers.filter(id => id !== item.member_id));
+                                                  setSelectedMembers(prev => ({ ...prev, [order.id]: orderSelectedMembers.filter(id => id !== item.member_id) }));
                                                 }
                                               }}
                                               className="w-4 h-4 cursor-pointer"
                                             />
                                           )}
                                         </td>
+                                      )}
+                                      {itemIdx === 0 && (
                                         <td className="px-3 py-2 font-medium" rowSpan={items.length}>
                                           {item.member_name}
                                         </td>
-                                      </>
-                                    )}
-                                    <td className="px-3 py-2">{item.item_name}</td>
-                                    <td className="px-3 py-2 text-right">${item.price}</td>
-                                    {itemIdx === 0 && (
-                                      <>
-                                        <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
-                                          ${memberTotal}
-                                        </td>
-                                        {order.shipping_fee > 0 && (
-                                          <>
-                                            <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                              ${shippingPerMember.toFixed(2)}
-                                            </td>
-                                            <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
-                                              ${memberPaymentAmount.toFixed(2)}
-                                            </td>
-                                            <td className="px-3 py-2 text-right" rowSpan={items.length}>
-                                              <input
-                                                type="number"
-                                                value={actualCharge}
-                                                onChange={(e) => {
-                                                  const newCharges = { ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 };
-                                                  setActualCharges(newCharges);
-                                                }}
-                                                className="w-16 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                              />
-                                            </td>
-                                          </>
-                                        )}
-                                        {item.member_id === order.payer_id ? (
-                                          <>
-                                            <td className="px-3 py-2 text-center text-slate-500 text-xs" rowSpan={items.length}>
-                                              不需支付
-                                            </td>
-                                            <td className="px-3 py-2 text-center" rowSpan={items.length}>
-                                              <span className="text-green-600 text-xs">✓ 支付人</span>
-                                            </td>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <td className="px-3 py-2" rowSpan={items.length}>
-                                              <select
-                                                value={firstItem.payment_method || 'cash'}
-                                                onChange={(e) => updateMemberPayment(order.id, item.member_id, 'payment_method', e.target.value)}
-                                                className="px-2 py-1 border rounded text-xs"
-                                              >
-                                                <option value="cash">現金</option>
-                                                <option value="balance">餘額</option>
-                                              </select>
-                                            </td>
-                                            <td className="px-3 py-2 text-center" rowSpan={items.length}>
-                                              {firstItem.payment_method === 'balance' ? (
-                                                <Button
-                                                  size="sm"
-                                                  onClick={() => updateMemberPayment(order.id, item.member_id, 'paid', true)}
-                                                  disabled={firstItem.paid}
-                                                  className={`h-8 text-xs ${
-                                                    firstItem.paid 
-                                                      ? 'bg-green-100 text-green-700 cursor-not-allowed' 
-                                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                  }`}
-                                                >
-                                                  {firstItem.paid ? (
-                                                    <>
-                                                      <CheckCircle className="w-3 h-3 mr-1" />
-                                                      已支付
-                                                    </>
-                                                  ) : (
-                                                    <>
-                                                      <Wallet className="w-3 h-3 mr-1" />
-                                                      確認支付
-                                                    </>
-                                                  )}
-                                                </Button>
-                                              ) : (
-                                                <input
-                                                  type="checkbox"
-                                                  checked={firstItem.paid || false}
-                                                  onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
-                                                  className="w-4 h-4 cursor-pointer"
-                                                />
+                                      )}
+                                      <td className="px-3 py-2">{item.item_name}</td>
+                                      <td className="px-3 py-2 text-right">${item.price}</td>
+                                      {itemIdx === 0 && (
+                                        <>
+                                          <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
+                                            ${memberTotal}
+                                          </td>
+                                          {order.shipping_fee > 0 && (
+                                            <>
+                                              <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
+                                                ${shippingPerMember.toFixed(2)}
+                                              </td>
+                                              <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
+                                                ${memberPaymentAmount.toFixed(2)}
+                                              </td>
+                                              <td className="px-3 py-2 text-right" rowSpan={items.length}>
+                                                {isCompleted ? (
+                                                  <span className="font-bold text-orange-600">${actualCharge}</span>
+                                                ) : (
+                                                  <input
+                                                    type="number"
+                                                    value={actualCharge}
+                                                    onChange={(e) => {
+                                                      const newCharges = { ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 };
+                                                      setActualCharges(newCharges);
+                                                    }}
+                                                    className="w-16 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                  />
+                                                )}
+                                              </td>
+                                            </>
+                                          )}
+                                          {item.member_id === order.payer_id ? (
+                                            <>
+                                              {!isCompleted && (
+                                                <td className="px-3 py-2 text-center text-slate-500 text-xs" rowSpan={items.length}>
+                                                  不需支付
+                                                </td>
                                               )}
-                                            </td>
-                                          </>
-                                        )}
-                                      </>
-                                    )}
-                                  </tr>
-                                ))}
-                              </React.Fragment>
-                            );
-                          });
-                        })()}
-                        {order.shipping_fee > 0 && (
-                          <tr className="bg-orange-50 font-bold border-t-2">
-                            <td colSpan="3" className="px-3 py-3 text-right">總計</td>
-                            <td className="px-3 py-3 text-right text-slate-700">
-                              ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
-                            </td>
-                            <td className="px-3 py-3 text-right">-</td>
-                            <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee}</td>
-                            <td className="px-3 py-3 text-right">-</td>
-                            <td className="px-3 py-3 text-right text-orange-600 text-base">
-                              ${(() => {
-                                const memberGroups = {};
-                                order.items?.forEach(item => {
-                                  const key = item.member_id || item.member_name;
-                                  if (!memberGroups[key]) memberGroups[key] = [];
-                                  memberGroups[key].push(item);
-                                });
-                                return Object.keys(memberGroups).reduce((sum, memberId) => {
-                                  const chargeKey = `${order.id}_${memberId}`;
-                                  const items = memberGroups[memberId];
-                                  const memberTotal = items.reduce((s, i) => s + i.price, 0);
-                                  const totalMembers = Object.keys(memberGroups).length;
-                                  const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
-                                  const defaultCharge = Math.round(memberTotal + shippingPerMember);
-                                  return sum + (actualCharges[chargeKey] ?? defaultCharge);
-                                }, 0).toLocaleString();
-                              })()}
-                            </td>
-                            <td colSpan="2"></td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                                              <td className="px-3 py-2 text-center" rowSpan={items.length}>
+                                                <span className="text-green-600 text-xs">✓ 支付人</span>
+                                              </td>
+                                            </>
+                                          ) : (
+                                            <>
+                                              {!isCompleted && (
+                                                <td className="px-3 py-2" rowSpan={items.length}>
+                                                  <select
+                                                    value={firstItem.payment_method || 'cash'}
+                                                    onChange={(e) => updateMemberPayment(order.id, item.member_id, 'payment_method', e.target.value)}
+                                                    className="px-2 py-1 border rounded text-xs"
+                                                  >
+                                                    <option value="cash">現金</option>
+                                                    <option value="balance">餘額</option>
+                                                  </select>
+                                                </td>
+                                              )}
+                                              <td className="px-3 py-2 text-center" rowSpan={items.length}>
+                                                {isCompleted ? (
+                                                  firstItem.paid ? (
+                                                    <CheckCircle className="w-5 h-5 text-green-600 mx-auto" />
+                                                  ) : (
+                                                    <span className="text-slate-400">-</span>
+                                                  )
+                                                ) : firstItem.payment_method === 'balance' ? (
+                                                  <Button
+                                                    size="sm"
+                                                    onClick={() => updateMemberPayment(order.id, item.member_id, 'paid', true)}
+                                                    disabled={firstItem.paid}
+                                                    className={`h-8 text-xs ${
+                                                      firstItem.paid 
+                                                        ? 'bg-green-100 text-green-700 cursor-not-allowed' 
+                                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                    }`}
+                                                  >
+                                                    {firstItem.paid ? (
+                                                      <>
+                                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                                        已支付
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <Wallet className="w-3 h-3 mr-1" />
+                                                        確認支付
+                                                      </>
+                                                    )}
+                                                  </Button>
+                                                ) : (
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={firstItem.paid || false}
+                                                    onChange={(e) => updateMemberPayment(order.id, item.member_id, 'paid', e.target.checked)}
+                                                    className="w-4 h-4 cursor-pointer"
+                                                  />
+                                                )}
+                                              </td>
+                                            </>
+                                          )}
+                                        </>
+                                      )}
+                                    </tr>
+                                  ))}
+                                </React.Fragment>
+                              );
+                            });
+                          })()}
+                          {order.shipping_fee > 0 && (
+                            <tr className="bg-orange-50 font-bold border-t-2">
+                              <td colSpan={isCompleted ? 2 : 3} className="px-3 py-3 text-right">總計</td>
+                              <td className="px-3 py-3 text-right text-slate-700">
+                                ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
+                              </td>
+                              <td className="px-3 py-3 text-right">-</td>
+                              <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee}</td>
+                              <td className="px-3 py-3 text-right">-</td>
+                              <td className="px-3 py-3 text-right text-orange-600 text-base">
+                                ${(() => {
+                                  const memberGroups = {};
+                                  order.items?.forEach(item => {
+                                    const key = item.member_id || item.member_name;
+                                    if (!memberGroups[key]) memberGroups[key] = [];
+                                    memberGroups[key].push(item);
+                                  });
+                                  return Object.keys(memberGroups).reduce((sum, memberId) => {
+                                    const chargeKey = `${order.id}_${memberId}`;
+                                    const items = memberGroups[memberId];
+                                    const memberTotal = items.reduce((s, i) => s + i.price, 0);
+                                    const totalMembers = Object.keys(memberGroups).length;
+                                    const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+                                    const defaultCharge = Math.round(memberTotal + shippingPerMember);
+                                    return sum + (actualCharges[chargeKey] ?? defaultCharge);
+                                  }, 0).toLocaleString();
+                                })()}
+                              </td>
+                              <td colSpan={isCompleted ? 1 : 2}></td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 新增訂單對話框 */}
+        {showCreateDialog && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <Card className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
+                <h2 className="text-xl font-bold text-slate-800">新增訂單</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setShowCreateDialog(false);
+                    setOrderItems([]);
+                    setUploadedImageUrl('');
+                    setManualAdjustment(0);
+                    setFeeDetails({ delivery_fee: 0, service_fee: 0, delivery_discount: 0, member_rewards: 0 });
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-5 h-5 text-purple-600" />
+                    <h3 className="font-semibold text-purple-900">AI 智慧辨識</h3>
+                  </div>
+                  <p className="text-xs text-purple-700 mb-3">支援上傳 Uber Eats 訂單截圖或電子明細 PDF</p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="bg-white"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploading ? '上傳中...' : '上傳訂單圖片或PDF'}
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    
+                    {uploadedImageUrl && (
+                      <>
+                        <span className="text-sm text-green-600 flex items-center">✓ 已上傳</span>
+                        <Button
+                          type="button"
+                          onClick={handleAnalyze}
+                          disabled={analyzing}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          {analyzing ? '分析中...' : '🤖 AI 分析訂單'}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+
+                  {uploadedImageUrl && (
+                    <div className="mt-3">
+                      <img
+                        src={uploadedImageUrl}
+                        alt="上傳的訂單"
+                        className="max-w-full h-auto max-h-64 rounded-lg border"
+                      />
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </Card>
+
+                {orderItems.length > 0 && (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-slate-800">訂單明細</h3>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-slate-600">批次填入成員：</label>
+                          <select
+                            onChange={(e) => handleBatchFillMember(e.target.value)}
+                            className="px-3 py-1 border rounded text-sm"
+                            defaultValue=""
+                          >
+                            <option value="">選擇成員</option>
+                            {members.map(m => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="overflow-x-auto border rounded-lg">
+                        <table className="w-full min-w-[650px]">
+                          <thead className="bg-slate-50 border-b">
+                            <tr>
+                              <th className="text-center px-3 py-3 text-sm font-semibold text-slate-700 w-[50px]">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.length === orderItems.length && orderItems.length > 0}
+                                  onChange={toggleSelectAll}
+                                  className="w-4 h-4 cursor-pointer"
+                                />
+                              </th>
+                              <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[25%]">成員</th>
+                              <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700 w-[35%]">訂購內容</th>
+                              <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700 w-[20%]">金額</th>
+                              <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700 w-[15%]">操作</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {orderItems.map((item, index) => (
+                              <tr key={index} className={`hover:bg-slate-50 ${selectedItems.includes(index) ? 'bg-blue-50' : ''}`}>
+                                <td className="px-3 py-3 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedItems.includes(index)}
+                                    onChange={() => toggleSelectItem(index)}
+                                    className="w-4 h-4 cursor-pointer"
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <select
+                                    value={item.member_id}
+                                    onChange={(e) => updateItem(index, 'member_id', e.target.value)}
+                                    className="w-full px-2 py-1 border rounded text-sm"
+                                  >
+                                    <option value="">選擇成員</option>
+                                    {members.map(m => (
+                                      <option key={m.id} value={m.id}>{m.name}</option>
+                                    ))}
+                                  </select>
+                                  {!item.member_id && item.member_name && (
+                                    <div className="text-xs text-amber-600 mt-1">AI識別: {item.member_name}</div>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Input
+                                    value={item.item_name}
+                                    onChange={(e) => updateItem(index, 'item_name', e.target.value)}
+                                    placeholder="飲料名稱"
+                                    className="text-sm"
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Input
+                                    type="number"
+                                    value={item.price}
+                                    onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
+                                    placeholder="0"
+                                    className="text-sm text-right"
+                                  />
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeItem(index)}
+                                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="bg-orange-50 font-bold">
+                              <td colSpan="3" className="px-4 py-3 text-right text-slate-800">總金額</td>
+                              <td className="px-4 py-3 text-right text-orange-600 text-lg">
+                                ${getTotalAmount().toLocaleString()}
+                              </td>
+                              <td></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-lg p-4 space-y-3">
+                      <div className="text-sm font-semibold text-slate-700 mb-2">費用明細</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">外送費：</span>
+                          <span className="font-medium">${feeDetails.delivery_fee}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">服務費：</span>
+                          <span className="font-medium">${feeDetails.service_fee}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">外送費優惠：</span>
+                          <span className="font-medium text-green-600">-${feeDetails.delivery_discount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">會員獎勵：</span>
+                          <span className="font-medium text-green-600">-${feeDetails.member_rewards}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 pt-2">
+                        <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">手動調整：</label>
+                        <Input
+                          type="number"
+                          value={manualAdjustment}
+                          onChange={(e) => setManualAdjustment(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="w-32 text-sm"
+                        />
+                      </div>
+                      <div className="flex justify-between pt-2 border-t">
+                        <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
+                        <span className="text-sm font-bold text-orange-600">
+                          ${feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={addEmptyItem}
+                      >
+                        + 新增項目
+                      </Button>
+                      <Button
+                        onClick={handleSaveOrder}
+                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        儲存訂單
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Card>
+          </div>
         )}
       </div>
     </div>
