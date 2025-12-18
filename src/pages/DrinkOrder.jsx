@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Upload, Sparkles, Save, Trash2, Edit2, Coffee, Wallet, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Save, Trash2, Edit2, Coffee, Wallet, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -23,6 +23,7 @@ export default function DrinkOrder() {
   const [selectedMembers, setSelectedMembers] = useState({});
   const [manualAdjustment, setManualAdjustment] = useState(0);
   const [actualCharges, setActualCharges] = useState({});
+  const [expandedOrders, setExpandedOrders] = useState({});
   const [feeDetails, setFeeDetails] = useState({
     delivery_fee: 0,
     service_fee: 0,
@@ -175,6 +176,17 @@ export default function DrinkOrder() {
       return item;
     });
 
+    await updateOrder.mutateAsync({
+      id: orderId,
+      data: { items: updatedItems }
+    });
+
+    // 檢查是否所有人都已付款，如果是就自動結案
+    const allPaidNow = updatedItems.filter(item => item.member_id !== order.payer_id).every(item => item.paid);
+    if (allPaidNow && order.status !== 'completed') {
+      await handleCompleteOrder(orderId);
+    }
+
     // 如果是勾選已支付，且支付方式為餘額，需要建立轉帳交易
     if (field === 'paid' && value === true) {
       const memberItems = updatedItems.filter(item => item.member_id === memberId);
@@ -230,11 +242,6 @@ export default function DrinkOrder() {
         toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
       }
     }
-
-    await updateOrder.mutateAsync({
-      id: orderId,
-      data: { items: updatedItems }
-    });
   };
 
   const handleFileUpload = async (e) => {
@@ -604,52 +611,75 @@ export default function DrinkOrder() {
               const isPaid = allPaid(order);
               const isCompleted = order.status === 'completed';
               const orderSelectedMembers = selectedMembers[order.id] || [];
+              const isExpanded = expandedOrders[order.id];
+              
+              const memberGroups = {};
+              order.items?.forEach(item => {
+                const key = item.member_id || item.member_name;
+                if (!memberGroups[key]) memberGroups[key] = [];
+                memberGroups[key].push(item);
+              });
+              const totalMembers = Object.keys(memberGroups).length;
+              const totalAmount = order.items?.reduce((sum, i) => sum + i.price, 0) || 0;
               
               return (
                 <Card key={order.id} className={`overflow-hidden ${isCompleted ? 'border-green-500 border-2' : ''}`}>
-                  <div className={`p-4 border-b flex items-center justify-between ${isCompleted ? 'bg-green-50' : 'bg-slate-50'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-600' : 'bg-orange-600'}`}>
+                  <div 
+                    className={`p-4 flex items-center justify-between cursor-pointer hover:bg-opacity-80 transition-colors ${isCompleted ? 'bg-green-50' : 'bg-orange-50'}`}
+                    onClick={() => setExpandedOrders(prev => ({ ...prev, [order.id]: !prev[order.id] }))}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-600' : 'bg-orange-600'}`}>
                         {isCompleted ? (
                           <CheckCircle className="w-6 h-6 text-white" />
                         ) : (
                           <Coffee className="w-6 h-6 text-white" />
                         )}
                       </div>
-                      <div>
-                        <div className="font-semibold text-slate-800">
-                          {formatTaiwanTime(order.created_date, 'HH:mm')} 的訂單
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold text-slate-800">
+                            {formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單
+                          </div>
+                          {order.payer_name && (
+                            <span className="text-xs text-slate-500">· {order.payer_name}</span>
+                          )}
                         </div>
-                        <div className="text-xs text-slate-500">
-                          {isCompleted ? '已結案' : isPaid ? '已全部付款' : '待付款'}
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-600">
+                          <span>{totalMembers} 人</span>
+                          <span>·</span>
+                          <span className="font-semibold text-orange-600">${totalAmount}</span>
+                          <span>·</span>
+                          <span className={isCompleted ? 'text-green-600' : isPaid ? 'text-blue-600' : 'text-amber-600'}>
+                            {isCompleted ? '已結案' : isPaid ? '已付款' : '待付款'}
+                          </span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {!isCompleted && isPaid && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleCompleteOrder(order.id)}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          結案
-                        </Button>
-                      )}
                       {!isCompleted && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deleteOrder.mutate(order.id)}
-                          className="text-red-500 hover:text-red-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteOrder.mutate(order.id);
+                          }}
+                          className="text-red-500 hover:text-red-700 h-8 w-8"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
+                      {isExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-slate-400" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                      )}
                     </div>
                   </div>
 
-                  <div className="p-4">
+                  {isExpanded && (
+                  <div className="p-4 border-t">
                     <div className="flex items-center gap-4 flex-wrap mb-3">
                       <div className="flex items-center gap-2">
                         <label className="text-sm text-slate-600">訂單支付人：</label>
@@ -926,6 +956,7 @@ export default function DrinkOrder() {
                       </table>
                     </div>
                   </div>
+                  )}
                 </Card>
               );
             })}
