@@ -12,6 +12,7 @@ import GroupBuyTemplates from './pages/GroupBuyTemplates';
 import OrderHistoryByDate from './pages/OrderHistoryByDate';
 import OrderHistoryByMember from './pages/OrderHistoryByMember';
 import DrinkOrder from './pages/DrinkOrder';
+import DrinkOrderDetail from './pages/DrinkOrderDetail';
 
 
 export const PAGES = {
@@ -29,6 +30,7 @@ export const PAGES = {
     "OrderHistoryByDate": OrderHistoryByDate,
     "OrderHistoryByMember": OrderHistoryByMember,
     "DrinkOrder": DrinkOrder,
+    "DrinkOrderDetail": DrinkOrderDetail,
 }
 
 export const pagesConfig = {
