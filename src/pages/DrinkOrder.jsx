@@ -527,36 +527,39 @@ export default function DrinkOrder() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* 日期選擇與新增訂單按鈕 */}
+        {/* 日期選擇 */}
         <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
-              <Input
-                type="date"
-                value={orderDate}
-                onChange={(e) => setOrderDate(e.target.value)}
-                className="w-48"
-              />
-            </div>
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-            >
-              <Coffee className="w-4 h-4 mr-2" />
-              新增訂單
-            </Button>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-semibold text-slate-700">查看日期：</label>
+            <Input
+              type="date"
+              value={orderDate}
+              onChange={(e) => setOrderDate(e.target.value)}
+              className="w-48"
+            />
           </div>
         </Card>
 
         {/* 訂單卡片列表 */}
-        {orders.length === 0 ? (
-          <Card className="p-12 text-center border-dashed">
-            <Coffee className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">此日期還沒有訂單</p>
-            <p className="text-slate-400 text-sm mt-1">點擊「新增訂單」開始建立</p>
+        <div className="space-y-4">
+          {/* 新增訂單卡片 */}
+          <Card 
+            className="p-12 border-2 border-dashed border-emerald-300 bg-emerald-50/30 hover:bg-emerald-50/50 cursor-pointer transition-all"
+            onClick={() => setShowCreateDialog(true)}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-full border-3 border-emerald-500 flex items-center justify-center">
+                <Coffee className="w-8 h-8 text-emerald-600" />
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-emerald-900 text-lg">開新訂單</div>
+                <div className="text-sm text-emerald-700">建立新的飲料訂單</div>
+              </div>
+            </div>
           </Card>
-        ) : (
+
+          {/* 現有訂單 */}
+          {orders.length > 0 && (
           <div className="space-y-4">
             {orders.map(order => {
               const isPaid = allPaid(order);
@@ -888,7 +891,7 @@ export default function DrinkOrder() {
               );
             })}
           </div>
-        )}
+        </div>
 
         {/* 新增訂單對話框 */}
         {showCreateDialog && (
@@ -913,6 +916,16 @@ export default function DrinkOrder() {
               </div>
               
               <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
+                  <Input
+                    type="date"
+                    value={orderDate}
+                    onChange={(e) => setOrderDate(e.target.value)}
+                    className="w-48"
+                  />
+                </div>
+
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles className="w-5 h-5 text-purple-600" />
