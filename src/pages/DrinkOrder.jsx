@@ -12,6 +12,7 @@ import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { toast } from "sonner";
 
 export default function DrinkOrder() {
+  const [dateRange, setDateRange] = useState('today');
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
@@ -37,10 +38,24 @@ export default function DrinkOrder() {
   });
 
   const { data: orders = [] } = useQuery({
-    queryKey: ['drinkOrders', orderDate],
+    queryKey: ['drinkOrders', dateRange],
     queryFn: async () => {
       const allOrders = await base44.entities.DrinkOrder.list('-created_date');
-      return allOrders.filter(order => order.order_date === orderDate);
+      const now = new Date();
+      
+      if (dateRange === 'today') {
+        const today = format(now, 'yyyy-MM-dd');
+        return allOrders.filter(order => order.order_date === today);
+      } else if (dateRange === 'week') {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        const startDate = format(startOfWeek, 'yyyy-MM-dd');
+        return allOrders.filter(order => order.order_date >= startDate);
+      } else if (dateRange === 'month') {
+        const startOfMonth = format(new Date(now.getFullYear(), now.getMonth(), 1), 'yyyy-MM-dd');
+        return allOrders.filter(order => order.order_date >= startOfMonth);
+      }
+      return allOrders;
     }
   });
 
@@ -529,14 +544,38 @@ export default function DrinkOrder() {
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* 日期選擇 */}
         <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-semibold text-slate-700">查看日期：</label>
-            <Input
-              type="date"
-              value={orderDate}
-              onChange={(e) => setOrderDate(e.target.value)}
-              className="w-48"
-            />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <label className="text-sm font-semibold text-slate-700">查看訂單：</label>
+            <div className="flex gap-2">
+              <Button
+                variant={dateRange === 'today' ? 'default' : 'outline'}
+                onClick={() => setDateRange('today')}
+                className={`text-sm ${dateRange === 'today' ? 'bg-orange-600' : ''}`}
+              >
+                今天
+              </Button>
+              <Button
+                variant={dateRange === 'week' ? 'default' : 'outline'}
+                onClick={() => setDateRange('week')}
+                className={`text-sm ${dateRange === 'week' ? 'bg-orange-600' : ''}`}
+              >
+                本週
+              </Button>
+              <Button
+                variant={dateRange === 'month' ? 'default' : 'outline'}
+                onClick={() => setDateRange('month')}
+                className={`text-sm ${dateRange === 'month' ? 'bg-orange-600' : ''}`}
+              >
+                本月
+              </Button>
+              <Button
+                variant={dateRange === 'all' ? 'default' : 'outline'}
+                onClick={() => setDateRange('all')}
+                className={`text-sm ${dateRange === 'all' ? 'bg-orange-600' : ''}`}
+              >
+                全部
+              </Button>
+            </div>
           </div>
         </Card>
 
