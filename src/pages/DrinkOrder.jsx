@@ -544,16 +544,16 @@ export default function DrinkOrder() {
         <div className="space-y-4">
           {/* 新增訂單卡片 */}
           <Card 
-            className="p-12 border-2 border-dashed border-emerald-300 bg-emerald-50/30 hover:bg-emerald-50/50 cursor-pointer transition-all"
+            className="p-4 md:p-12 border-2 border-dashed border-emerald-300 bg-emerald-50/30 hover:bg-emerald-50/50 cursor-pointer transition-all"
             onClick={() => setShowCreateDialog(true)}
           >
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 rounded-full border-3 border-emerald-500 flex items-center justify-center">
-                <Coffee className="w-8 h-8 text-emerald-600" />
+            <div className="flex flex-col items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-16 md:h-16 rounded-full border-2 md:border-3 border-emerald-500 flex items-center justify-center">
+                <Coffee className="w-6 h-6 md:w-8 md:h-8 text-emerald-600" />
               </div>
               <div className="text-center">
-                <div className="font-semibold text-emerald-900 text-lg">開新訂單</div>
-                <div className="text-sm text-emerald-700">建立新的飲料訂單</div>
+                <div className="font-semibold text-emerald-900 text-base md:text-lg">開新訂單</div>
+                <div className="text-xs md:text-sm text-emerald-700">建立新的飲料訂單</div>
               </div>
             </div>
           </Card>
