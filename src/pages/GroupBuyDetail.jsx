@@ -396,7 +396,7 @@ export default function GroupBuyDetail() {
     );
   }
 
-  const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
+  const isOrganizer = currentUser && (groupBuy.created_by === currentUser.email || currentUser.role === 'admin');
   const isOpen = groupBuy.status === 'open';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
