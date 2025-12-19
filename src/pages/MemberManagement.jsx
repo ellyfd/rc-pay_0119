@@ -264,14 +264,6 @@ export default function MemberManagement() {
                                 <EyeOff className="w-4 h-4 text-slate-400" />
                               )}
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeletingMember(member)}
-                              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -295,6 +287,10 @@ export default function MemberManagement() {
         onOpenChange={() => setEditingMember(null)}
         member={editingMember}
         onSave={handleEditMember}
+        onDelete={(member) => {
+          setEditingMember(null);
+          setDeletingMember(member);
+        }}
       />
 
       <AlertDialog open={!!deletingMember} onOpenChange={() => setDeletingMember(null)}>

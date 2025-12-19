@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Trash2 } from "lucide-react";
 
 const colors = [
   { name: "blue", bg: "bg-blue-500" },
@@ -19,7 +20,7 @@ const colors = [
   { name: "cyan", bg: "bg-cyan-500" },
 ];
 
-export default function EditMemberDialog({ open, onOpenChange, member, onSave }) {
+export default function EditMemberDialog({ open, onOpenChange, member, onSave, onDelete }) {
   const [formData, setFormData] = useState({
     name: '',
     alias: [],
@@ -198,13 +199,27 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave })
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
-          </Button>
-          <Button onClick={handleSubmit} disabled={!formData.name.trim()}>
-            儲存
-          </Button>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <div className="flex-1 flex justify-start">
+            {onDelete && (
+              <Button
+                variant="outline"
+                onClick={() => onDelete(member)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                刪除成員
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSubmit} disabled={!formData.name.trim()}>
+              儲存
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
