@@ -14,6 +14,7 @@ import { toast } from "sonner";
 export default function DrinkOrder() {
   const [dateRange, setDateRange] = useState('today');
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [storeName, setStoreName] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
@@ -281,6 +282,9 @@ export default function DrinkOrder() {
     ${memberAliasReference}
 
     請在識別訂購人名字時，參考上述成員的姓名和別名進行匹配。
+    
+**店家名稱辨識：**
+- 請識別訂單中的店家名稱（通常在訂單頂部）
 
 **訂單項目的辨識方式：**
 - 每個產品的左側會有一個數字標記（例如：框框內的數字 1、2、3 等）
@@ -302,12 +306,14 @@ export default function DrinkOrder() {
 請仔細查找這些費用項目，如果找不到某項費用，請設為 0。優惠和獎勵請記錄為正數（不要帶負號）。
 
 **請提取以下資訊：**
-1. 每個產品項目的名稱和價格
-2. 每個產品的訂購人名字（去除 "(you)" 或 "(您)" 標記）
-3. 誰是訂單支付者（有 "(you)" 或 "(您)" 標記的人）
-4. 外送費、服務費、外送費優惠、會員獎勵的金額
+1. 店家名稱
+2. 每個產品項目的名稱和價格
+3. 每個產品的訂購人名字（去除 "(you)" 或 "(您)" 標記）
+4. 誰是訂單支付者（有 "(you)" 或 "(您)" 標記的人）
+5. 外送費、服務費、外送費優惠、會員獎勵的金額
 
 請回傳 JSON 格式的資料：
+- store_name: 店家名稱（字串，如果無法識別則設為 "飲料店"）
 - payer_name: 訂單支付者名字（有 "(you)" 或 "(您)" 標記的人，如果有的話）
 - delivery_fee: 外送費（數字，沒有則為 0）
 - service_fee: 服務費（數字，沒有則為 0）
@@ -323,6 +329,7 @@ export default function DrinkOrder() {
         response_json_schema: {
           type: "object",
           properties: {
+            store_name: { type: "string" },
             payer_name: { type: "string" },
             delivery_fee: { type: "number" },
             service_fee: { type: "number" },
@@ -364,6 +371,11 @@ export default function DrinkOrder() {
           };
         });
         setOrderItems(processedItems);
+
+        // 處理店家名稱
+        if (result.store_name) {
+          setStoreName(result.store_name);
+        }
 
         // 處理費用資料
         const delivery = result.delivery_fee || 0;
@@ -428,6 +440,7 @@ export default function DrinkOrder() {
 
     await createOrder.mutateAsync({
       order_date: orderDate,
+      store_name: storeName || '飲料店',
       image_url: uploadedImageUrl,
       items: cleanedItems,
       total_amount: totalAmount,
@@ -438,6 +451,7 @@ export default function DrinkOrder() {
     });
 
     setOrderItems([]);
+    setStoreName('');
     setUploadedImageUrl('');
     setManualAdjustment(0);
     setFeeDetails({
@@ -637,7 +651,7 @@ export default function DrinkOrder() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <div className="font-semibold text-slate-800">
-                              {formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單
+                              {format(new Date(order.order_date), 'MM/dd')} {order.store_name || '飲料店'}
                             </div>
                             {order.payer_name && (
                               <span className="text-xs text-slate-500">· {order.payer_name}</span>
@@ -689,6 +703,7 @@ export default function DrinkOrder() {
                   onClick={() => {
                     setShowCreateDialog(false);
                     setOrderItems([]);
+                    setStoreName('');
                     setUploadedImageUrl('');
                     setManualAdjustment(0);
                     setFeeDetails({ delivery_fee: 0, service_fee: 0, delivery_discount: 0, member_rewards: 0 });
@@ -700,14 +715,26 @@ export default function DrinkOrder() {
               </div>
               
               <div className="p-6 space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
-                  <Input
-                    type="date"
-                    value={orderDate}
-                    onChange={(e) => setOrderDate(e.target.value)}
-                    className="w-48"
-                  />
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
+                    <Input
+                      type="date"
+                      value={orderDate}
+                      onChange={(e) => setOrderDate(e.target.value)}
+                      className="w-48"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">店家名稱</label>
+                    <Input
+                      type="text"
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                      placeholder="例如：50嵐、清心福全、coco都可"
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
