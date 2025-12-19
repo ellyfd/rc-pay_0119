@@ -186,7 +186,10 @@ export default function AdminOrders() {
 
       const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
 
-      if (order.payment_method === 'balance') {
+      if (order.payment_method === 'payer') {
+        // Skip transaction for payer
+        continue;
+      } else if (order.payment_method === 'balance') {
         await createTransaction.mutateAsync({
           type: 'withdraw',
           amount: order.total_amount,
@@ -412,8 +415,14 @@ export default function AdminOrders() {
                             )}
                           </td>
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3">
-                            <Badge className={`text-[10px] sm:text-xs ${order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}`}>
-                              {order.payment_method === 'cash' ? '現金' : '餘額'}
+                            <Badge className={`text-[10px] sm:text-xs ${
+                              order.payment_method === 'cash' ? 'bg-amber-500' : 
+                              order.payment_method === 'payer' ? 'bg-green-500' :
+                              'bg-blue-500'
+                            }`}>
+                              {order.payment_method === 'cash' ? '現金' : 
+                               order.payment_method === 'payer' ? '支付人' :
+                               '餘額'}
                             </Badge>
                           </td>
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-bold text-emerald-600 whitespace-nowrap">

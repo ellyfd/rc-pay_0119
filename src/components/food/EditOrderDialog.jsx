@@ -193,6 +193,7 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
               <SelectContent>
                 <SelectItem value="balance">餘額</SelectItem>
                 <SelectItem value="cash">現金</SelectItem>
+                <SelectItem value="payer">支付人</SelectItem>
               </SelectContent>
             </Select>
           </div>

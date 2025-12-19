@@ -26,6 +26,7 @@ export default function FoodOrder() {
   const [sideDishes, setSideDishes] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('balance');
   const [note, setNote] = useState('');
+  const [payerId, setPayerId] = useState('');
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -103,15 +104,21 @@ export default function FoodOrder() {
     if (!member) return;
 
     const totalAmount = getTotal();
+    
+    // Determine payment method based on whether member is the payer
+    const finalPaymentMethod = payerId && selectedMember === payerId ? 'payer' : paymentMethod;
+    const payer = payerId ? allMembers.find(m => m.id === payerId) : null;
 
     // Create order with pending status
     const orderRecord = await createOrder.mutateAsync({
       member_id: member.id,
       member_name: member.name,
       total_amount: totalAmount,
-      payment_method: paymentMethod,
+      payment_method: finalPaymentMethod,
       status: 'pending',
       order_date: orderDate,
+      payer_id: payerId || undefined,
+      payer_name: payer?.name || undefined,
       note: note || undefined
     });
 
@@ -149,6 +156,7 @@ export default function FoodOrder() {
     setRiceOption('normal');
     setSideDishes([]);
     setNote('');
+    setPayerId('');
     alert('訂單已送出，等待管理員結帳！');
   };
 
@@ -347,19 +355,44 @@ export default function FoodOrder() {
                 )}
               </div>
 
-              {/* Payment Method */}
+              {/* Payer Selection */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">付款方式</label>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">付款人（選填）</label>
+                <Select value={payerId} onValueChange={setPayerId}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="選擇統一付款的人（留空則各付各的）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="balance">餘額</SelectItem>
-                    <SelectItem value="cash">現金</SelectItem>
+                    <SelectItem value={null}>無（各付各的）</SelectItem>
+                    {allMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Payment Method */}
+              {selectedMember !== payerId && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">付款方式</label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="balance">餘額</SelectItem>
+                      <SelectItem value="cash">現金</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {selectedMember === payerId && payerId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800 font-medium">您是付款人，此訂單將由您統一支付，不會扣除您的餘額</p>
+                </div>
+              )}
 
               {/* Note */}
               <div>
