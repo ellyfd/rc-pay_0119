@@ -421,7 +421,7 @@ export default function AdminOrders() {
                           </td>
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
                             {currentUser?.role === 'admin' && orderStatus === 'pending' ? (
-                              <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+                              <div className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1">
                                 <Button
                                   variant="ghost"
                                   size="icon"
