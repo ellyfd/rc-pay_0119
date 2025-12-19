@@ -664,16 +664,14 @@ export default function GroupBuyDetail() {
                       <Copy className="w-4 h-4 mr-2" />
                       另存為範本
                     </Button>
-                    {!isFullyPaid && (
-                      <Button
-                        onClick={() => setDeletingGroupBuy(true)}
-                        variant="outline"
-                        className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        刪除團購
-                      </Button>
-                    )}
+                    <Button
+                      onClick={() => setDeletingGroupBuy(true)}
+                      variant="outline"
+                      className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      刪除團購
+                    </Button>
                   </div>
                 )}
               </div>
