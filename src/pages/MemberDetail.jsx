@@ -122,15 +122,19 @@ export default function MemberDetail() {
       if (type === 'deposit' && to_member_id) {
         const member = allMembers.find(m => m.id === to_member_id);
         if (member) {
+          const newBalance = (member[balanceField] || 0) - amount;
           await base44.entities.Member.update(to_member_id, {
-            [balanceField]: (member[balanceField] || 0) - amount
+            balance: wallet_type === 'balance' ? newBalance : member.balance,
+            cash_balance: wallet_type === 'cash' ? newBalance : member.cash_balance
           });
         }
       } else if (type === 'withdraw' && from_member_id) {
         const member = allMembers.find(m => m.id === from_member_id);
         if (member) {
+          const newBalance = (member[balanceField] || 0) + amount;
           await base44.entities.Member.update(from_member_id, {
-            [balanceField]: (member[balanceField] || 0) + amount
+            balance: wallet_type === 'balance' ? newBalance : member.balance,
+            cash_balance: wallet_type === 'cash' ? newBalance : member.cash_balance
           });
         }
       } else if (type === 'transfer' && from_member_id && to_member_id) {
@@ -138,13 +142,17 @@ export default function MemberDetail() {
         const toMember = allMembers.find(m => m.id === to_member_id);
         
         if (fromMember) {
+          const newFromBalance = (fromMember[balanceField] || 0) + amount;
           await base44.entities.Member.update(from_member_id, {
-            [balanceField]: (fromMember[balanceField] || 0) + amount
+            balance: wallet_type === 'balance' ? newFromBalance : fromMember.balance,
+            cash_balance: wallet_type === 'cash' ? newFromBalance : fromMember.cash_balance
           });
         }
         if (toMember) {
+          const newToBalance = (toMember[balanceField] || 0) - amount;
           await base44.entities.Member.update(to_member_id, {
-            [balanceField]: (toMember[balanceField] || 0) - amount
+            balance: wallet_type === 'balance' ? newToBalance : toMember.balance,
+            cash_balance: wallet_type === 'cash' ? newToBalance : toMember.cash_balance
           });
         }
       }
