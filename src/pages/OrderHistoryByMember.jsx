@@ -176,17 +176,17 @@ export default function OrderHistoryByMember() {
 
                 <Card className="overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[700px] text-xs sm:text-sm">
                       <thead className="bg-slate-50">
                         <tr>
-                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">日期</th>
-                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">時間</th>
-                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">餐盒</th>
-                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">飯量</th>
-                          <th className="px-3 py-3 text-left text-sm font-semibold text-slate-700 border-b">單點</th>
-                          <th className="px-3 py-3 text-center text-sm font-semibold text-slate-700 border-b">付款</th>
-                          <th className="px-3 py-3 text-center text-sm font-semibold text-slate-700 border-b">狀態</th>
-                          <th className="px-3 py-3 text-right text-sm font-semibold text-slate-700 border-b">金額</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[8%]">日期</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[7%]">時間</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[22%]">餐盒</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[8%]">飯量</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">單點</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">付款</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">狀態</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b w-[15%]">金額</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -204,63 +204,59 @@ export default function OrderHistoryByMember() {
 
                           return (
                             <tr key={order.id} className="border-b hover:bg-slate-50">
-                              <td className="px-3 py-3">
-                                <div className="text-sm text-slate-700">
-                                  {format(new Date(order.order_date), 'MM/dd')}
-                                </div>
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-slate-700 whitespace-nowrap">
+                                {format(new Date(order.order_date), 'MM/dd')}
                               </td>
-                              <td className="px-3 py-3">
-                                <div className="text-sm text-slate-700">
-                                  {formatTaiwanTime(order.created_date, 'HH:mm')}
-                                </div>
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-slate-700 whitespace-nowrap">
+                                {formatTaiwanTime(order.created_date, 'HH:mm')}
                               </td>
-                              <td className="px-3 py-3">
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                                 {mealBox ? (
-                                  <div className="text-sm text-slate-700">
-                                    {mealBox.product_name}
-                                    <div className="text-xs text-slate-500">${mealBox.price}</div>
+                                  <div className="text-slate-700 leading-tight">
+                                    <div className="break-words line-clamp-2">{mealBox.product_name}</div>
+                                    <div className="text-[10px] sm:text-xs text-slate-500">${mealBox.price}</div>
                                   </div>
                                 ) : (
-                                  <span className="text-slate-400 text-sm">-</span>
+                                  <span className="text-slate-400">-</span>
                                 )}
                               </td>
-                              <td className="px-3 py-3">
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                                 {mealBox && mealBoxItem ? (
-                                  <span className="text-sm text-slate-700">
+                                  <span className="text-slate-700 whitespace-nowrap">
                                     {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
                                      mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
                                   </span>
                                 ) : mealBox ? (
-                                  <span className="text-sm text-slate-700">正常</span>
+                                  <span className="text-slate-700">正常</span>
                                 ) : (
-                                  <span className="text-slate-400 text-sm">-</span>
+                                  <span className="text-slate-400">-</span>
                                 )}
                               </td>
-                              <td className="px-3 py-3">
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                                 {sideItems.length > 0 ? (
-                                  <div className="space-y-1">
+                                  <div className="space-y-0.5">
                                     {sideItems.map(item => (
-                                      <div key={item.id} className="text-sm text-slate-700">
+                                      <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
                                         {item.product_name}
-                                        <span className="text-xs text-slate-500 ml-1">${item.price}</span>
+                                        <span className="text-[10px] sm:text-xs text-slate-500 ml-1">${item.price}</span>
                                       </div>
                                     ))}
                                   </div>
                                 ) : (
-                                  <span className="text-slate-400 text-sm">-</span>
+                                  <span className="text-slate-400">-</span>
                                 )}
                               </td>
-                              <td className="px-3 py-3 text-center">
-                                <Badge className={order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}>
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
+                                <Badge className={`text-[10px] sm:text-xs ${order.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'}`}>
                                   {order.payment_method === 'cash' ? '現金' : '餘額'}
                                 </Badge>
                               </td>
-                              <td className="px-3 py-3 text-center">
-                                <Badge className={order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}>
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
+                                <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}`}>
                                   {order.status === 'completed' ? '已完成' : '待處理'}
                                 </Badge>
                               </td>
-                              <td className="px-3 py-3 text-right font-bold text-emerald-600">
+                              <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-bold text-emerald-600 whitespace-nowrap">
                                 ${order.total_amount.toLocaleString()}
                               </td>
                             </tr>
