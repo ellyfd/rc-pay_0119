@@ -394,6 +394,7 @@ export default function MemberDetail() {
               <Card className="p-4 animate-pulse">
                 <div className="h-20 bg-slate-200 rounded" />
               </Card>
+            ) : (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px] text-xs sm:text-sm">
@@ -466,6 +467,7 @@ export default function MemberDetail() {
                 </table>
               </div>
             </Card>
+            )}
           </section>
         )}
 
@@ -586,7 +588,6 @@ export default function MemberDetail() {
             </Card>
           )}
         </section>
-        )}
       </div>
     </div>
   );
