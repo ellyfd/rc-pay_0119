@@ -23,6 +23,7 @@ export default function DrinkOrder() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState({});
   const [manualAdjustment, setManualAdjustment] = useState(0);
+  const [shouldSplitFees, setShouldSplitFees] = useState(true);
   const [actualCharges, setActualCharges] = useState({});
   const [expandedOrders, setExpandedOrders] = useState({});
   const [feeDetails, setFeeDetails] = useState({
@@ -436,7 +437,7 @@ export default function DrinkOrder() {
     // 清理items，移除臨時欄位
     const cleanedItems = orderItems.map(({ _suggested_payer_id, _suggested_payer_name, ...item }) => item);
 
-    const shippingFee = feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment;
+    const shippingFee = shouldSplitFees ? feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment : 0;
 
     await createOrder.mutateAsync({
       order_date: orderDate,
@@ -454,6 +455,7 @@ export default function DrinkOrder() {
     setStoreName('');
     setUploadedImageUrl('');
     setManualAdjustment(0);
+    setShouldSplitFees(true);
     setFeeDetails({
       delivery_fee: 0,
       service_fee: 0,
@@ -706,6 +708,7 @@ export default function DrinkOrder() {
                     setStoreName('');
                     setUploadedImageUrl('');
                     setManualAdjustment(0);
+                    setShouldSplitFees(true);
                     setFeeDetails({ delivery_fee: 0, service_fee: 0, delivery_discount: 0, member_rewards: 0 });
                     if (fileInputRef.current) fileInputRef.current.value = '';
                   }}
@@ -715,26 +718,14 @@ export default function DrinkOrder() {
               </div>
               
               <div className="p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
-                    <Input
-                      type="date"
-                      value={orderDate}
-                      onChange={(e) => setOrderDate(e.target.value)}
-                      className="w-48"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">店家名稱</label>
-                    <Input
-                      type="text"
-                      value={storeName}
-                      onChange={(e) => setStoreName(e.target.value)}
-                      placeholder="例如：50嵐、清心福全、coco都可"
-                      className="w-full"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
+                  <Input
+                    type="date"
+                    value={orderDate}
+                    onChange={(e) => setOrderDate(e.target.value)}
+                    className="w-48"
+                  />
                 </div>
 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -786,8 +777,19 @@ export default function DrinkOrder() {
                         className="max-w-full h-auto max-h-64 rounded-lg border"
                       />
                     </div>
-                  )}
-                </div>
+                    )}
+                    </div>
+
+                    <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">店家名稱</label>
+                    <Input
+                    type="text"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="例如：50嵐、清心福全、coco都可"
+                    className="w-full"
+                    />
+                    </div>
 
                 {orderItems.length > 0 && (
                   <>
@@ -923,10 +925,30 @@ export default function DrinkOrder() {
                           className="w-32 text-sm"
                         />
                       </div>
-                      <div className="flex justify-between pt-2 border-t">
-                        <span className="text-sm font-semibold text-slate-700">其它費用（均分）：</span>
-                        <span className="text-sm font-bold text-orange-600">
-                          ${feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment}
+                      <div className="flex items-center gap-3 pt-2 border-t">
+                        <span className="text-sm font-semibold text-slate-700">其它費用：</span>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant={shouldSplitFees ? 'default' : 'outline'}
+                            onClick={() => setShouldSplitFees(true)}
+                            size="sm"
+                            className={`text-xs ${shouldSplitFees ? 'bg-orange-600' : ''}`}
+                          >
+                            均分
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={!shouldSplitFees ? 'default' : 'outline'}
+                            onClick={() => setShouldSplitFees(false)}
+                            size="sm"
+                            className={`text-xs ${!shouldSplitFees ? 'bg-slate-600' : ''}`}
+                          >
+                            不用支付
+                          </Button>
+                        </div>
+                        <span className="text-sm font-bold text-orange-600 ml-auto">
+                          ${shouldSplitFees ? feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment : 0}
                         </span>
                       </div>
                     </div>
