@@ -104,55 +104,66 @@ export default function MemberDetail() {
   });
 
   const handleCancelTransaction = async (transaction) => {
-    if (!currentUser || currentUser.role !== 'admin') return;
+    if (!currentUser || currentUser.role !== 'admin') {
+      toast.error('只有管理員可以執行此操作');
+      return;
+    }
 
     const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
     const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
+    toast.loading('正在撤銷交易...');
+
     try {
+      // Fetch fresh member data
+      const allMembers = await base44.entities.Member.list();
+
       // Reverse balance changes
       if (type === 'deposit' && to_member_id) {
-        const toMember = await base44.entities.Member.list();
-        const member = toMember.find(m => m.id === to_member_id);
+        const member = allMembers.find(m => m.id === to_member_id);
         if (member) {
-          await updateMemberBalance.mutateAsync({
-            id: to_member_id,
-            data: { [balanceField]: (member[balanceField] || 0) - amount }
+          await base44.entities.Member.update(to_member_id, {
+            [balanceField]: (member[balanceField] || 0) - amount
           });
         }
       } else if (type === 'withdraw' && from_member_id) {
-        const fromMembers = await base44.entities.Member.list();
-        const member = fromMembers.find(m => m.id === from_member_id);
+        const member = allMembers.find(m => m.id === from_member_id);
         if (member) {
-          await updateMemberBalance.mutateAsync({
-            id: from_member_id,
-            data: { [balanceField]: (member[balanceField] || 0) + amount }
+          await base44.entities.Member.update(from_member_id, {
+            [balanceField]: (member[balanceField] || 0) + amount
           });
         }
       } else if (type === 'transfer' && from_member_id && to_member_id) {
-        const allMembers = await base44.entities.Member.list();
         const fromMember = allMembers.find(m => m.id === from_member_id);
         const toMember = allMembers.find(m => m.id === to_member_id);
         
         if (fromMember) {
-          await updateMemberBalance.mutateAsync({
-            id: from_member_id,
-            data: { [balanceField]: (fromMember[balanceField] || 0) + amount }
+          await base44.entities.Member.update(from_member_id, {
+            [balanceField]: (fromMember[balanceField] || 0) + amount
           });
         }
         if (toMember) {
-          await updateMemberBalance.mutateAsync({
-            id: to_member_id,
-            data: { [balanceField]: (toMember[balanceField] || 0) - amount }
+          await base44.entities.Member.update(to_member_id, {
+            [balanceField]: (toMember[balanceField] || 0) - amount
           });
         }
       }
 
       // Delete transaction
-      await deleteTransaction.mutateAsync(transaction.id);
+      await base44.entities.Transaction.delete(transaction.id);
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+
       setTransactionToCancel(null);
+      toast.dismiss();
+      toast.success('交易已撤銷，餘額已還原');
     } catch (error) {
       console.error('Failed to cancel transaction:', error);
+      toast.dismiss();
+      toast.error(`撤銷失敗：${error.message}`);
     }
   };
 
