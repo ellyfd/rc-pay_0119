@@ -416,12 +416,13 @@ export default function MemberDetail() {
 
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[400px] text-xs sm:text-sm">
+              <table className="w-full min-w-[500px] text-xs sm:text-sm">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[18%]">日期</th>
-                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[45%]">品項</th>
-                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[20%]">金額</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[15%]">日期</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[35%]">品項</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[15%]">訂單狀態</th>
+                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[18%]">金額</th>
                     <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[17%]">狀態</th>
                   </tr>
                 </thead>
@@ -442,6 +443,13 @@ export default function MemberDetail() {
                         <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
                           <div className="line-clamp-2">{item.item_name}</div>
                         </td>
+                        {idx === 0 && (
+                          <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={order.memberItems.length}>
+                            <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
+                              {order.status === 'completed' ? '已完成' : '進行中'}
+                            </Badge>
+                          </td>
+                        )}
                         <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap text-[11px] sm:text-sm">
                           ${item.price?.toLocaleString() || 0}
                         </td>
