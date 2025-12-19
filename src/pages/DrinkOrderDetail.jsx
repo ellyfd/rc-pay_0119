@@ -127,13 +127,15 @@ export default function DrinkOrderDetail() {
       data: { items: updatedItems }
     });
 
-    const allPaidNow = updatedItems.filter(item => item.member_id !== order.payer_id).every(item => item.paid);
-    if (allPaidNow && order.status !== 'completed') {
-      await updateOrder.mutateAsync({
-        id: orderId,
-        data: { status: 'completed' }
-      });
-      toast.success('訂單已結案！');
+    if (field === 'paid') {
+      const allPaidNow = updatedItems.filter(item => item.member_id !== order.payer_id).every(item => item.paid);
+      if (allPaidNow && order.status !== 'completed') {
+        await updateOrder.mutateAsync({
+          id: orderId,
+          data: { status: 'completed' }
+        });
+        toast.success('訂單已結案！');
+      }
     }
 
     if (field === 'paid' && value === true) {
