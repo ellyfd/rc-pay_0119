@@ -141,51 +141,71 @@ export default function DrinkOrderDetail() {
     if (field === 'paid' && value === true) {
       const memberItems = updatedItems.filter(item => item.member_id === memberId);
       const paymentMethod = memberItems[0]?.payment_method || 'cash';
-      
+
       if (paymentMethod === 'balance') {
         if (!memberId || !order.payer_id) {
           toast.warning('請先選擇訂單支付人和成員！');
           return;
         }
-        
+
         const fromMember = members.find(m => m.id === memberId);
         const toMember = members.find(m => m.id === order.payer_id);
-        
+
         if (!fromMember || !toMember) return;
 
         const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
-        
+
         const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
         const totalMembers = allMemberIds.length;
         const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
-        const totalAmount = Math.round(itemTotal + shippingPerMember);
+
+        // Use actual charge if set, otherwise use calculated amount
+        const chargeKey = `${orderId}_${memberId}`;
+        const calculatedAmount = Math.round(itemTotal + shippingPerMember);
+        const totalAmount = actualCharges[chargeKey] ?? calculatedAmount;
 
         if ((fromMember.balance || 0) < totalAmount) {
-          toast.warning(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}，建議充值`);
+          toast.error(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}`);
+          return;
         }
 
-        await createTransaction.mutateAsync({
-          type: 'transfer',
-          amount: totalAmount,
-          wallet_type: 'balance',
-          from_member_id: fromMember.id,
-          to_member_id: toMember.id,
-          from_member_name: fromMember.name,
-          to_member_name: toMember.name,
-          note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料`
-        });
+        try {
+          await createTransaction.mutateAsync({
+            type: 'transfer',
+            amount: totalAmount,
+            wallet_type: 'balance',
+            from_member_id: fromMember.id,
+            to_member_id: toMember.id,
+            from_member_name: fromMember.name,
+            to_member_name: toMember.name,
+            note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料`
+          });
 
-        await updateMember.mutateAsync({
-          id: fromMember.id,
-          data: { balance: (fromMember.balance || 0) - totalAmount }
-        });
+          await updateMember.mutateAsync({
+            id: fromMember.id,
+            data: { balance: (fromMember.balance || 0) - totalAmount }
+          });
 
-        await updateMember.mutateAsync({
-          id: toMember.id,
-          data: { balance: (toMember.balance || 0) + totalAmount }
-        });
+          await updateMember.mutateAsync({
+            id: toMember.id,
+            data: { balance: (toMember.balance || 0) + totalAmount }
+          });
 
-        toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
+          toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
+        } catch (error) {
+          console.error('轉帳失敗:', error);
+          toast.error(`轉帳失敗：${error.message}`);
+          // Revert the paid status
+          await updateOrder.mutateAsync({
+            id: orderId,
+            data: { 
+              items: order.items.map(item => 
+                item.member_id === memberId ? { ...item, paid: false } : item
+              )
+            }
+          });
+          return;
+        }
       }
     }
   };
