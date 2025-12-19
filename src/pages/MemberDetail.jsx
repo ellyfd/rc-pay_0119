@@ -444,7 +444,7 @@ export default function MemberDetail() {
                           <div className="line-clamp-2">{item.item_name}</div>
                         </td>
                         {idx === 0 && (
-                          <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={order.memberItems.length}>
+                          <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-middle" rowSpan={order.memberItems.length}>
                             <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
                               {order.status === 'completed' ? '已完成' : '待付款'}
                             </Badge>
