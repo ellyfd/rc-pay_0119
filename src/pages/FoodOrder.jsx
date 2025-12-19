@@ -214,19 +214,18 @@ export default function FoodOrder() {
           <Card className="p-6">
             <div className="space-y-6">
               {/* Date & Member Selection */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-2">訂餐日期</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂餐日期</label>
                   <Input
                     type="date"
                     value={orderDate}
                     onChange={(e) => setOrderDate(e.target.value)}
-                    className="text-xs sm:text-sm"
                   />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-1 sm:mb-2">
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700">訂購人</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">訂購人</label>
                     <Button
                       type="button"
                       variant="ghost"
@@ -244,15 +243,14 @@ export default function FoodOrder() {
                           }
                         }
                       }}
-                      className="text-emerald-600 hover:text-emerald-700 h-auto py-0.5 text-xs sm:text-sm px-1 sm:px-2"
+                      className="text-emerald-600 hover:text-emerald-700 h-auto py-1"
                     >
-                      <span className="hidden sm:inline">{isOrderingForOthers ? '取消代訂' : '代替訂購'}</span>
-                      <span className="sm:hidden">{isOrderingForOthers ? '取消' : '代訂'}</span>
+                      {isOrderingForOthers ? '取消代訂' : '代替訂購'}
                     </Button>
                   </div>
                   {isOrderingForOthers ? (
                     <Select value={selectedMember} onValueChange={setSelectedMember}>
-                      <SelectTrigger className="text-xs sm:text-sm h-9 sm:h-10">
+                      <SelectTrigger>
                         <SelectValue placeholder="選擇成員" />
                       </SelectTrigger>
                       <SelectContent>
@@ -267,7 +265,7 @@ export default function FoodOrder() {
                     <Input
                       value={allMembers.find(m => m.id === selectedMember)?.name || ''}
                       disabled
-                      className="bg-slate-50 text-xs sm:text-sm h-9 sm:h-10"
+                      className="bg-slate-50"
                     />
                   )}
                 </div>
