@@ -587,6 +587,7 @@ export default function MemberDetail() {
             </Card>
           )}
         </section>
+        )}
       </div>
     </div>
   );
