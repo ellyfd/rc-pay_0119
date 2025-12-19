@@ -1045,11 +1045,11 @@ export default function MemberDetail() {
               <table className="w-full min-w-[500px] text-xs sm:text-sm">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[15%]">日期</th>
-                    <th className="text-left px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[35%]">品項</th>
-                    <th className="text-center px-0.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[15%]">訂單狀態</th>
-                    <th className="text-right px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[18%]">金額</th>
-                    <th className="text-center px-0.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[17%]">狀態</th>
+                    <th className="text-left px-2 py-2 font-semibold text-slate-700">日期</th>
+                    <th className="text-left px-2 py-2 font-semibold text-slate-700">品項</th>
+                    <th className="text-center px-2 py-2 font-semibold text-slate-700">訂單狀態</th>
+                    <th className="text-right px-2 py-2 font-semibold text-slate-700">金額</th>
+                    <th className="text-center px-2 py-2 font-semibold text-slate-700">狀態</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -1057,7 +1057,7 @@ export default function MemberDetail() {
                     order.memberItems.map((item, idx) => (
                       <tr key={`${order.id}-${idx}`} className="hover:bg-slate-50">
                         {idx === 0 && (
-                          <td className="px-1 sm:px-4 py-2 sm:py-3 align-middle text-slate-700 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={order.memberItems.length}>
+                          <td className="px-2 py-2 align-middle text-slate-700 whitespace-nowrap" rowSpan={order.memberItems.length}>
                             <Link 
                               to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
                               className="text-slate-800 hover:text-orange-600"
@@ -1066,20 +1066,20 @@ export default function MemberDetail() {
                             </Link>
                           </td>
                         )}
-                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
+                        <td className="px-2 py-2 text-slate-700">
                           <div className="line-clamp-2">{item.item_name}</div>
                         </td>
                         {idx === 0 && (
-                          <td className="px-0.5 sm:px-4 py-2 sm:py-3 text-center align-middle" rowSpan={order.memberItems.length}>
+                          <td className="px-2 py-2 text-center align-middle" rowSpan={order.memberItems.length}>
                             <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
                               {order.status === 'completed' ? '已完成' : '待付款'}
                             </Badge>
                           </td>
                         )}
-                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap text-[11px] sm:text-sm">
+                        <td className="px-2 py-2 text-right text-slate-700 whitespace-nowrap">
                           ${item.price?.toLocaleString() || 0}
                         </td>
-                        <td className="px-0.5 sm:px-4 py-2 sm:py-3 text-center">
+                        <td className="px-2 py-2 text-center">
                           {order.payer_id && item.member_id === order.payer_id ? (
                             <span className="text-slate-500 text-[10px] sm:text-xs">不需支付</span>
                           ) : (
