@@ -324,19 +324,7 @@ export default function GroupBuyDetail() {
     return Math.round(originalPrice * discountMultiplier * 100) / 100;
   };
 
-  const handleCompleteGroupBuy = async () => {
-    if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
 
-    try {
-      await updateGroupBuy.mutateAsync({
-        id: groupBuyId,
-        data: { status: 'completed' }
-      });
-      toast.success('結單完成！請查看下方訂購彙總表。');
-    } catch (error) {
-      toast.error('結單失敗：' + error.message);
-    }
-  };
 
   const handleTogglePaid = async (summary) => {
     // Check if all items have payment method selected
@@ -400,9 +388,9 @@ export default function GroupBuyDetail() {
   const isOpen = groupBuy.status === 'open';
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
-  // Check if all items are paid (for settled status)
+  // Check if all items are paid
   const allPaid = items.length > 0 && items.every(item => item.paid);
-  const isSettled = groupBuy.status === 'completed' && allPaid;
+  const isCompleted = groupBuy.status === 'closed' && allPaid;
 
   // Check if discount creates decimals
   const hasDiscountDecimals = () => {
@@ -524,12 +512,10 @@ export default function GroupBuyDetail() {
                     <h1 className="text-xl font-bold text-slate-800">{groupBuy.title}</h1>
                     <Badge className={
                       groupBuy.status === 'open' ? 'bg-green-500' :
-                      groupBuy.status === 'closed' ? 'bg-amber-500' :
-                      'bg-blue-500'
+                      allPaid ? 'bg-blue-500' : 'bg-amber-500'
                     }>
                       {groupBuy.status === 'open' ? '進行中' :
-                       groupBuy.status === 'closed' ? '已下單' :
-                       '已完成'}
+                       allPaid ? '已完成' : '已下單'}
                     </Badge>
                   </div>
                   {groupBuy.description && (
@@ -647,15 +633,7 @@ export default function GroupBuyDetail() {
                         截止團購
                       </Button>
                     )}
-                    {groupBuy.status === 'closed' && items.length > 0 && !allPaid && (
-                      <Button
-                        onClick={handleCompleteGroupBuy}
-                        className="w-full bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        標記為已完成
-                      </Button>
-                    )}
+
                     <Button
                       onClick={handleSaveAsTemplate}
                       variant="outline"

@@ -273,12 +273,12 @@ export default function MemberDetail() {
 
   // Pending Items - Group Buys (as organizer with unpaid items)
   const pendingOrganizerGroupBuys = organizedGroupBuys.filter(gb => 
-    gb.status !== 'open' && !gb.allPaid
+    gb.status === 'closed' && !gb.allPaid
   );
 
   // Pending Items - Group Buys (as participant with unpaid items)
   const pendingParticipantGroupBuys = groupBuysByMember.filter(gb => 
-    gb.group_buy_status !== 'open' && gb.items.some(item => !item.paid)
+    gb.group_buy_status === 'closed' && gb.items.some(item => !item.paid)
   );
 
   // Pending Items - Drink Orders (unpaid)
@@ -822,13 +822,11 @@ export default function MemberDetail() {
                           <Badge 
                             className={`text-[10px] sm:text-xs whitespace-nowrap ${
                               gb.status === 'open' ? 'bg-green-500' :
-                              gb.status === 'closed' ? 'bg-amber-500' :
-                              'bg-slate-500'
+                              gb.allPaid ? 'bg-blue-500' : 'bg-amber-500'
                             }`}
                           >
                             {gb.status === 'open' ? '進行中' :
-                             gb.status === 'closed' ? '已截止' :
-                             '已結單'}
+                             gb.allPaid ? '已完成' : '已下單'}
                           </Badge>
                         </td>
                         <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
@@ -899,13 +897,11 @@ export default function MemberDetail() {
                                 <Badge 
                                   className={`text-[10px] sm:text-xs whitespace-nowrap ${
                                     groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
-                                    groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
-                                    allPaid ? 'bg-blue-500' : 'bg-slate-500'
+                                    allPaid ? 'bg-blue-500' : 'bg-amber-500'
                                   }`}
                                 >
                                   {groupBuy.group_buy_status === 'open' ? '進行中' :
-                                   groupBuy.group_buy_status === 'closed' ? '已截止' :
-                                   allPaid ? '已結清' : '已結單'}
+                                   allPaid ? '已完成' : '已下單'}
                                 </Badge>
                               </td>
                             </>
