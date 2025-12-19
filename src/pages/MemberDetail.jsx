@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -13,6 +14,7 @@ import { format } from "date-fns";
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
   const [showStats, setShowStats] = useState(false);
+  const [activeTab, setActiveTab] = useState('pending');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -154,7 +156,7 @@ export default function MemberDetail() {
     .map(order => {
       const memberItems = (order.items || []).filter(item => item.member_id === memberId);
       if (memberItems.length === 0) return null;
-      
+
       const totalAmount = memberItems.reduce((sum, item) => sum + (item.price || 0), 0);
       return {
         ...order,
@@ -163,6 +165,26 @@ export default function MemberDetail() {
       };
     })
     .filter(Boolean);
+
+  // Pending Items - Group Buys (as organizer with unpaid items)
+  const pendingOrganizerGroupBuys = organizedGroupBuys.filter(gb => 
+    gb.status !== 'open' && !gb.allPaid
+  );
+
+  // Pending Items - Group Buys (as participant with unpaid items)
+  const pendingParticipantGroupBuys = groupBuysByMember.filter(gb => 
+    gb.group_buy_status !== 'open' && gb.items.some(item => !item.paid)
+  );
+
+  // Pending Items - Drink Orders (unpaid)
+  const pendingDrinkOrders = memberDrinkOrders.filter(order => 
+    order.status !== 'completed' && 
+    order.memberItems.some(item => !item.paid && item.member_id !== order.payer_id)
+  );
+
+  const hasPendingItems = pendingOrganizerGroupBuys.length > 0 || 
+                          pendingParticipantGroupBuys.length > 0 || 
+                          pendingDrinkOrders.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -215,8 +237,190 @@ export default function MemberDetail() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Statistics Cards */}
-        {showStats && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="pending" className="relative">
+              未結案
+              {hasPendingItems && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="rcpay">RC Pay</TabsTrigger>
+            <TabsTrigger value="groupbuy">團購</TabsTrigger>
+            <TabsTrigger value="drink">飲料</TabsTrigger>
+          </TabsList>
+
+          {/* Pending Items Tab */}
+          <TabsContent value="pending" className="space-y-6">
+            {!hasPendingItems ? (
+              <Card className="p-8 text-center border-dashed">
+                <AlertCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                <p className="text-slate-500">沒有未結案項目</p>
+                <p className="text-slate-400 text-sm mt-1">所有款項都已結清</p>
+              </Card>
+            ) : (
+              <>
+                {/* Pending Group Buys (as organizer) */}
+                {pendingOrganizerGroupBuys.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Package className="w-5 h-5 text-red-500" />
+                      <h2 className="text-lg font-semibold text-slate-800">我開的團購（未收齊款項）</h2>
+                      <Badge className="bg-red-500">{pendingOrganizerGroupBuys.length}</Badge>
+                    </div>
+                    <Card>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 border-b">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-semibold text-slate-700">團購名稱</th>
+                              <th className="text-center px-4 py-3 font-semibold text-slate-700">狀態</th>
+                              <th className="text-center px-4 py-3 font-semibold text-slate-700">參與人數</th>
+                              <th className="text-right px-4 py-3 font-semibold text-slate-700">總金額</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {pendingOrganizerGroupBuys.map((gb) => (
+                              <tr key={gb.id} className="hover:bg-slate-50">
+                                <td className="px-4 py-3">
+                                  <Link 
+                                    to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
+                                    className="font-medium text-slate-800 hover:text-purple-600"
+                                  >
+                                    {gb.title}
+                                  </Link>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <Badge className="bg-amber-500">款項未齊</Badge>
+                                </td>
+                                <td className="px-4 py-3 text-center text-slate-700">{gb.participantCount}</td>
+                                <td className="px-4 py-3 text-right font-semibold text-purple-600">
+                                  ${gb.totalAmount.toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Pending Group Buys (as participant) */}
+                {pendingParticipantGroupBuys.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-4">
+                      <ShoppingCart className="w-5 h-5 text-red-500" />
+                      <h2 className="text-lg font-semibold text-slate-800">我參與的團購（未付款）</h2>
+                      <Badge className="bg-red-500">{pendingParticipantGroupBuys.length}</Badge>
+                    </div>
+                    <Card>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 border-b">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-semibold text-slate-700">團購名稱</th>
+                              <th className="text-left px-4 py-3 font-semibold text-slate-700">商品</th>
+                              <th className="text-right px-4 py-3 font-semibold text-slate-700">應付金額</th>
+                              <th className="text-center px-4 py-3 font-semibold text-slate-700">款項</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {pendingParticipantGroupBuys.map((groupBuy) => {
+                              const unpaidItems = groupBuy.items.filter(item => !item.paid);
+                              return unpaidItems.map((item, itemIdx) => (
+                                <tr key={item.id} className="hover:bg-slate-50">
+                                  {itemIdx === 0 && (
+                                    <td className="px-4 py-3 align-top" rowSpan={unpaidItems.length}>
+                                      <Link 
+                                        to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
+                                        className="font-medium text-slate-800 hover:text-purple-600"
+                                      >
+                                        {groupBuy.group_buy_title}
+                                      </Link>
+                                    </td>
+                                  )}
+                                  <td className="px-4 py-3 text-slate-700">{item.product_name}</td>
+                                  <td className="px-4 py-3 text-right text-slate-700">
+                                    ${(item.price * item.quantity).toLocaleString()}
+                                  </td>
+                                  {itemIdx === 0 && (
+                                    <td className="px-4 py-3 text-center align-top" rowSpan={unpaidItems.length}>
+                                      <Badge className="bg-red-500">未付</Badge>
+                                    </td>
+                                  )}
+                                </tr>
+                              ));
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Pending Drink Orders */}
+                {pendingDrinkOrders.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Coffee className="w-5 h-5 text-red-500" />
+                      <h2 className="text-lg font-semibold text-slate-800">飲料訂單（未付款）</h2>
+                      <Badge className="bg-red-500">{pendingDrinkOrders.length}</Badge>
+                    </div>
+                    <Card>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 border-b">
+                            <tr>
+                              <th className="text-left px-4 py-3 font-semibold text-slate-700">日期</th>
+                              <th className="text-left px-4 py-3 font-semibold text-slate-700">品項</th>
+                              <th className="text-right px-4 py-3 font-semibold text-slate-700">金額</th>
+                              <th className="text-center px-4 py-3 font-semibold text-slate-700">狀態</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {pendingDrinkOrders.map((order) => {
+                              const unpaidItems = order.memberItems.filter(item => 
+                                !item.paid && item.member_id !== order.payer_id
+                              );
+                              return unpaidItems.map((item, idx) => (
+                                <tr key={`${order.id}-${idx}`} className="hover:bg-slate-50">
+                                  {idx === 0 && (
+                                    <td className="px-4 py-3 align-top" rowSpan={unpaidItems.length}>
+                                      <Link 
+                                        to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
+                                        className="text-slate-800 hover:text-orange-600"
+                                      >
+                                        {format(new Date(order.order_date), 'MM/dd')}
+                                      </Link>
+                                    </td>
+                                  )}
+                                  <td className="px-4 py-3 text-slate-700">{item.item_name}</td>
+                                  <td className="px-4 py-3 text-right text-slate-700">
+                                    ${item.price?.toLocaleString() || 0}
+                                  </td>
+                                  {idx === 0 && (
+                                    <td className="px-4 py-3 text-center align-top" rowSpan={unpaidItems.length}>
+                                      <Badge className="bg-red-500">未付</Badge>
+                                    </td>
+                                  )}
+                                </tr>
+                              ));
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </Card>
+                  </section>
+                )}
+              </>
+            )}
+          </TabsContent>
+
+          {/* RC Pay Tab */}
+          <TabsContent value="rcpay" className="space-y-6">
+            {/* Statistics Cards */}
+            {showStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <Card className="p-2 md:p-4 bg-emerald-50 border-emerald-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
@@ -260,8 +464,121 @@ export default function MemberDetail() {
             </div>
             )}
 
-        {/* Organized Group Buys */}
-        {organizedGroupBuys.length > 0 && (
+            {/* Transaction History */}
+            {!transactionsLoading && memberTransactions.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-800">交易明細</h2>
+                <span className="text-sm text-slate-500">共 {memberTransactions.length} 筆</span>
+              </div>
+
+              {memberTransactions.length > 0 && (
+                <Card className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs sm:text-sm">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
+                          <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
+                          <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
+                          <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
+                          <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {memberTransactions.map((transaction) => {
+                          const getDescription = () => {
+                            switch (transaction.type) {
+                              case 'deposit':
+                                return `${transaction.to_member_name}`;
+                              case 'withdraw':
+                                return `${transaction.from_member_name}`;
+                              case 'transfer':
+                                return `${transaction.from_member_name} → ${transaction.to_member_name}`;
+                              default:
+                                return '';
+                            }
+                          };
+
+                          const getTypeLabel = () => {
+                            switch (transaction.type) {
+                              case 'deposit':
+                                return '入帳';
+                              case 'withdraw':
+                                return '出帳';
+                              case 'transfer':
+                                return '轉帳';
+                              default:
+                                return '';
+                            }
+                          };
+
+                          const getAmountColor = () => {
+                            switch (transaction.type) {
+                              case 'deposit':
+                                return 'text-emerald-600';
+                              case 'withdraw':
+                                return 'text-red-500';
+                              case 'transfer':
+                                return 'text-blue-600';
+                              default:
+                                return 'text-slate-600';
+                            }
+                          };
+
+                          return (
+                            <tr key={transaction.id} className="border-b hover:bg-slate-50">
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
+                                <div className="hidden sm:block">
+                                  {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
+                                </div>
+                                <div className="sm:hidden">
+                                  {formatTaiwanTime(transaction.created_date, 'MM/dd HH:mm')}
+                                </div>
+                              </td>
+                              <td className="px-1 sm:px-4 py-2 sm:py-3">
+                                <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                                  transaction.type === 'deposit' ? 'bg-emerald-500' :
+                                  transaction.type === 'withdraw' ? 'bg-red-500' :
+                                  'bg-blue-500'
+                                }`}>
+                                  {getTypeLabel()}
+                                </Badge>
+                                <div className="sm:hidden text-[10px] text-slate-500 mt-1">
+                                  {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+                                </div>
+                              </td>
+                              <td className="px-1 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
+                                <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
+                                  {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+                                </Badge>
+                              </td>
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
+                                <div className="line-clamp-2">{getDescription()}</div>
+                                {transaction.note && (
+                                  <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
+                                )}
+                              </td>
+                              <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
+                                {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
+                                ${transaction.amount?.toLocaleString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
+            </section>
+            )}
+            </TabsContent>
+
+            {/* Group Buy Tab */}
+            <TabsContent value="groupbuy" className="space-y-6">
+            {/* Organized Group Buys */}
+            {organizedGroupBuys.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-5 h-5 text-slate-400" />
@@ -413,8 +730,11 @@ export default function MemberDetail() {
           )}
         </section>
         )}
+          </TabsContent>
 
-        {/* Drink Orders Section */}
+          {/* Drink Tab */}
+          <TabsContent value="drink" className="space-y-6">
+            {/* Drink Orders Section */}
         {!drinkOrdersLoading && memberDrinkOrders.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
@@ -480,117 +800,9 @@ export default function MemberDetail() {
           </Card>
         </section>
         )}
-
-        {/* Transaction History */}
-        {!transactionsLoading && memberTransactions.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-800">交易明細</h2>
-            <span className="text-sm text-slate-500">共 {memberTransactions.length} 筆</span>
-          </div>
-
-          {memberTransactions.length > 0 && (
-            <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs sm:text-sm">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
-                      <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
-                      <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
-                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
-                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {memberTransactions.map((transaction) => {
-                      const getDescription = () => {
-                        switch (transaction.type) {
-                          case 'deposit':
-                            return `${transaction.to_member_name}`;
-                          case 'withdraw':
-                            return `${transaction.from_member_name}`;
-                          case 'transfer':
-                            return `${transaction.from_member_name} → ${transaction.to_member_name}`;
-                          default:
-                            return '';
-                        }
-                      };
-
-                      const getTypeLabel = () => {
-                        switch (transaction.type) {
-                          case 'deposit':
-                            return '入帳';
-                          case 'withdraw':
-                            return '出帳';
-                          case 'transfer':
-                            return '轉帳';
-                          default:
-                            return '';
-                        }
-                      };
-
-                      const getAmountColor = () => {
-                        switch (transaction.type) {
-                          case 'deposit':
-                            return 'text-emerald-600';
-                          case 'withdraw':
-                            return 'text-red-500';
-                          case 'transfer':
-                            return 'text-blue-600';
-                          default:
-                            return 'text-slate-600';
-                        }
-                      };
-
-                      return (
-                        <tr key={transaction.id} className="border-b hover:bg-slate-50">
-                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
-                            <div className="hidden sm:block">
-                              {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
-                            </div>
-                            <div className="sm:hidden">
-                              {formatTaiwanTime(transaction.created_date, 'MM/dd HH:mm')}
-                            </div>
-                          </td>
-                          <td className="px-1 sm:px-4 py-2 sm:py-3">
-                            <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
-                              transaction.type === 'deposit' ? 'bg-emerald-500' :
-                              transaction.type === 'withdraw' ? 'bg-red-500' :
-                              'bg-blue-500'
-                            }`}>
-                              {getTypeLabel()}
-                            </Badge>
-                            <div className="sm:hidden text-[10px] text-slate-500 mt-1">
-                              {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
-                            </div>
-                          </td>
-                          <td className="px-1 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
-                            <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
-                              {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
-                            </Badge>
-                          </td>
-                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
-                            <div className="line-clamp-2">{getDescription()}</div>
-                            {transaction.note && (
-                              <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
-                            )}
-                          </td>
-                          <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
-                            {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
-                            ${transaction.amount?.toLocaleString()}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-        </section>
-        )}
-      </div>
+          </TabsContent>
+        </Tabs>
+        </div>
     </div>
   );
 }
