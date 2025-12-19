@@ -3,11 +3,12 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
 
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
@@ -48,6 +49,11 @@ export default function MemberDetail() {
   const { data: allGroupBuyItems = [] } = useQuery({
     queryKey: ['allGroupBuyItems'],
     queryFn: () => base44.entities.GroupBuyItem.list('-created_date'),
+  });
+
+  const { data: allDrinkOrders = [], isLoading: drinkOrdersLoading } = useQuery({
+    queryKey: ['drinkOrders'],
+    queryFn: () => base44.entities.DrinkOrder.list('-created_date'),
   });
 
   if (!memberId || memberLoading) {
@@ -142,6 +148,21 @@ export default function MemberDetail() {
     };
   });
 
+  // Drink orders by this member
+  const memberDrinkOrders = allDrinkOrders
+    .map(order => {
+      const memberItems = (order.items || []).filter(item => item.member_id === memberId);
+      if (memberItems.length === 0) return null;
+      
+      const totalAmount = memberItems.reduce((sum, item) => sum + (item.price || 0), 0);
+      return {
+        ...order,
+        memberItems,
+        totalAmount
+      };
+    })
+    .filter(Boolean);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
@@ -231,6 +252,7 @@ export default function MemberDetail() {
         </div>
 
         {/* Organized Group Buys */}
+        {organizedGroupBuys.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-5 h-5 text-slate-400" />
@@ -238,12 +260,7 @@ export default function MemberDetail() {
             <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
           </div>
 
-          {organizedGroupBuys.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
-              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚未開過團購</p>
-            </Card>
-          ) : (
+          {organizedGroupBuys.length > 0 && (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px] text-xs sm:text-sm">
@@ -303,8 +320,10 @@ export default function MemberDetail() {
             </Card>
           )}
         </section>
+        )}
 
         {/* Group Buy Section */}
+        {!groupBuyItemsLoading && groupBuysByMember.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <ShoppingCart className="w-5 h-5 text-slate-400" />
@@ -312,16 +331,7 @@ export default function MemberDetail() {
             <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
           </div>
 
-          {groupBuyItemsLoading ? (
-            <Card className="p-4 animate-pulse">
-              <div className="h-20 bg-slate-200 rounded" />
-            </Card>
-          ) : groupBuysByMember.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
-              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚未參與任何團購</p>
-            </Card>
-          ) : (
+          {groupBuysByMember.length > 0 && (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px] text-xs sm:text-sm">
@@ -396,25 +406,80 @@ export default function MemberDetail() {
             </Card>
           )}
         </section>
+        )}
+
+        {/* Drink Orders Section */}
+        {!drinkOrdersLoading && memberDrinkOrders.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Coffee className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-semibold text-slate-800">飲料訂單</h2>
+            <span className="text-sm text-slate-500">共 {memberDrinkOrders.length} 筆</span>
+          </div>
+
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] text-xs sm:text-sm">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">日期</th>
+                    <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">品項</th>
+                    <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">付款</th>
+                    <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">金額</th>
+                    <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {memberDrinkOrders.map((order) => (
+                    order.memberItems.map((item, idx) => (
+                      <tr key={`${order.id}-${idx}`} className="hover:bg-slate-50">
+                        {idx === 0 && (
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 align-top text-slate-700 whitespace-nowrap" rowSpan={order.memberItems.length}>
+                            <Link 
+                              to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
+                              className="text-slate-800 hover:text-orange-600"
+                            >
+                              {format(new Date(order.order_date), 'MM/dd')}
+                            </Link>
+                          </td>
+                        )}
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-700">
+                          <div className="line-clamp-2">{item.item_name}</div>
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-xs ${
+                            item.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'
+                          }`}>
+                            {item.payment_method === 'cash' ? '現金' : '餘額'}
+                          </Badge>
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap">
+                          ${item.price?.toLocaleString() || 0}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-xs ${item.paid ? 'bg-green-500' : 'bg-slate-400'}`}>
+                            {item.paid ? '已付' : '未付'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
+        )}
 
         {/* Transaction History */}
+        {!transactionsLoading && memberTransactions.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-800">交易明細</h2>
             <span className="text-sm text-slate-500">共 {memberTransactions.length} 筆</span>
           </div>
 
-          {transactionsLoading ? (
-            <Card className="p-8 text-center">
-              <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-600 rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-slate-500">載入中...</p>
-            </Card>
-          ) : memberTransactions.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
-              <Wallet className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚無交易紀錄</p>
-            </Card>
-          ) : (
+          {memberTransactions.length > 0 && (
             <Card className="overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px] text-xs sm:text-sm">
@@ -514,6 +579,7 @@ export default function MemberDetail() {
             </Card>
           )}
         </section>
+        )}
       </div>
     </div>
   );
