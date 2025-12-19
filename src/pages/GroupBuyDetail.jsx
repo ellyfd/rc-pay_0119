@@ -644,7 +644,57 @@ export default function GroupBuyDetail() {
                 )}
                 </div>
 
-
+                {isOrganizer && (
+                  <div className="space-y-2 border-t pt-4">
+                    {!isFullyPaid && (
+                      <Button
+                        onClick={() => setShowEditGroupBuy(true)}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        編輯團購
+                      </Button>
+                    )}
+                    {isOpen && (
+                      <Button
+                        onClick={handleCloseGroupBuy}
+                        className="w-full bg-amber-600 hover:bg-amber-700"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        截止團購並開始收款
+                      </Button>
+                    )}
+                    {isClosed && !isFullyPaid && items.length > 0 && (
+                      <Button
+                        onClick={handleMarkAsFullyPaid}
+                        className={`w-full ${allPaid ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-400 cursor-not-allowed'}`}
+                        disabled={!allPaid}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        標記為已完成 {!allPaid && `(${memberSummary.filter(m => m.paid).length}/${memberSummary.length})`}
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleSaveAsTemplate}
+                      variant="outline"
+                      className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      另存為範本
+                    </Button>
+                    {!isFullyPaid && (
+                      <Button
+                        onClick={() => setDeletingGroupBuy(true)}
+                        variant="outline"
+                        className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        刪除團購
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </Card>
           </div>
