@@ -666,6 +666,9 @@ export default function MemberDetail() {
                       </thead>
                       <tbody>
                         {memberTransactions.map((transaction) => {
+                          const isTransferOut = transaction.type === 'transfer' && transaction.from_member_id === memberId;
+                          const isTransferIn = transaction.type === 'transfer' && transaction.to_member_id === memberId;
+
                           const getDescription = () => {
                             switch (transaction.type) {
                               case 'deposit':
@@ -673,6 +676,11 @@ export default function MemberDetail() {
                               case 'withdraw':
                                 return `${transaction.from_member_name}`;
                               case 'transfer':
+                                if (isTransferOut) {
+                                  return `轉出 → ${transaction.to_member_name}`;
+                                } else if (isTransferIn) {
+                                  return `轉入 ← ${transaction.from_member_name}`;
+                                }
                                 return `${transaction.from_member_name} → ${transaction.to_member_name}`;
                               default:
                                 return '';
@@ -686,6 +694,8 @@ export default function MemberDetail() {
                               case 'withdraw':
                                 return '出帳';
                               case 'transfer':
+                                if (isTransferOut) return '轉出';
+                                if (isTransferIn) return '轉入';
                                 return '轉帳';
                               default:
                                 return '';
@@ -699,10 +709,19 @@ export default function MemberDetail() {
                               case 'withdraw':
                                 return 'text-red-500';
                               case 'transfer':
-                                return 'text-blue-600';
+                                return isTransferOut ? 'text-red-500' : 'text-emerald-600';
                               default:
                                 return 'text-slate-600';
                             }
+                          };
+
+                          const getAmountPrefix = () => {
+                            if (transaction.type === 'deposit') return '+';
+                            if (transaction.type === 'withdraw') return '-';
+                            if (transaction.type === 'transfer') {
+                              return isTransferOut ? '-' : '+';
+                            }
+                            return '';
                           };
 
                           return (
@@ -739,8 +758,7 @@ export default function MemberDetail() {
                                 )}
                               </td>
                               <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
-                                {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
-                                ${transaction.amount?.toLocaleString()}
+                                {getAmountPrefix()}${transaction.amount?.toLocaleString()}
                               </td>
                               {currentUser?.role === 'admin' && (
                                 <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
