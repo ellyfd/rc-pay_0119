@@ -273,25 +273,35 @@ export default function FoodOrder() {
 
               {/* Meal Box Selection */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">餐盒</label>
-                <Select value={mealBoxId} onValueChange={setMealBoxId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="選擇餐盒（可不選）" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選</SelectItem>
-                    {mealBoxes.map((box) => (
-                      <SelectItem key={box.id} value={box.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{box.name} - ${box.price}</span>
-                          {box.is_flash && (
-                            <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">快閃</span>
+                <label className="block text-sm font-semibold text-slate-700 mb-3">餐盒（可不選）</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {mealBoxes.map((box) => (
+                    <Card
+                      key={box.id}
+                      onClick={() => setMealBoxId(mealBoxId === box.id ? '' : box.id)}
+                      className={`p-4 cursor-pointer transition-all hover:shadow-md ${
+                        mealBoxId === box.id 
+                          ? 'border-2 border-emerald-600 bg-emerald-50' 
+                          : 'border hover:border-emerald-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-slate-800">{box.name}</h3>
+                          {box.description && (
+                            <p className="text-xs text-slate-500 mt-1">{box.description}</p>
                           )}
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-emerald-600">${box.price}</div>
+                          {box.is_flash && (
+                            <span className="inline-block text-xs bg-red-500 text-white px-2 py-0.5 rounded mt-1">快閃</span>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
 
               {/* Rice Option */}
@@ -313,46 +323,44 @@ export default function FoodOrder() {
 
               {/* Side Dishes */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">單點（可多選）</label>
-                <Select
-                  value=""
-                  onValueChange={(value) => {
-                    if (value && !sideDishes.includes(value)) {
-                      setSideDishes([...sideDishes, value]);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="選擇單點" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sideDishProducts.map((dish) => (
-                      <SelectItem key={dish.id} value={dish.id}>
-                        {dish.name} - ${dish.price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {sideDishes.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {sideDishes.map((dishId) => {
-                      const dish = sideDishProducts.find(d => d.id === dishId);
-                      return dish ? (
-                        <div key={dishId} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
-                          <span className="text-sm text-slate-700">{dish.name} - ${dish.price}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSideDishes(sideDishes.filter(id => id !== dishId))}
-                            className="text-red-500 hover:text-red-700 h-6 px-2"
-                          >
-                            移除
-                          </Button>
+                <label className="block text-sm font-semibold text-slate-700 mb-3">單點（可多選）</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {sideDishProducts.map((dish) => {
+                    const isSelected = sideDishes.includes(dish.id);
+                    return (
+                      <Card
+                        key={dish.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSideDishes(sideDishes.filter(id => id !== dish.id));
+                          } else {
+                            setSideDishes([...sideDishes, dish.id]);
+                          }
+                        }}
+                        className={`p-4 cursor-pointer transition-all hover:shadow-md ${
+                          isSelected 
+                            ? 'border-2 border-emerald-600 bg-emerald-50' 
+                            : 'border hover:border-emerald-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-slate-800">{dish.name}</h3>
+                            {dish.description && (
+                              <p className="text-xs text-slate-500 mt-1">{dish.description}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-emerald-600">${dish.price}</div>
+                            {isSelected && (
+                              <span className="inline-block text-xs bg-emerald-600 text-white px-2 py-0.5 rounded mt-1">已選</span>
+                            )}
+                          </div>
                         </div>
-                      ) : null;
-                    })}
-                  </div>
-                )}
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Payer Selection */}
