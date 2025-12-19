@@ -280,7 +280,7 @@ export default function AdminOrders() {
         <Card className="p-3 sm:p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4 mb-3">
             <div className="flex items-center gap-2">
-              <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">訂餐日期：</label>
+              <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">日期：</label>
               <Input
                 type="date"
                 value={selectedDate}
