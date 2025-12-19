@@ -267,7 +267,7 @@ export default function MemberDetail() {
                   <thead className="bg-slate-50 border-b">
                     <tr>
                       <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
-                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">開團狀態</th>
                       <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">人數</th>
                       <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">總額</th>
                       <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">收款</th>
