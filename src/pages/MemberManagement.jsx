@@ -3,8 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, UserPlus, Edit, Trash2, Eye, EyeOff, Users, Calculator } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, UserPlus, Edit, Trash2, Eye, EyeOff, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -35,7 +34,6 @@ export default function MemberManagement() {
   const [editingMember, setEditingMember] = useState(null);
   const [deletingMember, setDeletingMember] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isRecalculating, setIsRecalculating] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -104,63 +102,6 @@ export default function MemberManagement() {
     }
   };
 
-  const handleRecalculateBalances = async () => {
-    setIsRecalculating(true);
-    try {
-      // Fetch all transactions
-      const allTransactions = await base44.entities.Transaction.list();
-      const allMembers = await base44.entities.Member.list();
-
-      // Initialize balances for all members
-      const memberBalances = {};
-      allMembers.forEach(member => {
-        memberBalances[member.id] = {
-          balance: 0,
-          cash_balance: 0
-        };
-      });
-
-      // Calculate balances from transactions
-      allTransactions.forEach(transaction => {
-        const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
-        const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
-
-        if (type === 'deposit' && to_member_id && memberBalances[to_member_id]) {
-          memberBalances[to_member_id][balanceField] += amount;
-        } else if (type === 'withdraw' && from_member_id && memberBalances[from_member_id]) {
-          memberBalances[from_member_id][balanceField] -= amount;
-        } else if (type === 'transfer') {
-          if (from_member_id && memberBalances[from_member_id]) {
-            memberBalances[from_member_id][balanceField] -= amount;
-          }
-          if (to_member_id && memberBalances[to_member_id]) {
-            memberBalances[to_member_id][balanceField] += amount;
-          }
-        }
-      });
-
-      // Update all members with calculated balances
-      for (const member of allMembers) {
-        if (memberBalances[member.id]) {
-          await updateMember.mutateAsync({
-            id: member.id,
-            data: {
-              balance: memberBalances[member.id].balance,
-              cash_balance: memberBalances[member.id].cash_balance
-            }
-          });
-        }
-      }
-
-      toast.success(`成功重新計算 ${allMembers.length} 位成員的餘額！`);
-    } catch (error) {
-      console.error('Failed to recalculate balances:', error);
-      toast.error('重新計算失敗：' + error.message);
-    } finally {
-      setIsRecalculating(false);
-    }
-  };
-
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
@@ -207,23 +148,13 @@ export default function MemberManagement() {
               </h1>
               <p className="text-slate-400 text-sm mt-1">新增、編輯或刪除成員</p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleRecalculateBalances}
-                disabled={isRecalculating}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Calculator className="w-5 h-5 mr-2" />
-                {isRecalculating ? '計算中...' : '重算餘額'}
-              </Button>
-              <Button
-                onClick={() => setShowAddMember(true)}
-                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-              >
-                <UserPlus className="w-5 h-5 mr-2" />
-                新增成員
-              </Button>
-            </div>
+            <Button
+              onClick={() => setShowAddMember(true)}
+              className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              新增成員
+            </Button>
           </div>
         </div>
       </div>
