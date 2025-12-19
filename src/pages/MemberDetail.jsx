@@ -12,6 +12,7 @@ import { format } from "date-fns";
 
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -187,7 +188,10 @@ export default function MemberDetail() {
 
           {/* Balance Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-slate-800/50 border-slate-700 p-6">
+            <Card 
+              className="bg-slate-800/50 border-slate-700 p-6 cursor-pointer hover:bg-slate-800/70 transition-colors"
+              onClick={() => setShowStats(!showStats)}
+            >
               <div className="text-center">
                 <p className="text-slate-400 text-sm mb-2">錢包餘額</p>
                 <p className={`text-3xl font-bold ${member.balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -195,7 +199,10 @@ export default function MemberDetail() {
                 </p>
               </div>
             </Card>
-            <Card className="bg-slate-800/50 border-slate-700 p-6">
+            <Card 
+              className="bg-slate-800/50 border-slate-700 p-6 cursor-pointer hover:bg-slate-800/70 transition-colors"
+              onClick={() => setShowStats(!showStats)}
+            >
               <div className="text-center">
                 <p className="text-slate-400 text-sm mb-2">現金餘額</p>
                 <p className={`text-3xl font-bold ${member.cash_balance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
@@ -209,6 +216,7 @@ export default function MemberDetail() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Statistics Cards */}
+        {showStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <Card className="p-2 md:p-4 bg-emerald-50 border-emerald-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
@@ -248,8 +256,9 @@ export default function MemberDetail() {
             <p className="text-sm md:text-xl font-bold text-orange-700">
               ${totalTransferOut.toLocaleString()}
             </p>
-          </Card>
-        </div>
+            </Card>
+            </div>
+            )}
 
         {/* Organized Group Buys */}
         {organizedGroupBuys.length > 0 && (
