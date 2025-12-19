@@ -160,10 +160,11 @@ export default function OrderHistoryByDate() {
                       <Card key={date} className="overflow-hidden">
                         <div className="bg-slate-50 px-4 py-3 border-b flex items-center justify-between">
                           <h3 className="font-semibold text-slate-800">
-                            {format(new Date(date), 'yyyy年MM月dd日')}
+                            <span className="hidden sm:inline">{format(new Date(date), 'yyyy年MM月dd日')}</span>
+                            <span className="sm:hidden">{format(new Date(date), 'MM/dd')}</span>
                           </h3>
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="text-slate-600">{dateOrders.length} 筆訂單</span>
+                          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                            <span className="text-slate-600">{dateOrders.length} 筆</span>
                             <span className="font-bold text-emerald-600">${dateTotal.toLocaleString()}</span>
                           </div>
                         </div>
