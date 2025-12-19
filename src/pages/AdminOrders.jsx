@@ -288,7 +288,7 @@ export default function AdminOrders() {
                 className="w-36 text-sm"
               />
             </div>
-            <div className="flex flex-col md:flex-row gap-2">
+            <div className="flex gap-2">
               <Button
                 variant={orderStatus === 'pending' ? 'default' : 'outline'}
                 onClick={() => setOrderStatus('pending')}
