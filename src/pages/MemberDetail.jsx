@@ -30,6 +30,7 @@ export default function MemberDetail() {
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
   const [currentUser, setCurrentUser] = useState(null);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
+  const [recalculateResult, setRecalculateResult] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -232,7 +233,10 @@ export default function MemberDetail() {
       queryClient.invalidateQueries({ queryKey: ['member'] });
 
       toast.dismiss();
-      toast.success(`成功重新計算 ${allMembers.length} 位成員的餘額！`);
+      setRecalculateResult({
+        success: true,
+        memberCount: allMembers.length
+      });
     } catch (error) {
       console.error('Failed to recalculate balances:', error);
       toast.dismiss();
@@ -1132,6 +1136,23 @@ export default function MemberDetail() {
               className="bg-red-600 hover:bg-red-700"
             >
               確認撤銷
+            </AlertDialogAction>
+          </AlertDialogFooter>
+          </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Recalculate Result Dialog */}
+          <AlertDialog open={!!recalculateResult} onOpenChange={() => setRecalculateResult(null)}>
+          <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>重新計算完成</AlertDialogTitle>
+            <AlertDialogDescription>
+              已成功重新計算 {recalculateResult?.memberCount} 位成員的餘額，所有資料已更新。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setRecalculateResult(null)} className="bg-green-600 hover:bg-green-700">
+              確認
             </AlertDialogAction>
           </AlertDialogFooter>
           </AlertDialogContent>
