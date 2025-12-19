@@ -147,7 +147,7 @@ export default function OrderHistoryByMember() {
               <>
                 <Card className="p-6 mb-6">
                   <div className="flex items-center gap-6">
-                    <div className={`w-16 h-16 rounded-full ${colorMap[selectedMember.avatar_color] || 'bg-slate-500'} flex items-center justify-center text-white font-bold text-2xl`}>
+                    <div className={`w-16 h-16 rounded-full ${colorMap[selectedMember.avatar_color] || 'bg-slate-500'} hidden sm:flex items-center justify-center text-white font-bold text-2xl`}>
                       {selectedMember.name?.charAt(0)}
                     </div>
                     <div className="flex-1">
