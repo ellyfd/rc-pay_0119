@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, UserPlus, Edit, Trash2, Eye, EyeOff, Users } from "lucide-react";
+import { ArrowLeft, UserPlus, Edit, Trash2, Eye, EyeOff, Users, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -34,6 +35,7 @@ export default function MemberManagement() {
   const [editingMember, setEditingMember] = useState(null);
   const [deletingMember, setDeletingMember] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -102,6 +104,66 @@ export default function MemberManagement() {
     }
   };
 
+  const handleRecalculateBalances = async () => {
+    if (!window.confirm('確定要重新計算所有成員的餘額嗎？此操作將根據所有交易記錄重新計算餘額。')) {
+      return;
+    }
+
+    setIsRecalculating(true);
+    try {
+      // 獲取所有交易和成員
+      const allTransactions = await base44.entities.Transaction.list();
+      const allMembers = await base44.entities.Member.list();
+
+      // 為每個成員初始化餘額計算
+      const balanceCalculations = {};
+      allMembers.forEach(member => {
+        balanceCalculations[member.id] = {
+          balance: 0,
+          cash_balance: 0
+        };
+      });
+
+      // 遍歷所有交易，重新計算餘額
+      allTransactions.forEach(transaction => {
+        const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
+        const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
+
+        if (type === 'deposit' && to_member_id && balanceCalculations[to_member_id]) {
+          balanceCalculations[to_member_id][balanceField] += amount;
+        } else if (type === 'withdraw' && from_member_id && balanceCalculations[from_member_id]) {
+          balanceCalculations[from_member_id][balanceField] -= amount;
+        } else if (type === 'transfer') {
+          if (from_member_id && balanceCalculations[from_member_id]) {
+            balanceCalculations[from_member_id][balanceField] -= amount;
+          }
+          if (to_member_id && balanceCalculations[to_member_id]) {
+            balanceCalculations[to_member_id][balanceField] += amount;
+          }
+        }
+      });
+
+      // 更新所有成員的餘額
+      for (const member of allMembers) {
+        const newBalances = balanceCalculations[member.id];
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: {
+            balance: newBalances.balance,
+            cash_balance: newBalances.cash_balance
+          }
+        });
+      }
+
+      toast.success(`已成功重新計算 ${allMembers.length} 位成員的餘額`);
+    } catch (error) {
+      console.error('Failed to recalculate balances:', error);
+      toast.error('重新計算餘額失敗：' + error.message);
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
@@ -148,13 +210,23 @@ export default function MemberManagement() {
               </h1>
               <p className="text-slate-400 text-sm mt-1">新增、編輯或刪除成員</p>
             </div>
-            <Button
-              onClick={() => setShowAddMember(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-            >
-              <UserPlus className="w-5 h-5 mr-2" />
-              新增成員
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRecalculateBalances}
+                disabled={isRecalculating}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <RefreshCw className={`w-5 h-5 mr-2 ${isRecalculating ? 'animate-spin' : ''}`} />
+                {isRecalculating ? '計算中...' : '重算餘額'}
+              </Button>
+              <Button
+                onClick={() => setShowAddMember(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                新增成員
+              </Button>
+            </div>
           </div>
         </div>
       </div>
