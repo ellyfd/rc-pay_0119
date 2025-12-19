@@ -191,6 +191,35 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
             
             <div className="space-y-2">
               <Label className="text-slate-700">備註（選填）</Label>
+              <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNote('七分飽')}
+                  className="text-xs"
+                >
+                  七分飽
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNote('飲料')}
+                  className="text-xs"
+                >
+                  飲料
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNote('團購')}
+                  className="text-xs"
+                >
+                  團購
+                </Button>
+              </div>
               <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
