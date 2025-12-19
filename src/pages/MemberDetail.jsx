@@ -263,30 +263,30 @@ export default function MemberDetail() {
           {organizedGroupBuys.length > 0 && (
             <Card>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] text-xs sm:text-sm">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="bg-slate-50 border-b">
                     <tr>
-                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
-                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
-                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">人數</th>
-                      <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">總額</th>
-                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">收款</th>
+                      <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">人數</th>
+                      <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">總額</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">收款</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {organizedGroupBuys.map((gb) => (
                       <tr key={gb.id} className="hover:bg-slate-50">
-                        <td className="px-2 sm:px-4 py-2 sm:py-3">
+                        <td className="px-1.5 sm:px-4 py-2 sm:py-3">
                           <Link 
                             to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                            className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2"
+                            className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
                           >
                             {gb.title}
                           </Link>
                         </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
                           <Badge 
-                            className={`text-xs ${
+                            className={`text-[10px] sm:text-xs whitespace-nowrap ${
                               gb.status === 'open' ? 'bg-green-500' :
                               gb.status === 'closed' ? 'bg-amber-500' :
                               'bg-slate-500'
@@ -297,16 +297,16 @@ export default function MemberDetail() {
                              '已結單'}
                           </Badge>
                         </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-semibold text-purple-600 whitespace-nowrap">
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
+                        <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-purple-600 whitespace-nowrap text-[11px] sm:text-sm">
                           ${gb.totalAmount.toLocaleString()}
                         </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
                           {gb.status === 'open' ? (
-                            <span className="text-slate-400 text-xs">-</span>
+                            <span className="text-slate-400 text-[10px] sm:text-xs">-</span>
                           ) : (
                             <Badge 
-                              className={`text-xs ${gb.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}
+                              className={`text-[10px] sm:text-xs ${gb.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}
                             >
                               {gb.allPaid ? '完成' : '未完'}
                             </Badge>
@@ -416,14 +416,14 @@ export default function MemberDetail() {
 
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px] text-xs sm:text-sm">
+              <table className="w-full text-xs sm:text-sm">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">日期</th>
-                    <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">品項</th>
-                    <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">付款</th>
-                    <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">金額</th>
-                    <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">日期</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">品項</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">付款</th>
+                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">金額</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -431,7 +431,7 @@ export default function MemberDetail() {
                     order.memberItems.map((item, idx) => (
                       <tr key={`${order.id}-${idx}`} className="hover:bg-slate-50">
                         {idx === 0 && (
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 align-top text-slate-700 whitespace-nowrap" rowSpan={order.memberItems.length}>
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-top text-slate-700 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={order.memberItems.length}>
                             <Link 
                               to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
                               className="text-slate-800 hover:text-orange-600"
@@ -440,21 +440,21 @@ export default function MemberDetail() {
                             </Link>
                           </td>
                         )}
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-700">
+                        <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
                           <div className="line-clamp-2">{item.item_name}</div>
                         </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                          <Badge className={`text-xs ${
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
                             item.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'
                           }`}>
                             {item.payment_method === 'cash' ? '現金' : '餘額'}
                           </Badge>
                         </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap">
+                        <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap text-[11px] sm:text-sm">
                           ${item.price?.toLocaleString() || 0}
                         </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                          <Badge className={`text-xs ${item.paid ? 'bg-green-500' : 'bg-slate-400'}`}>
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-[10px] sm:text-xs ${item.paid ? 'bg-green-500' : 'bg-slate-400'}`}>
                             {item.paid ? '已付' : '未付'}
                           </Badge>
                         </td>
@@ -479,14 +479,14 @@ export default function MemberDetail() {
           {memberTransactions.length > 0 && (
             <Card className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] text-xs sm:text-sm">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
-                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
-                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
-                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
-                      <th className="px-2 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
+                      <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
+                      <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
+                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
+                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -532,7 +532,7 @@ export default function MemberDetail() {
 
                       return (
                         <tr key={transaction.id} className="border-b hover:bg-slate-50">
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap">
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
                             <div className="hidden sm:block">
                               {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
                             </div>
@@ -540,8 +540,8 @@ export default function MemberDetail() {
                               {formatTaiwanTime(transaction.created_date, 'MM/dd HH:mm')}
                             </div>
                           </td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-3">
-                            <Badge className={`text-xs ${
+                          <td className="px-1 sm:px-4 py-2 sm:py-3">
+                            <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
                               transaction.type === 'deposit' ? 'bg-emerald-500' :
                               transaction.type === 'withdraw' ? 'bg-red-500' :
                               'bg-blue-500'
@@ -552,18 +552,18 @@ export default function MemberDetail() {
                               {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
                             </div>
                           </td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
+                          <td className="px-1 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
                             <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
                               {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
                             </Badge>
                           </td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-700">
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
                             <div className="line-clamp-2">{getDescription()}</div>
                             {transaction.note && (
                               <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
                             )}
                           </td>
-                          <td className={`px-2 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap ${getAmountColor()}`}>
+                          <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
                             {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
                             ${transaction.amount?.toLocaleString()}
                           </td>
