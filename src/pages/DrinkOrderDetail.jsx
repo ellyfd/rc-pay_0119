@@ -246,7 +246,7 @@ export default function DrinkOrderDetail() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Card className="overflow-hidden">
           <div className="p-4 bg-slate-50 border-b">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-slate-600">訂單支付人：</label>
                 <select
