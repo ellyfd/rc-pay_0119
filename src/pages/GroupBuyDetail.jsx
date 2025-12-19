@@ -708,26 +708,26 @@ export default function GroupBuyDetail() {
                   )}
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[500px]">
                     <thead className="bg-slate-50 border-b">
                       <tr>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品名稱</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                        <th className="text-left px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">產品名稱</th>
+                        <th className="text-right px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">
-                            <div>折扣價</div>
+                          <th className="text-right px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">
+                            <div className="whitespace-nowrap">折扣價</div>
                             {(() => {
                               const discount = getApplicableDiscount();
                               return discount ? (
-                                <div className="text-xs text-green-600 font-normal mt-0.5">
+                                <div className="text-[10px] sm:text-xs text-green-600 font-normal mt-0.5">
                                   ({discount.discount_percent}% off)
                                 </div>
                               ) : null;
                             })()}
                           </th>
                         )}
-                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">總數量</th>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">訂購明細</th>
+                        <th className="text-center px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">總數量</th>
+                        <th className="text-left px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">訂購明細</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -737,22 +737,22 @@ export default function GroupBuyDetail() {
                         const discount = getApplicableDiscount();
                         return (
                           <tr key={product.key} className="hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-slate-800">{product.product_name}</td>
-                            <td className="px-4 py-3 text-right text-slate-700">${product.price.toLocaleString()}</td>
+                            <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-slate-800 text-xs sm:text-sm">{product.product_name}</td>
+                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-slate-700 text-xs sm:text-sm whitespace-nowrap">${product.price.toLocaleString()}</td>
                             {groupBuy.discount_rules?.length > 0 && (
-                              <td className="px-4 py-3 text-right font-medium">
+                              <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-medium text-xs sm:text-sm whitespace-nowrap">
                                 <span className={hasDiscount ? 'text-amber-600 font-semibold' : 'text-slate-700'}>
                                   ${discountedPrice.toLocaleString()}
                                 </span>
                               </td>
                             )}
-                            <td className="px-4 py-3 text-center">
-                              <span className="inline-block bg-purple-100 text-purple-800 font-semibold px-3 py-1 rounded">
+                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                              <span className="inline-block bg-purple-100 text-purple-800 font-semibold px-2 sm:px-3 py-1 rounded text-xs sm:text-sm">
                                 {product.quantity}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
-                              <div className="text-sm space-y-1">
+                            <td className="px-2 sm:px-4 py-2 sm:py-3">
+                              <div className="text-xs sm:text-sm space-y-0.5 sm:space-y-1">
                                 {product.members.map((member, idx) => (
                                   <div key={idx} className="text-slate-600">
                                     • {member.name} × {member.quantity}
@@ -814,29 +814,29 @@ export default function GroupBuyDetail() {
             ) : (
               <Card>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[700px]">
                     <thead className="bg-slate-50 border-b">
                       <tr>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">成員</th>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">產品</th>
-                        <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">數量</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                        <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">成員</th>
+                        <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">產品</th>
+                        <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">數量</th>
+                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">折扣價</th>
+                          <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
                         )}
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">小計</th>
-                        <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">個人加總</th>
+                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">小計</th>
+                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
                         {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-slate-700">實際支付</th>
+                          <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
                         )}
                         {isOrganizer && groupBuy.status !== 'open' && (
-                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">支付</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">支付</th>
                         )}
                         {isOrganizer && groupBuy.status !== 'open' && (
-                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">收款</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">收款</th>
                         )}
                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
-                          <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">操作</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">操作</th>
                         )}
                       </tr>
                     </thead>
@@ -847,7 +847,7 @@ export default function GroupBuyDetail() {
                             {itemIdx === 0 && (
                               <>
                                 <td 
-                                  className="px-4 py-3 font-medium align-top"
+                                  className="px-2 sm:px-3 py-2 font-medium align-top text-xs sm:text-sm"
                                   rowSpan={summary.items.length}
                                 >
                                   <Link
@@ -859,26 +859,25 @@ export default function GroupBuyDetail() {
                                 </td>
                               </>
                             )}
-                            <td className="px-4 py-3">
+                            <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">
                               <div className="text-slate-700">{item.product_name}</div>
                               {item.note && item.note.includes('平分') && (
-                                <div className="text-xs text-slate-500 mt-0.5">{item.note}</div>
+                                <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">{item.note}</div>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-center text-slate-700">
+                            <td className="px-1 sm:px-2 py-2 text-center text-slate-700 text-xs sm:text-sm">
                               {(() => {
                                 const isSplitItem = item.note && item.note.includes('平分');
                                 const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
-                                // Only show quantity if this is the orderer, or if it's not a split item
                                 if (isSplitItem && !isOrderer) {
                                   return '-';
                                 }
                                 return item.quantity;
                               })()}
                             </td>
-                            <td className="px-4 py-3 text-right text-slate-700">${item.price.toLocaleString()}</td>
+                            <td className="px-2 sm:px-3 py-2 text-right text-slate-700 text-xs sm:text-sm whitespace-nowrap">${item.price.toLocaleString()}</td>
                             {groupBuy.discount_rules?.length > 0 && (
-                              <td className="px-4 py-3 text-right font-medium text-slate-700">
+                              <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-700 text-xs sm:text-sm whitespace-nowrap">
                                 {(() => {
                                   const discountedPrice = getDiscountedPrice(item.price);
                                   const hasDiscount = discountedPrice !== item.price;
@@ -890,7 +889,7 @@ export default function GroupBuyDetail() {
                                 })()}
                               </td>
                             )}
-                            <td className="px-4 py-3 text-right font-medium text-slate-800">
+                            <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-800 text-xs sm:text-sm whitespace-nowrap">
                               {(() => {
                                 const discountedPrice = groupBuy.discount_rules?.length > 0 ? getDiscountedPrice(item.price) : item.price;
                                 return `$${(discountedPrice * item.quantity).toLocaleString()}`;
@@ -898,17 +897,17 @@ export default function GroupBuyDetail() {
                             </td>
                             {itemIdx === 0 ? (
                               <td 
-                                className="px-4 py-3 text-right align-top"
+                                className="px-2 sm:px-3 py-2 text-right align-top"
                                 rowSpan={summary.items.length}
                               >
-                                <span className="text-lg font-bold text-purple-600">
+                                <span className="text-base sm:text-lg font-bold text-purple-600">
                                   ${summary.total.toLocaleString()}
                                 </span>
                               </td>
                             ) : null}
                             {itemIdx === 0 && hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
                               <td 
-                                className="px-4 py-3 text-right align-top"
+                                className="px-2 sm:px-3 py-2 text-right align-top"
                                 rowSpan={summary.items.length}
                               >
                                 <input
@@ -918,19 +917,19 @@ export default function GroupBuyDetail() {
                                     const newCharges = { ...actualCharges, [summary.member_id]: parseFloat(e.target.value) || 0 };
                                     setActualCharges(newCharges);
                                   }}
-                                  className="w-20 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="w-16 sm:w-20 px-1 sm:px-2 py-1 text-xs sm:text-sm text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </td>
                             )}
                             {isOrganizer && groupBuy.status !== 'open' && (
-                              <td className="px-4 py-3 text-center">
+                              <td className="px-1 sm:px-2 py-2 text-center">
                                 <select
                                   value={item.payment_method || ''}
                                   onChange={(e) => updateItem.mutate({
                                     id: item.id,
                                     data: { payment_method: e.target.value }
                                   })}
-                                  className="text-xs px-2 py-1 rounded border border-slate-300 bg-white text-slate-700"
+                                  className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 w-full max-w-[80px]"
                                 >
                                   <option value="">請選擇</option>
                                   {(() => {
@@ -947,35 +946,32 @@ export default function GroupBuyDetail() {
                             )}
                             {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
                               <td 
-                                className="px-4 py-3 align-top"
+                                className="px-1 sm:px-2 py-2 align-top"
                                 rowSpan={summary.items.length}
                               >
                                 <div className="flex items-center justify-center">
                                   <button
                                     onClick={() => handleTogglePaid(summary)}
-                                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-colors ${
                                       summary.paid 
                                         ? 'bg-green-600 border-green-600' 
                                         : 'border-slate-300 hover:border-slate-400'
                                     }`}
                                   >
-                                    {summary.paid && <CheckCircle className="w-4 h-4 text-white" />}
+                                    {summary.paid && <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
                                   </button>
                                 </div>
                               </td>
                             )}
                             {((isOrganizer || (currentUser && item.created_by === currentUser.email)) && isOpen) && (
-                              <td className="px-4 py-3">
+                              <td className="px-1 sm:px-2 py-2">
                                 {(() => {
-                                  // Check if this is a split item
                                   const isSplitItem = item.note && item.note.includes('平分');
                                   const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
-
-                                  // For split items, only the orderer can edit
                                   const canEdit = !isSplitItem || isOrderer;
 
                                   return canEdit ? (
-                                    <div className="flex gap-1 justify-center">
+                                    <div className="flex gap-0.5 sm:gap-1 justify-center">
                                       <Button
                                         variant="ghost"
                                         size="icon"
@@ -983,7 +979,7 @@ export default function GroupBuyDetail() {
                                           setEditingItem(item);
                                           setShowAddItem(true);
                                         }}
-                                        className="h-8 w-8"
+                                        className="h-6 w-6 sm:h-8 sm:w-8"
                                       >
                                         <Edit className="w-3 h-3" />
                                       </Button>
@@ -991,13 +987,13 @@ export default function GroupBuyDetail() {
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => setDeletingItem(item)}
-                                        className="h-8 w-8 text-red-500 hover:text-red-700"
+                                        className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 hover:text-red-700"
                                       >
                                         <Trash2 className="w-3 h-3" />
                                       </Button>
                                     </div>
                                   ) : (
-                                    <div className="text-center text-xs text-slate-400">-</div>
+                                    <div className="text-center text-[10px] sm:text-xs text-slate-400">-</div>
                                   );
                                 })()}
                               </td>
@@ -1006,8 +1002,8 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={2} className="px-4 py-3 text-right text-slate-700">總計</td>
-                        <td className="px-4 py-3 text-center text-slate-800">
+                        <td colSpan={2} className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-700 text-xs sm:text-sm">總計</td>
+                        <td className="px-1 sm:px-2 py-2 sm:py-3 text-center text-slate-800 text-xs sm:text-sm">
                           {items.reduce((sum, item) => {
                             const isSplitItem = item.note && item.note.includes('平分');
                             const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
@@ -1017,22 +1013,22 @@ export default function GroupBuyDetail() {
                         </td>
                         <td colSpan={groupBuy.discount_rules?.length > 0 ? 2 : 2}></td>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
                             {(() => {
                               const discount = getApplicableDiscount();
                               return discount ? (
-                                <span className="text-lg font-bold text-orange-600">
+                                <span className="text-base sm:text-lg font-bold text-orange-600">
                                   -{discount.discount_percent}%
                                 </span>
                               ) : null;
                             })()}
                           </td>
                         )}
-                        <td className="px-4 py-3 text-right text-lg text-purple-600">
+                        <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-purple-600 whitespace-nowrap">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
                         {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
-                          <td className="px-4 py-3 text-right text-lg text-orange-600">
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-orange-600 whitespace-nowrap">
                             ${memberSummary.reduce((sum, m) => {
                               const actualCharge = actualCharges[m.member_id] ?? Math.round(m.total);
                               return sum + actualCharge;
