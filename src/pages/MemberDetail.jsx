@@ -416,14 +416,14 @@ export default function MemberDetail() {
 
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full min-w-[500px] text-xs sm:text-sm">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">日期</th>
-                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">品項</th>
-                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">付款</th>
-                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">金額</th>
-                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[15%]">日期</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[35%]">品項</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[15%]">付款</th>
+                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[18%]">金額</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 w-[17%]">狀態</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
