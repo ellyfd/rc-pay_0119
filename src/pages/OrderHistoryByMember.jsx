@@ -152,7 +152,7 @@ export default function OrderHistoryByMember() {
                     </div>
                     <div className="flex-1">
                       <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedMember.name}</h2>
-                      <div className="flex items-center gap-6 text-sm">
+                      <div className="hidden sm:flex items-center gap-6 text-sm">
                         <div>
                           <span className="text-slate-600">總訂單數：</span>
                           <span className="font-bold text-slate-800">{orders.length}</span>
@@ -168,6 +168,20 @@ export default function OrderHistoryByMember() {
                         <div>
                           <span className="text-slate-600">總金額：</span>
                           <span className="font-bold text-emerald-600">${totalAmount.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="sm:hidden space-y-2">
+                        <div className="grid grid-cols-4 gap-2 text-xs text-slate-600 text-center">
+                          <div>總訂單數</div>
+                          <div>已完成</div>
+                          <div>待處理</div>
+                          <div>總金額</div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 text-sm font-bold text-center">
+                          <div className="text-slate-800">{orders.length}</div>
+                          <div className="text-green-600">{completedOrders.length}</div>
+                          <div className="text-amber-600">{pendingOrders.length}</div>
+                          <div className="text-emerald-600">${totalAmount.toLocaleString()}</div>
                         </div>
                       </div>
                     </div>
