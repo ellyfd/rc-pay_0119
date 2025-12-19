@@ -456,8 +456,12 @@ export default function MemberDetail() {
                           ${item.price?.toLocaleString() || 0}
                         </td>
                         <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
-                          <Badge className={`text-[10px] sm:text-xs ${item.paid ? 'bg-green-500' : 'bg-slate-400'}`}>
-                            {item.paid ? '已付' : '未付'}
+                          <Badge className={`text-[10px] sm:text-xs ${
+                            order.payer_id && item.member_id === order.payer_id ? 'bg-purple-500' :
+                            item.paid ? 'bg-green-500' : 'bg-slate-400'
+                          }`}>
+                            {order.payer_id && item.member_id === order.payer_id ? '支付人' :
+                             item.paid ? '已付' : '未付'}
                           </Badge>
                         </td>
                       </tr>
