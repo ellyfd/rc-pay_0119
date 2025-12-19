@@ -780,18 +780,20 @@ export default function DrinkOrder() {
                     )}
                     </div>
 
+                    {orderItems.length > 0 && (
                     <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">店家名稱</label>
                     <Input
-                    type="text"
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                    placeholder="例如：50嵐、清心福全、coco都可"
-                    className="w-full"
+                      type="text"
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                      placeholder="例如：50嵐、清心福全、coco都可"
+                      className="w-full"
                     />
                     </div>
+                    )}
 
-                {orderItems.length > 0 && (
+                    {orderItems.length > 0 && (
                   <>
                     <div>
                       <div className="flex items-center justify-between mb-3">
