@@ -15,6 +15,8 @@ export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
   const [showStats, setShowStats] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
+  const [walletTypeFilter, setWalletTypeFilter] = useState('all');
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -84,9 +86,17 @@ export default function MemberDetail() {
   }
 
   // Filter transactions related to this member
-  const memberTransactions = allTransactions.filter(
+  let memberTransactions = allTransactions.filter(
     t => t.from_member_id === memberId || t.to_member_id === memberId
   );
+
+  // Apply filters
+  if (walletTypeFilter !== 'all') {
+    memberTransactions = memberTransactions.filter(t => t.wallet_type === walletTypeFilter);
+  }
+  if (transactionTypeFilter !== 'all') {
+    memberTransactions = memberTransactions.filter(t => t.type === transactionTypeFilter);
+  }
 
   // Calculate statistics
   const totalDeposit = memberTransactions
@@ -419,9 +429,81 @@ export default function MemberDetail() {
 
           {/* RC Pay Tab */}
           <TabsContent value="rcpay" className="space-y-6">
+            {/* Filters */}
+            <Card className="p-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-2 block">錢包類型</label>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant={walletTypeFilter === 'all' ? 'default' : 'outline'}
+                      onClick={() => setWalletTypeFilter('all')}
+                      className={`text-xs ${walletTypeFilter === 'all' ? 'bg-slate-800' : ''}`}
+                      size="sm"
+                    >
+                      全部
+                    </Button>
+                    <Button
+                      variant={walletTypeFilter === 'balance' ? 'default' : 'outline'}
+                      onClick={() => setWalletTypeFilter('balance')}
+                      className={`text-xs ${walletTypeFilter === 'balance' ? 'bg-blue-600' : ''}`}
+                      size="sm"
+                    >
+                      錢包
+                    </Button>
+                    <Button
+                      variant={walletTypeFilter === 'cash' ? 'default' : 'outline'}
+                      onClick={() => setWalletTypeFilter('cash')}
+                      className={`text-xs ${walletTypeFilter === 'cash' ? 'bg-amber-600' : ''}`}
+                      size="sm"
+                    >
+                      現金
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-2 block">交易類型</label>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant={transactionTypeFilter === 'all' ? 'default' : 'outline'}
+                      onClick={() => setTransactionTypeFilter('all')}
+                      className={`text-xs ${transactionTypeFilter === 'all' ? 'bg-slate-800' : ''}`}
+                      size="sm"
+                    >
+                      全部
+                    </Button>
+                    <Button
+                      variant={transactionTypeFilter === 'deposit' ? 'default' : 'outline'}
+                      onClick={() => setTransactionTypeFilter('deposit')}
+                      className={`text-xs ${transactionTypeFilter === 'deposit' ? 'bg-emerald-600' : ''}`}
+                      size="sm"
+                    >
+                      入帳
+                    </Button>
+                    <Button
+                      variant={transactionTypeFilter === 'withdraw' ? 'default' : 'outline'}
+                      onClick={() => setTransactionTypeFilter('withdraw')}
+                      className={`text-xs ${transactionTypeFilter === 'withdraw' ? 'bg-red-600' : ''}`}
+                      size="sm"
+                    >
+                      出帳
+                    </Button>
+                    <Button
+                      variant={transactionTypeFilter === 'transfer' ? 'default' : 'outline'}
+                      onClick={() => setTransactionTypeFilter('transfer')}
+                      className={`text-xs ${transactionTypeFilter === 'transfer' ? 'bg-blue-600' : ''}`}
+                      size="sm"
+                    >
+                      轉帳
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
             {/* Statistics Cards */}
             {showStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <Card className="p-2 md:p-4 bg-emerald-50 border-emerald-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
               <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-emerald-600" />
