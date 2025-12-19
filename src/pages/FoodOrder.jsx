@@ -221,7 +221,11 @@ export default function FoodOrder() {
                     type="date"
                     value={orderDate}
                     onChange={(e) => setOrderDate(e.target.value)}
+                    className="hidden md:block"
                   />
+                  <div className="md:hidden bg-slate-50 border rounded-md px-3 py-2 text-slate-700">
+                    {format(new Date(orderDate), 'yyyy年MM月dd日')}
+                  </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
