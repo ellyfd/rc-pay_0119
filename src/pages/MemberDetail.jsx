@@ -334,16 +334,16 @@ export default function MemberDetail() {
           {groupBuysByMember.length > 0 && (
             <Card>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[700px] text-xs sm:text-sm">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="bg-slate-50 border-b">
                     <tr>
-                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
-                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
-                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">商品</th>
-                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">數量</th>
-                      <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden md:table-cell">單價</th>
-                      <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">小計</th>
-                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">支付</th>
+                      <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                      <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">商品</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">數量</th>
+                      <th className="text-right px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden md:table-cell">單價</th>
+                      <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">小計</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">支付</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -353,17 +353,17 @@ export default function MemberDetail() {
                         <tr key={item.id} className="hover:bg-slate-50">
                           {itemIdx === 0 && (
                             <>
-                              <td className="px-2 sm:px-4 py-2 sm:py-3 align-top" rowSpan={groupBuy.items.length}>
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-top" rowSpan={groupBuy.items.length}>
                                 <Link 
                                   to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
-                                  className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2"
+                                  className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
                                 >
                                   {groupBuy.group_buy_title}
                                 </Link>
                               </td>
-                              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
+                              <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
                                 <Badge 
-                                  className={`text-xs ${
+                                  className={`text-[10px] sm:text-xs whitespace-nowrap ${
                                     groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
                                     groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
                                     allPaid ? 'bg-blue-500' : 'bg-slate-500'
@@ -376,23 +376,20 @@ export default function MemberDetail() {
                               </td>
                             </>
                           )}
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-700">
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 hidden sm:table-cell">
                             <div className="line-clamp-2">{item.product_name}</div>
                             {item.note && item.note.includes('平分') && <div className="text-[10px] text-slate-400 mt-0.5">{item.note}</div>}
-                            <div className="sm:hidden text-[10px] text-slate-500 mt-1">
-                              數量: {item.quantity} · 單價: ${item.price}
-                            </div>
                           </td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{item.quantity}</td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-slate-700 hidden md:table-cell whitespace-nowrap">${item.price.toLocaleString()}</td>
+                          <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{item.quantity}</td>
+                          <td className="px-1 sm:px-4 py-2 sm:py-3 text-right text-slate-700 hidden md:table-cell whitespace-nowrap">${item.price.toLocaleString()}</td>
                           {itemIdx === 0 && (
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-right align-top font-semibold text-purple-600 whitespace-nowrap" rowSpan={groupBuy.items.length}>
+                            <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right align-top font-semibold text-purple-600 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={groupBuy.items.length}>
                               ${groupBuy.total.toLocaleString()}
                             </td>
                           )}
                           {itemIdx === 0 && (
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
-                              <Badge className={`text-xs ${allPaid ? 'bg-green-500' : 'bg-amber-500'}`}>
+                            <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
+                              <Badge className={`text-[10px] sm:text-xs ${allPaid ? 'bg-green-500' : 'bg-amber-500'}`}>
                                 {allPaid ? '已付' : '未付'}
                               </Badge>
                             </td>
