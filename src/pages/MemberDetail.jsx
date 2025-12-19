@@ -14,6 +14,8 @@ import { format } from "date-fns";
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
   const [showStats, setShowStats] = useState(false);
+  const [walletTypeFilter, setWalletTypeFilter] = useState('all');
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -394,7 +396,85 @@ export default function MemberDetail() {
                     <span className="text-sm text-slate-500">共 {memberTransactions.length} 筆</span>
                   </div>
 
-                  {memberTransactions.length > 0 && (
+                  {/* 篩選按鈕 */}
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-600 font-medium">錢包類型：</span>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant={walletTypeFilter === 'all' ? 'default' : 'outline'}
+                          onClick={() => setWalletTypeFilter('all')}
+                          className={`text-xs h-7 ${walletTypeFilter === 'all' ? 'bg-slate-800' : ''}`}
+                        >
+                          全部
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={walletTypeFilter === 'balance' ? 'default' : 'outline'}
+                          onClick={() => setWalletTypeFilter('balance')}
+                          className={`text-xs h-7 ${walletTypeFilter === 'balance' ? 'bg-blue-600' : ''}`}
+                        >
+                          錢包
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={walletTypeFilter === 'cash' ? 'default' : 'outline'}
+                          onClick={() => setWalletTypeFilter('cash')}
+                          className={`text-xs h-7 ${walletTypeFilter === 'cash' ? 'bg-amber-600' : ''}`}
+                        >
+                          現金
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-600 font-medium">交易類型：</span>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant={transactionTypeFilter === 'all' ? 'default' : 'outline'}
+                          onClick={() => setTransactionTypeFilter('all')}
+                          className={`text-xs h-7 ${transactionTypeFilter === 'all' ? 'bg-slate-800' : ''}`}
+                        >
+                          全部
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={transactionTypeFilter === 'deposit' ? 'default' : 'outline'}
+                          onClick={() => setTransactionTypeFilter('deposit')}
+                          className={`text-xs h-7 ${transactionTypeFilter === 'deposit' ? 'bg-emerald-600' : ''}`}
+                        >
+                          入帳
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={transactionTypeFilter === 'withdraw' ? 'default' : 'outline'}
+                          onClick={() => setTransactionTypeFilter('withdraw')}
+                          className={`text-xs h-7 ${transactionTypeFilter === 'withdraw' ? 'bg-red-600' : ''}`}
+                        >
+                          出帳
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={transactionTypeFilter === 'transfer' ? 'default' : 'outline'}
+                          onClick={() => setTransactionTypeFilter('transfer')}
+                          className={`text-xs h-7 ${transactionTypeFilter === 'transfer' ? 'bg-blue-600' : ''}`}
+                        >
+                          轉帳
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const filteredTransactions = memberTransactions.filter(t => {
+                      const walletMatch = walletTypeFilter === 'all' || t.wallet_type === walletTypeFilter;
+                      const typeMatch = transactionTypeFilter === 'all' || t.type === transactionTypeFilter;
+                      return walletMatch && typeMatch;
+                    });
+
+                    return filteredTransactions.length > 0 && (
                     <Card className="overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs sm:text-sm">
@@ -408,7 +488,7 @@ export default function MemberDetail() {
                             </tr>
                           </thead>
                           <tbody>
-                            {memberTransactions.map((transaction) => {
+                            {filteredTransactions.map((transaction) => {
                               const getDescription = () => {
                                 switch (transaction.type) {
                                   case 'deposit':
@@ -492,7 +572,8 @@ export default function MemberDetail() {
                         </table>
                       </div>
                     </Card>
-                  )}
+                  );
+                  })()}
                 </section>
                 )}
               </TabsContent>
