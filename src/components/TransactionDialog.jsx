@@ -197,7 +197,10 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setNote('七分飽')}
+                  onClick={() => {
+                    const today = format(new Date(), 'yyyy/MM/dd');
+                    setNote(`${today} 七分飽`);
+                  }}
                   className="text-xs"
                 >
                   七分飽
@@ -206,7 +209,10 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setNote('飲料')}
+                  onClick={() => {
+                    const today = format(new Date(), 'yyyy/MM/dd');
+                    setNote(`${today} 飲料`);
+                  }}
                   className="text-xs"
                 >
                   飲料
@@ -215,7 +221,10 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setNote('團購')}
+                  onClick={() => {
+                    const today = format(new Date(), 'yyyy/MM/dd');
+                    setNote(`${today} 團購`);
+                  }}
                   className="text-xs"
                 >
                   團購
