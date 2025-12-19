@@ -338,12 +338,12 @@ export default function MemberDetail() {
                   <thead className="bg-slate-50 border-b">
                     <tr>
                       <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
-                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購狀態</th>
                       <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">商品</th>
                       <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">數量</th>
                       <th className="text-right px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden md:table-cell">單價</th>
                       <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">小計</th>
-                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">支付</th>
+                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">款項</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
