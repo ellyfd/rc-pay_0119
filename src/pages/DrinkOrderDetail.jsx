@@ -246,13 +246,13 @@ export default function DrinkOrderDetail() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Card className="overflow-hidden">
           <div className="p-4 bg-slate-50 border-b">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600">訂單支付人：</label>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <label className="text-sm text-slate-600 whitespace-nowrap">訂單支付人：</label>
                 <select
                   value={order.payer_id || ''}
                   onChange={(e) => updateOrderPayer(e.target.value)}
-                  className="px-2 py-1 border rounded text-sm"
+                  className="px-2 py-1 border rounded text-sm flex-1 min-w-0"
                   disabled={isCompleted}
                 >
                   <option value="">選擇支付人</option>
@@ -266,10 +266,10 @@ export default function DrinkOrderDetail() {
                   variant="outline"
                   size="sm"
                   onClick={() => deleteOrder.mutate(orderId)}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-red-500 hover:text-red-700 shrink-0"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  刪除訂單
+                  <Trash2 className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">刪除訂單</span>
                 </Button>
               )}
             </div>
