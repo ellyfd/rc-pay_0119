@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
@@ -17,10 +27,25 @@ export default function MemberDetail() {
   const [activeTab, setActiveTab] = useState('pending');
   const [walletTypeFilter, setWalletTypeFilter] = useState('all');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [transactionToCancel, setTransactionToCancel] = useState(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setMemberId(params.get('id'));
+  }, []);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    };
+    loadUser();
   }, []);
 
   const { data: member, isLoading: memberLoading } = useQuery({
@@ -60,6 +85,75 @@ export default function MemberDetail() {
     queryKey: ['drinkOrders'],
     queryFn: () => base44.entities.DrinkOrder.list('-created_date'),
   });
+
+  const deleteTransaction = useMutation({
+    mutationFn: (id) => base44.entities.Transaction.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    }
+  });
+
+  const updateMemberBalance = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    }
+  });
+
+  const handleCancelTransaction = async (transaction) => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+
+    const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
+    const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
+
+    try {
+      // Reverse balance changes
+      if (type === 'deposit' && to_member_id) {
+        const toMember = await base44.entities.Member.list();
+        const member = toMember.find(m => m.id === to_member_id);
+        if (member) {
+          await updateMemberBalance.mutateAsync({
+            id: to_member_id,
+            data: { [balanceField]: (member[balanceField] || 0) - amount }
+          });
+        }
+      } else if (type === 'withdraw' && from_member_id) {
+        const fromMembers = await base44.entities.Member.list();
+        const member = fromMembers.find(m => m.id === from_member_id);
+        if (member) {
+          await updateMemberBalance.mutateAsync({
+            id: from_member_id,
+            data: { [balanceField]: (member[balanceField] || 0) + amount }
+          });
+        }
+      } else if (type === 'transfer' && from_member_id && to_member_id) {
+        const allMembers = await base44.entities.Member.list();
+        const fromMember = allMembers.find(m => m.id === from_member_id);
+        const toMember = allMembers.find(m => m.id === to_member_id);
+        
+        if (fromMember) {
+          await updateMemberBalance.mutateAsync({
+            id: from_member_id,
+            data: { [balanceField]: (fromMember[balanceField] || 0) + amount }
+          });
+        }
+        if (toMember) {
+          await updateMemberBalance.mutateAsync({
+            id: to_member_id,
+            data: { [balanceField]: (toMember[balanceField] || 0) - amount }
+          });
+        }
+      }
+
+      // Delete transaction
+      await deleteTransaction.mutateAsync(transaction.id);
+      setTransactionToCancel(null);
+    } catch (error) {
+      console.error('Failed to cancel transaction:', error);
+    }
+  };
 
   if (!memberId || memberLoading) {
     return (
@@ -565,6 +659,9 @@ export default function MemberDetail() {
                           <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
                           <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
                           <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                          {currentUser?.role === 'admin' && (
+                            <th className="px-1 sm:px-4 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b">操作</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -645,10 +742,22 @@ export default function MemberDetail() {
                                 {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
                                 ${transaction.amount?.toLocaleString()}
                               </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
+                              {currentUser?.role === 'admin' && (
+                                <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setTransactionToCancel(transaction)}
+                                    className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  </Button>
+                                </td>
+                              )}
+                              </tr>
+                              );
+                              })}
+                              </tbody>
                     </table>
                   </div>
                 </Card>
@@ -883,8 +992,29 @@ export default function MemberDetail() {
         </section>
         )}
           </TabsContent>
-        </Tabs>
-        </div>
-    </div>
-  );
-}
+          </Tabs>
+          </div>
+
+          {/* Cancel Transaction Dialog */}
+          <AlertDialog open={!!transactionToCancel} onOpenChange={() => setTransactionToCancel(null)}>
+          <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認撤銷交易</AlertDialogTitle>
+            <AlertDialogDescription>
+              撤銷此交易將自動還原相關成員的餘額變動。此操作無法復原，確定要繼續嗎？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => transactionToCancel && handleCancelTransaction(transactionToCancel)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              確認撤銷
+            </AlertDialogAction>
+          </AlertDialogFooter>
+          </AlertDialogContent>
+          </AlertDialog>
+          </div>
+          );
+          }
