@@ -762,9 +762,9 @@ export default function MemberDetail() {
                                 return `${transaction.from_member_name}`;
                               case 'transfer':
                                 if (isTransferOut) {
-                                  return `轉出 → ${transaction.to_member_name}`;
+                                  return `轉出 to ${transaction.to_member_name}`;
                                 } else if (isTransferIn) {
-                                  return `轉入 ← ${transaction.from_member_name}`;
+                                  return `轉入 from ${transaction.from_member_name}`;
                                 }
                                 return `${transaction.from_member_name} → ${transaction.to_member_name}`;
                               default:
