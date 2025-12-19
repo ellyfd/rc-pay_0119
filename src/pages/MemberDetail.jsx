@@ -431,7 +431,7 @@ export default function MemberDetail() {
                     order.memberItems.map((item, idx) => (
                       <tr key={`${order.id}-${idx}`} className="hover:bg-slate-50">
                         {idx === 0 && (
-                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-top text-slate-700 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={order.memberItems.length}>
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-middle text-slate-700 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={order.memberItems.length}>
                             <Link 
                               to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
                               className="text-slate-800 hover:text-orange-600"
