@@ -88,132 +88,67 @@ export default function MemberDetail() {
     queryFn: () => base44.entities.DrinkOrder.list('-created_date'),
   });
 
-  const deleteTransaction = useMutation({
-    mutationFn: (id) => base44.entities.Transaction.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
-    }
-  });
-
-  const updateMemberBalance = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['member'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
-    }
-  });
-
   const handleCancelTransaction = async (transaction) => {
-    console.log('handleCancelTransaction called', { transaction, currentUser });
-    
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser?.role === 'admin') {
       toast.error('只有管理員可以執行此操作');
-      console.log('Permission denied', { currentUser });
       return;
     }
 
-    const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
-    console.log('Transaction details:', { type, amount, wallet_type, from_member_id, to_member_id });
-
+    setTransactionToCancel(null);
     toast.loading('正在撤銷交易...');
 
     try {
-      // Fetch fresh member data
-      const allMembers = await base44.entities.Member.list();
-      console.log('Fetched members:', allMembers.length);
+      const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
+      
+      // 先刪除交易記錄
+      await base44.entities.Transaction.delete(transaction.id);
 
-      // Reverse balance changes
+      // 還原餘額變動
+      const allMembers = await base44.entities.Member.list();
+      
       if (type === 'deposit' && to_member_id) {
         const member = allMembers.find(m => m.id === to_member_id);
-        console.log('Deposit - found member:', member);
         if (member) {
-          const updateData = {
-            balance: member.balance || 0,
-            cash_balance: member.cash_balance || 0
-          };
-          
-          if (wallet_type === 'cash') {
-            updateData.cash_balance = (member.cash_balance || 0) - amount;
-          } else {
-            updateData.balance = (member.balance || 0) - amount;
-          }
-          
-          console.log('Updating member with:', updateData);
-          await base44.entities.Member.update(to_member_id, updateData);
+          const newBalance = wallet_type === 'cash' 
+            ? { balance: member.balance, cash_balance: (member.cash_balance || 0) - amount }
+            : { balance: (member.balance || 0) - amount, cash_balance: member.cash_balance };
+          await base44.entities.Member.update(to_member_id, newBalance);
         }
       } else if (type === 'withdraw' && from_member_id) {
         const member = allMembers.find(m => m.id === from_member_id);
-        console.log('Withdraw - found member:', member);
         if (member) {
-          const updateData = {
-            balance: member.balance || 0,
-            cash_balance: member.cash_balance || 0
-          };
-          
-          if (wallet_type === 'cash') {
-            updateData.cash_balance = (member.cash_balance || 0) + amount;
-          } else {
-            updateData.balance = (member.balance || 0) + amount;
-          }
-          
-          console.log('Updating member with:', updateData);
-          await base44.entities.Member.update(from_member_id, updateData);
+          const newBalance = wallet_type === 'cash'
+            ? { balance: member.balance, cash_balance: (member.cash_balance || 0) + amount }
+            : { balance: (member.balance || 0) + amount, cash_balance: member.cash_balance };
+          await base44.entities.Member.update(from_member_id, newBalance);
         }
       } else if (type === 'transfer' && from_member_id && to_member_id) {
         const fromMember = allMembers.find(m => m.id === from_member_id);
         const toMember = allMembers.find(m => m.id === to_member_id);
-        console.log('Transfer - found members:', { fromMember, toMember });
         
         if (fromMember) {
-          const updateData = {
-            balance: fromMember.balance || 0,
-            cash_balance: fromMember.cash_balance || 0
-          };
-          
-          if (wallet_type === 'cash') {
-            updateData.cash_balance = (fromMember.cash_balance || 0) + amount;
-          } else {
-            updateData.balance = (fromMember.balance || 0) + amount;
-          }
-          
-          console.log('Updating from member with:', updateData);
-          await base44.entities.Member.update(from_member_id, updateData);
+          const newBalance = wallet_type === 'cash'
+            ? { balance: fromMember.balance, cash_balance: (fromMember.cash_balance || 0) + amount }
+            : { balance: (fromMember.balance || 0) + amount, cash_balance: fromMember.cash_balance };
+          await base44.entities.Member.update(from_member_id, newBalance);
         }
         
         if (toMember) {
-          const updateData = {
-            balance: toMember.balance || 0,
-            cash_balance: toMember.cash_balance || 0
-          };
-          
-          if (wallet_type === 'cash') {
-            updateData.cash_balance = (toMember.cash_balance || 0) - amount;
-          } else {
-            updateData.balance = (toMember.balance || 0) - amount;
-          }
-          
-          console.log('Updating to member with:', updateData);
-          await base44.entities.Member.update(to_member_id, updateData);
+          const newBalance = wallet_type === 'cash'
+            ? { balance: toMember.balance, cash_balance: (toMember.cash_balance || 0) - amount }
+            : { balance: (toMember.balance || 0) - amount, cash_balance: toMember.cash_balance };
+          await base44.entities.Member.update(to_member_id, newBalance);
         }
       }
 
-      // Delete transaction
-      console.log('Deleting transaction:', transaction.id);
-      await base44.entities.Transaction.delete(transaction.id);
-
-      // Invalidate queries to refresh data
-      console.log('Invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['member'] });
 
-      setTransactionToCancel(null);
       toast.dismiss();
       toast.success('交易已撤銷，餘額已還原');
-      console.log('Transaction cancelled successfully');
     } catch (error) {
-      console.error('Failed to cancel transaction:', error);
+      console.error('撤銷交易失敗:', error);
       toast.dismiss();
       toast.error(`撤銷失敗：${error.message}`);
     }
