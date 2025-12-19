@@ -96,7 +96,7 @@ export default function MemberDetail() {
     }
 
     setTransactionToCancel(null);
-    toast.loading('正在撤銷交易...');
+    toast.loading('正在撤銷交易...', { id: 'cancel-transaction' });
 
     try {
       const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
@@ -146,11 +146,11 @@ export default function MemberDetail() {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['member'] });
 
-      toast.dismiss();
+      toast.dismiss('cancel-transaction');
       toast.success('交易已撤銷，餘額已還原');
     } catch (error) {
       console.error('撤銷交易失敗:', error);
-      toast.dismiss();
+      toast.dismiss('cancel-transaction');
       toast.error(`撤銷失敗：${error.message}`);
     }
   };
