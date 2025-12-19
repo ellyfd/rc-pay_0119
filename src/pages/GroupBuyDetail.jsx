@@ -921,14 +921,19 @@ export default function GroupBuyDetail() {
                                 />
                               </td>
                             )}
-                            {isOrganizer && groupBuy.status !== 'open' && (
-                              <td className="px-1 sm:px-2 py-2 text-center">
+                            {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
+                              <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
                                 <select
                                   value={item.payment_method || ''}
-                                  onChange={(e) => updateItem.mutate({
-                                    id: item.id,
-                                    data: { payment_method: e.target.value }
-                                  })}
+                                  onChange={(e) => {
+                                    // Update all items for this member
+                                    summary.items.forEach(memberItem => {
+                                      updateItem.mutate({
+                                        id: memberItem.id,
+                                        data: { payment_method: e.target.value }
+                                      });
+                                    });
+                                  }}
                                   className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 w-full max-w-[80px]"
                                 >
                                   <option value="">請選擇</option>
