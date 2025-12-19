@@ -30,8 +30,6 @@ export default function MemberDetail() {
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
   const [currentUser, setCurrentUser] = useState(null);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
-  const [recalculateResult, setRecalculateResult] = useState(null);
-  const [isRecalculating, setIsRecalculating] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -155,76 +153,7 @@ export default function MemberDetail() {
     }
   };
 
-  const handleRecalculateBalances = async () => {
-    if (!currentUser || currentUser.role !== 'admin') {
-      toast.error('只有管理員可以執行此操作');
-      return;
-    }
 
-    setIsRecalculating(true);
-    toast.loading('正在重新計算餘額...', { id: 'recalculate' });
-
-    try {
-      // Fetch all members and transactions
-      const allMembers = await base44.entities.Member.list();
-      const allTransactions = await base44.entities.Transaction.list();
-
-      // Initialize balance counters for each member
-      const balances = {};
-      allMembers.forEach(member => {
-        balances[member.id] = {
-          balance: 0,
-          cash_balance: 0
-        };
-      });
-
-      // Process all transactions
-      allTransactions.forEach(transaction => {
-        const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
-        const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
-
-        if (type === 'deposit' && to_member_id && balances[to_member_id]) {
-          balances[to_member_id][balanceField] += amount;
-        } else if (type === 'withdraw' && from_member_id && balances[from_member_id]) {
-          balances[from_member_id][balanceField] -= amount;
-        } else if (type === 'transfer' && from_member_id && to_member_id) {
-          if (balances[from_member_id]) {
-            balances[from_member_id][balanceField] -= amount;
-          }
-          if (balances[to_member_id]) {
-            balances[to_member_id][balanceField] += amount;
-          }
-        }
-      });
-
-      // Update all members with recalculated balances
-      for (const member of allMembers) {
-        const newBalance = Math.round(balances[member.id].balance * 100) / 100;
-        const newCashBalance = Math.round(balances[member.id].cash_balance * 100) / 100;
-        
-        await base44.entities.Member.update(member.id, {
-          balance: newBalance,
-          cash_balance: newCashBalance
-        });
-      }
-
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['members'] });
-      queryClient.invalidateQueries({ queryKey: ['member'] });
-
-      toast.dismiss('recalculate');
-      setIsRecalculating(false);
-      setRecalculateResult({
-        success: true,
-        memberCount: allMembers.length
-      });
-    } catch (error) {
-      console.error('Failed to recalculate balances:', error);
-      toast.dismiss('recalculate');
-      toast.error(`重新計算失敗：${error.message}`);
-      setIsRecalculating(false);
-    }
-  };
 
   if (!memberId || memberLoading) {
     return (
@@ -594,25 +523,6 @@ export default function MemberDetail() {
 
           {/* RC Pay Tab */}
           <TabsContent value="rcpay" className="space-y-6">
-            {/* Admin Tools */}
-            {currentUser?.role === 'admin' && (
-              <Card className="p-4 bg-amber-50 border-amber-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-slate-800">管理員工具</h3>
-                    <p className="text-xs text-slate-600 mt-1">根據所有交易記錄重新計算成員餘額</p>
-                  </div>
-                  <Button
-                    onClick={handleRecalculateBalances}
-                    disabled={isRecalculating}
-                    className="bg-amber-600 hover:bg-amber-700 text-white"
-                  >
-                    {isRecalculating ? '計算中...' : '重新計算餘額'}
-                  </Button>
-                </div>
-              </Card>
-            )}
-
             {/* Filters */}
             <div className="space-y-3">
               <div>
@@ -1122,22 +1032,6 @@ export default function MemberDetail() {
           </AlertDialogContent>
           </AlertDialog>
 
-          {/* Recalculate Result Dialog */}
-          <AlertDialog open={!!recalculateResult} onOpenChange={() => setRecalculateResult(null)}>
-          <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>重新計算完成</AlertDialogTitle>
-            <AlertDialogDescription>
-              已成功重新計算 {recalculateResult?.memberCount} 位成員的餘額，所有資料已更新。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setRecalculateResult(null)} className="bg-green-600 hover:bg-green-700">
-              確認
-            </AlertDialogAction>
-          </AlertDialogFooter>
-          </AlertDialogContent>
-          </AlertDialog>
           </div>
           );
           }
