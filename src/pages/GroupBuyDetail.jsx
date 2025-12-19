@@ -680,7 +680,7 @@ export default function GroupBuyDetail() {
 
           {/* Right: Items List */}
           <div className="lg:col-span-2 space-y-6">
-            {groupBuy.status === 'completed' && productSummary.length > 0 && (
+            {groupBuy.status !== 'open' && productSummary.length > 0 && (
               <Card>
                 <div className="p-4 bg-green-50 border-b flex items-center justify-between">
                   <h3 className="font-semibold text-green-800 flex items-center gap-2">
