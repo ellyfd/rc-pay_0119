@@ -445,9 +445,11 @@ export default function MemberDetail() {
                         </td>
                         <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
                           <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                            order.payer_id && item.member_id === order.payer_id ? 'bg-purple-500' :
                             item.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'
                           }`}>
-                            {item.payment_method === 'cash' ? '現金' : '餘額'}
+                            {order.payer_id && item.member_id === order.payer_id ? '支付人' :
+                             item.payment_method === 'cash' ? '現金' : '餘額'}
                           </Badge>
                         </td>
                         <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap text-[11px] sm:text-sm">
