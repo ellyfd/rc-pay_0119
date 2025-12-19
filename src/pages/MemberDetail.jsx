@@ -50,6 +50,11 @@ export default function MemberDetail() {
     queryFn: () => base44.entities.GroupBuyItem.list('-created_date'),
   });
 
+  const { data: allDrinkOrders = [], isLoading: drinkOrdersLoading } = useQuery({
+    queryKey: ['drinkOrders'],
+    queryFn: () => base44.entities.DrinkOrder.list('-order_date'),
+  });
+
   if (!memberId || memberLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
@@ -138,6 +143,21 @@ export default function MemberDetail() {
       ...gb,
       totalAmount,
       participantCount,
+      allPaid
+    };
+  });
+
+  // Filter drink orders where this member participated
+  const memberDrinkOrders = allDrinkOrders.filter(order => 
+    order.items && order.items.some(item => item.member_id === memberId)
+  ).map(order => {
+    const memberItems = order.items.filter(item => item.member_id === memberId);
+    const totalAmount = memberItems.reduce((sum, item) => sum + (item.price || 0), 0);
+    const allPaid = memberItems.every(item => item.paid);
+    return {
+      ...order,
+      memberItems,
+      totalAmount,
       allPaid
     };
   });
@@ -231,19 +251,13 @@ export default function MemberDetail() {
         </div>
 
         {/* Organized Group Buys */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Package className="w-5 h-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-slate-800">開團紀錄</h2>
-            <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
-          </div>
-
-          {organizedGroupBuys.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
-              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚未開過團購</p>
-            </Card>
-          ) : (
+        {organizedGroupBuys.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <Package className="w-5 h-5 text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-800">開團紀錄</h2>
+              <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
+            </div>
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px] text-xs sm:text-sm">
@@ -304,24 +318,83 @@ export default function MemberDetail() {
           )}
         </section>
 
-        {/* Group Buy Section */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <ShoppingCart className="w-5 h-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-slate-800">跟團紀錄</h2>
-            <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
-          </div>
+        {/* Drink Orders Section */}
+        {memberDrinkOrders.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingCart className="w-5 h-5 text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-800">飲料訂單</h2>
+              <span className="text-sm text-slate-500">共 {memberDrinkOrders.length} 筆訂單</span>
+            </div>
 
-          {groupBuyItemsLoading ? (
-            <Card className="p-4 animate-pulse">
-              <div className="h-20 bg-slate-200 rounded" />
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-xs sm:text-sm">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">訂購日期</th>
+                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">品項</th>
+                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
+                      <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">金額</th>
+                      <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">支付</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {memberDrinkOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-slate-50">
+                        <td className="px-2 sm:px-4 py-2 sm:py-3">
+                          <Link 
+                            to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
+                            className="font-medium text-slate-800 hover:text-orange-600"
+                          >
+                            {formatTaiwanTime(order.order_date, 'yyyy/MM/dd')}
+                          </Link>
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-700">
+                          <div className="space-y-1">
+                            {order.memberItems.map((item, idx) => (
+                              <div key={idx} className="line-clamp-1 text-xs">
+                                {item.item_name}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
+                            {order.status === 'completed' ? '已完成' : '待處理'}
+                          </Badge>
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-bold text-orange-600 whitespace-nowrap">
+                          ${order.totalAmount.toLocaleString()}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-xs ${order.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}>
+                            {order.allPaid ? '已付' : '未付'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Card>
-          ) : groupBuysByMember.length === 0 ? (
-            <Card className="p-8 text-center border-dashed">
-              <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚未參與任何團購</p>
-            </Card>
-          ) : (
+          </section>
+        )}
+
+        {/* Group Buy Section */}
+        {groupBuysByMember.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingCart className="w-5 h-5 text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-800">跟團紀錄</h2>
+              <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
+            </div>
+
+            {groupBuyItemsLoading ? (
+              <Card className="p-4 animate-pulse">
+                <div className="h-20 bg-slate-200 rounded" />
+              </Card>
+            ) : (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px] text-xs sm:text-sm">
