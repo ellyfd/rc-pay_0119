@@ -179,35 +179,36 @@ export default function MemberDetail() {
     );
   }
 
-  // Filter transactions related to this member
-  let memberTransactions = allTransactions.filter(
+  // Get all transactions related to this member (for statistics)
+  const allMemberTransactions = allTransactions.filter(
     t => t.from_member_id === memberId || t.to_member_id === memberId
   );
 
-  // Apply filters
+  // Calculate statistics from ALL transactions (not filtered)
+  const totalDeposit = allMemberTransactions
+    .filter(t => t.type === 'deposit' && t.to_member_id === memberId)
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  const totalWithdraw = allMemberTransactions
+    .filter(t => t.type === 'withdraw' && t.from_member_id === memberId)
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  const totalTransferIn = allMemberTransactions
+    .filter(t => t.type === 'transfer' && t.to_member_id === memberId)
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  const totalTransferOut = allMemberTransactions
+    .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+  // Apply filters for display only
+  let memberTransactions = [...allMemberTransactions];
   if (walletTypeFilter !== 'all') {
     memberTransactions = memberTransactions.filter(t => t.wallet_type === walletTypeFilter);
   }
   if (transactionTypeFilter !== 'all') {
     memberTransactions = memberTransactions.filter(t => t.type === transactionTypeFilter);
   }
-
-  // Calculate statistics
-  const totalDeposit = memberTransactions
-    .filter(t => t.type === 'deposit' && t.to_member_id === memberId)
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
-  const totalWithdraw = memberTransactions
-    .filter(t => t.type === 'withdraw' && t.from_member_id === memberId)
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
-  const totalTransferIn = memberTransactions
-    .filter(t => t.type === 'transfer' && t.to_member_id === memberId)
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
-  const totalTransferOut = memberTransactions
-    .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   const colorMap = {
     blue: "bg-blue-500",
