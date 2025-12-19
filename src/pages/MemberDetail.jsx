@@ -3,9 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -14,8 +13,6 @@ import { format } from "date-fns";
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
   const [showStats, setShowStats] = useState(false);
-  const [walletTypeFilter, setWalletTypeFilter] = useState('all');
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -167,25 +164,6 @@ export default function MemberDetail() {
     })
     .filter(Boolean);
 
-  // 篩選未結案項目
-  // 1. 未付款的團購（作為參與者）
-  const unpaidGroupBuys = groupBuysByMember.filter(gb => 
-    gb.group_buy_status !== 'open' && !gb.items.every(item => item.paid)
-  );
-
-  // 2. 款項未收齊的團購（作為開團者）
-  const unpaidOrganizerGroupBuys = organizedGroupBuys.filter(gb => 
-    gb.status !== 'open' && !gb.allPaid
-  );
-
-  // 3. 未付款的飲料訂單
-  const unpaidDrinkOrders = memberDrinkOrders.filter(order => 
-    order.status !== 'completed' && 
-    order.memberItems.some(item => !item.paid && item.member_id !== order.payer_id)
-  );
-
-  const hasUnpaidItems = unpaidGroupBuys.length > 0 || unpaidOrganizerGroupBuys.length > 0 || unpaidDrinkOrders.length > 0;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
@@ -237,93 +215,6 @@ export default function MemberDetail() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* 未結案專區 */}
-        {hasUnpaidItems && (
-          <Card className="border-2 border-amber-400 bg-amber-50">
-            <div className="p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="w-5 h-5 text-amber-600" />
-                <h2 className="text-lg font-bold text-amber-900">未結案項目</h2>
-                <Badge className="bg-amber-500 text-white ml-auto">
-                  {unpaidGroupBuys.length + unpaidOrganizerGroupBuys.length + unpaidDrinkOrders.length} 項
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                {/* 未付款的團購（參與者） */}
-                {unpaidGroupBuys.map((groupBuy) => (
-                  <Link key={groupBuy.group_buy_id} to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}>
-                    <Card className="p-3 hover:shadow-md transition-shadow bg-white">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          <ShoppingCart className="w-5 h-5 text-purple-600" />
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">{groupBuy.group_buy_title}</div>
-                            <div className="text-xs text-slate-500">團購 · 您尚未付款</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-purple-600">${groupBuy.total.toLocaleString()}</div>
-                          <Badge className="bg-amber-500 text-white text-xs mt-1">待付款</Badge>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
-
-                {/* 款項未收齊的團購（開團者） */}
-                {unpaidOrganizerGroupBuys.map((gb) => (
-                  <Link key={gb.id} to={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}>
-                    <Card className="p-3 hover:shadow-md transition-shadow bg-white">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          <Package className="w-5 h-5 text-orange-600" />
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">{gb.title}</div>
-                            <div className="text-xs text-slate-500">我開的團 · 款項未收齊</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-orange-600">${gb.totalAmount.toLocaleString()}</div>
-                          <Badge className="bg-orange-500 text-white text-xs mt-1">待收款</Badge>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
-
-                {/* 未付款的飲料訂單 */}
-                {unpaidDrinkOrders.map((order) => {
-                  const unpaidAmount = order.memberItems
-                    .filter(item => !item.paid && item.member_id !== order.payer_id)
-                    .reduce((sum, item) => sum + item.price, 0);
-                  return (
-                    <Link key={order.id} to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}>
-                      <Card className="p-3 hover:shadow-md transition-shadow bg-white">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1">
-                            <Coffee className="w-5 h-5 text-amber-600" />
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">
-                                {format(new Date(order.order_date), 'MM/dd')} 飲料訂單
-                              </div>
-                              <div className="text-xs text-slate-500">飲料 · 您尚未付款</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold text-amber-600">${unpaidAmount.toLocaleString()}</div>
-                            <Badge className="bg-amber-500 text-white text-xs mt-1">待付款</Badge>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </Card>
-        )}
-
         {/* Statistics Cards */}
         {showStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
@@ -369,218 +260,7 @@ export default function MemberDetail() {
             </div>
             )}
 
-            {/* 主要內容區 - 使用標籤頁 */}
-            <Tabs defaultValue="rcpay" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="rcpay" className="flex items-center gap-2">
-                  <Wallet className="w-4 h-4" />
-                  <span className="hidden sm:inline">RC Pay</span>
-                </TabsTrigger>
-                <TabsTrigger value="groupbuy" className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4" />
-                  <span className="hidden sm:inline">團購</span>
-                </TabsTrigger>
-                <TabsTrigger value="drink" className="flex items-center gap-2">
-                  <Coffee className="w-4 h-4" />
-                  <span className="hidden sm:inline">飲料</span>
-                </TabsTrigger>
-              </TabsList>
-
-              {/* RC Pay 標籤 */}
-              <TabsContent value="rcpay" className="space-y-6 mt-6">
-                {/* Transaction History */}
-                {!transactionsLoading && memberTransactions.length > 0 && (
-                <section>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-slate-800">交易明細</h2>
-                    <span className="text-sm text-slate-500">共 {memberTransactions.length} 筆</span>
-                  </div>
-
-                  {/* 篩選按鈕 */}
-                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-600 font-medium">錢包類型：</span>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant={walletTypeFilter === 'all' ? 'default' : 'outline'}
-                          onClick={() => setWalletTypeFilter('all')}
-                          className={`text-xs h-7 ${walletTypeFilter === 'all' ? 'bg-slate-800' : ''}`}
-                        >
-                          全部
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={walletTypeFilter === 'balance' ? 'default' : 'outline'}
-                          onClick={() => setWalletTypeFilter('balance')}
-                          className={`text-xs h-7 ${walletTypeFilter === 'balance' ? 'bg-blue-600' : ''}`}
-                        >
-                          錢包
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={walletTypeFilter === 'cash' ? 'default' : 'outline'}
-                          onClick={() => setWalletTypeFilter('cash')}
-                          className={`text-xs h-7 ${walletTypeFilter === 'cash' ? 'bg-amber-600' : ''}`}
-                        >
-                          現金
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-600 font-medium">交易類型：</span>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant={transactionTypeFilter === 'all' ? 'default' : 'outline'}
-                          onClick={() => setTransactionTypeFilter('all')}
-                          className={`text-xs h-7 ${transactionTypeFilter === 'all' ? 'bg-slate-800' : ''}`}
-                        >
-                          全部
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={transactionTypeFilter === 'deposit' ? 'default' : 'outline'}
-                          onClick={() => setTransactionTypeFilter('deposit')}
-                          className={`text-xs h-7 ${transactionTypeFilter === 'deposit' ? 'bg-emerald-600' : ''}`}
-                        >
-                          入帳
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={transactionTypeFilter === 'withdraw' ? 'default' : 'outline'}
-                          onClick={() => setTransactionTypeFilter('withdraw')}
-                          className={`text-xs h-7 ${transactionTypeFilter === 'withdraw' ? 'bg-red-600' : ''}`}
-                        >
-                          出帳
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={transactionTypeFilter === 'transfer' ? 'default' : 'outline'}
-                          onClick={() => setTransactionTypeFilter('transfer')}
-                          className={`text-xs h-7 ${transactionTypeFilter === 'transfer' ? 'bg-blue-600' : ''}`}
-                        >
-                          轉帳
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const filteredTransactions = memberTransactions.filter(t => {
-                      const walletMatch = walletTypeFilter === 'all' || t.wallet_type === walletTypeFilter;
-                      const typeMatch = transactionTypeFilter === 'all' || t.type === transactionTypeFilter;
-                      return walletMatch && typeMatch;
-                    });
-
-                    return filteredTransactions.length > 0 && (
-                    <Card className="overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs sm:text-sm">
-                          <thead className="bg-slate-50">
-                            <tr>
-                              <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
-                              <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
-                              <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
-                              <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
-                              <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredTransactions.map((transaction) => {
-                              const getDescription = () => {
-                                switch (transaction.type) {
-                                  case 'deposit':
-                                    return `${transaction.to_member_name}`;
-                                  case 'withdraw':
-                                    return `${transaction.from_member_name}`;
-                                  case 'transfer':
-                                    return `${transaction.from_member_name} → ${transaction.to_member_name}`;
-                                  default:
-                                    return '';
-                                }
-                              };
-
-                              const getTypeLabel = () => {
-                                switch (transaction.type) {
-                                  case 'deposit':
-                                    return '入帳';
-                                  case 'withdraw':
-                                    return '出帳';
-                                  case 'transfer':
-                                    return '轉帳';
-                                  default:
-                                    return '';
-                                }
-                              };
-
-                              const getAmountColor = () => {
-                                switch (transaction.type) {
-                                  case 'deposit':
-                                    return 'text-emerald-600';
-                                  case 'withdraw':
-                                    return 'text-red-500';
-                                  case 'transfer':
-                                    return 'text-blue-600';
-                                  default:
-                                    return 'text-slate-600';
-                                }
-                              };
-
-                              return (
-                                <tr key={transaction.id} className="border-b hover:bg-slate-50">
-                                  <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
-                                    <div className="hidden sm:block">
-                                      {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
-                                    </div>
-                                    <div className="sm:hidden">
-                                      {formatTaiwanTime(transaction.created_date, 'MM/dd HH:mm')}
-                                    </div>
-                                  </td>
-                                  <td className="px-1 sm:px-4 py-2 sm:py-3">
-                                    <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
-                                      transaction.type === 'deposit' ? 'bg-emerald-500' :
-                                      transaction.type === 'withdraw' ? 'bg-red-500' :
-                                      'bg-blue-500'
-                                    }`}>
-                                      {getTypeLabel()}
-                                    </Badge>
-                                    <div className="sm:hidden text-[10px] text-slate-500 mt-1">
-                                      {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
-                                    </div>
-                                  </td>
-                                  <td className="px-1 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
-                                    <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
-                                      {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
-                                    <div className="line-clamp-2">{getDescription()}</div>
-                                    {transaction.note && (
-                                      <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
-                                    )}
-                                  </td>
-                                  <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
-                                    {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
-                                    ${transaction.amount?.toLocaleString()}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </Card>
-                  );
-                  })()}
-                </section>
-                )}
-              </TabsContent>
-
-              {/* 團購標籤 */}
-              <TabsContent value="groupbuy" className="space-y-6 mt-6">
-                {/* Organized Group Buys */}
+        {/* Organized Group Buys */}
         {organizedGroupBuys.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
@@ -733,11 +413,8 @@ export default function MemberDetail() {
           )}
         </section>
         )}
-          </TabsContent>
 
-          {/* 飲料標籤 */}
-          <TabsContent value="drink" className="space-y-6 mt-6">
-            {/* Drink Orders Section */}
+        {/* Drink Orders Section */}
         {!drinkOrdersLoading && memberDrinkOrders.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
@@ -803,8 +480,116 @@ export default function MemberDetail() {
           </Card>
         </section>
         )}
-          </TabsContent>
-        </Tabs>
+
+        {/* Transaction History */}
+        {!transactionsLoading && memberTransactions.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-800">交易明細</h2>
+            <span className="text-sm text-slate-500">共 {memberTransactions.length} 筆</span>
+          </div>
+
+          {memberTransactions.length > 0 && (
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs sm:text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">時間</th>
+                      <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">類型</th>
+                      <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
+                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
+                      <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {memberTransactions.map((transaction) => {
+                      const getDescription = () => {
+                        switch (transaction.type) {
+                          case 'deposit':
+                            return `${transaction.to_member_name}`;
+                          case 'withdraw':
+                            return `${transaction.from_member_name}`;
+                          case 'transfer':
+                            return `${transaction.from_member_name} → ${transaction.to_member_name}`;
+                          default:
+                            return '';
+                        }
+                      };
+
+                      const getTypeLabel = () => {
+                        switch (transaction.type) {
+                          case 'deposit':
+                            return '入帳';
+                          case 'withdraw':
+                            return '出帳';
+                          case 'transfer':
+                            return '轉帳';
+                          default:
+                            return '';
+                        }
+                      };
+
+                      const getAmountColor = () => {
+                        switch (transaction.type) {
+                          case 'deposit':
+                            return 'text-emerald-600';
+                          case 'withdraw':
+                            return 'text-red-500';
+                          case 'transfer':
+                            return 'text-blue-600';
+                          default:
+                            return 'text-slate-600';
+                        }
+                      };
+
+                      return (
+                        <tr key={transaction.id} className="border-b hover:bg-slate-50">
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
+                            <div className="hidden sm:block">
+                              {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
+                            </div>
+                            <div className="sm:hidden">
+                              {formatTaiwanTime(transaction.created_date, 'MM/dd HH:mm')}
+                            </div>
+                          </td>
+                          <td className="px-1 sm:px-4 py-2 sm:py-3">
+                            <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                              transaction.type === 'deposit' ? 'bg-emerald-500' :
+                              transaction.type === 'withdraw' ? 'bg-red-500' :
+                              'bg-blue-500'
+                            }`}>
+                              {getTypeLabel()}
+                            </Badge>
+                            <div className="sm:hidden text-[10px] text-slate-500 mt-1">
+                              {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+                            </div>
+                          </td>
+                          <td className="px-1 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
+                            <Badge variant="outline" className={`text-xs ${transaction.wallet_type === 'cash' ? 'border-amber-500 text-amber-700' : 'border-blue-500 text-blue-700'}`}>
+                              {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
+                            </Badge>
+                          </td>
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
+                            <div className="line-clamp-2">{getDescription()}</div>
+                            {transaction.note && (
+                              <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
+                            )}
+                          </td>
+                          <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
+                            {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
+                            ${transaction.amount?.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+        </section>
+        )}
       </div>
     </div>
   );
