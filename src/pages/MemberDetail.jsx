@@ -20,6 +20,7 @@ import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
@@ -156,7 +157,12 @@ export default function MemberDetail() {
   };
 
   const handleRecalculateBalances = async () => {
-    if (!currentUser || currentUser.role !== 'admin') return;
+    if (!currentUser || currentUser.role !== 'admin') {
+      toast.error('只有管理員可以執行此操作');
+      return;
+    }
+
+    toast.loading('正在重新計算餘額...');
 
     try {
       // Fetch all members and transactions
@@ -193,19 +199,25 @@ export default function MemberDetail() {
 
       // Update all members with recalculated balances
       for (const member of allMembers) {
-        await updateMemberBalance.mutateAsync({
-          id: member.id,
-          data: {
-            balance: balances[member.id].balance,
-            cash_balance: balances[member.id].cash_balance
-          }
+        const newBalance = Math.round(balances[member.id].balance * 100) / 100;
+        const newCashBalance = Math.round(balances[member.id].cash_balance * 100) / 100;
+        
+        await base44.entities.Member.update(member.id, {
+          balance: newBalance,
+          cash_balance: newCashBalance
         });
       }
 
-      alert(`成功重新計算 ${allMembers.length} 位成員的餘額！`);
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+
+      toast.dismiss();
+      toast.success(`成功重新計算 ${allMembers.length} 位成員的餘額！`);
     } catch (error) {
       console.error('Failed to recalculate balances:', error);
-      alert('重新計算失敗，請稍後再試。');
+      toast.dismiss();
+      toast.error(`重新計算失敗：${error.message}`);
     }
   };
 
