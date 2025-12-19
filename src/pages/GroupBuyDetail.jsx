@@ -525,13 +525,11 @@ export default function GroupBuyDetail() {
                     <Badge className={
                       groupBuy.status === 'open' ? 'bg-green-500' :
                       groupBuy.status === 'closed' ? 'bg-amber-500' :
-                      isSettled ? 'bg-blue-500' :
-                      'bg-slate-500'
+                      'bg-blue-500'
                     }>
                       {groupBuy.status === 'open' ? '進行中' :
-                       groupBuy.status === 'closed' ? '已截止' :
-                       isSettled ? '已結清' :
-                       '已結單'}
+                       groupBuy.status === 'closed' ? '已下單' :
+                       '已完成'}
                     </Badge>
                   </div>
                   {groupBuy.description && (
@@ -649,13 +647,13 @@ export default function GroupBuyDetail() {
                         截止團購
                       </Button>
                     )}
-                    {groupBuy.status === 'closed' && items.length > 0 && (
+                    {groupBuy.status === 'closed' && items.length > 0 && !allPaid && (
                       <Button
                         onClick={handleCompleteGroupBuy}
                         className="w-full bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        產生訂購表單
+                        標記為已完成
                       </Button>
                     )}
                     <Button
