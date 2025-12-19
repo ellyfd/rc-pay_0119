@@ -23,10 +23,17 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
       return sum + item.quantity;
     }, 0);
 
-  // Check if all items are paid (for completed status)
-  const groupBuyItems = items.filter(item => item.group_buy_id === groupBuy.id);
-  const allPaid = groupBuyItems.length > 0 && groupBuyItems.every(item => item.paid);
-  const isSettled = groupBuy.status === 'completed' && allPaid;
+  // Status logic
+  const isClosed = groupBuy.status === 'closed';
+  const isFullyPaid = groupBuy.is_fully_paid === true;
+  
+  const statusColor = isOpen ? 'bg-green-500' : 
+                      isClosed && !isFullyPaid ? 'bg-amber-500' : 
+                      'bg-blue-500';
+  
+  const statusLabel = isOpen ? '進行中' :
+                      isClosed && !isFullyPaid ? '待收款' :
+                      '已完成';
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -46,14 +53,8 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
         <div>
           <div className="flex items-start justify-between gap-2 mb-2">
             <h3 className="font-semibold text-slate-800 line-clamp-2">{groupBuy.title}</h3>
-            <Badge className={
-              groupBuy.status === 'open' ? 'bg-green-500' :
-              groupBuy.status === 'closed' ? 'bg-amber-500' :
-              'bg-blue-500'
-            }>
-              {groupBuy.status === 'open' ? '進行中' :
-               groupBuy.status === 'closed' ? '已下單' :
-               '已完成'}
+            <Badge className={statusColor}>
+              {statusLabel}
             </Badge>
           </div>
           {groupBuy.description && (
@@ -102,16 +103,28 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
 
         {/* Actions */}
         <div className="pt-2">
-          <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700">
-              {groupBuy.status === 'open' ? (
+          {isOpen ? (
+            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700">
                 <Plus className="w-4 h-4 mr-2" />
-              ) : (
+                我要跟團
+              </Button>
+            </Link>
+          ) : isClosed && !isFullyPaid ? (
+            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+              <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
                 <Eye className="w-4 h-4 mr-2" />
-              )}
-              {groupBuy.status === 'open' ? '我要跟團' : '我要查看'}
-            </Button>
-          </Link>
+                查看收款進度
+              </Button>
+            </Link>
+          ) : (
+            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+              <Button variant="outline" className="w-full">
+                <Eye className="w-4 h-4 mr-2" />
+                查看詳情
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </Card>
