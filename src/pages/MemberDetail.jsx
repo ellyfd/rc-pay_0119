@@ -31,6 +31,7 @@ export default function MemberDetail() {
   const [currentUser, setCurrentUser] = useState(null);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
   const [recalculateResult, setRecalculateResult] = useState(null);
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -160,7 +161,8 @@ export default function MemberDetail() {
       return;
     }
 
-    toast.loading('正在重新計算餘額...');
+    setIsRecalculating(true);
+    toast.loading('正在重新計算餘額...', { id: 'recalculate' });
 
     try {
       // Fetch all members and transactions
@@ -210,15 +212,17 @@ export default function MemberDetail() {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['member'] });
 
-      toast.dismiss();
+      toast.dismiss('recalculate');
+      setIsRecalculating(false);
       setRecalculateResult({
         success: true,
         memberCount: allMembers.length
       });
     } catch (error) {
       console.error('Failed to recalculate balances:', error);
-      toast.dismiss();
+      toast.dismiss('recalculate');
       toast.error(`重新計算失敗：${error.message}`);
+      setIsRecalculating(false);
     }
   };
 
@@ -600,9 +604,10 @@ export default function MemberDetail() {
                   </div>
                   <Button
                     onClick={handleRecalculateBalances}
+                    disabled={isRecalculating}
                     className="bg-amber-600 hover:bg-amber-700 text-white"
                   >
-                    重新計算餘額
+                    {isRecalculating ? '計算中...' : '重新計算餘額'}
                   </Button>
                 </div>
               </Card>
