@@ -315,8 +315,8 @@ export default function MemberDetail() {
                 </table>
               </div>
             </Card>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Drink Orders Section */}
         {memberDrinkOrders.length > 0 && (
