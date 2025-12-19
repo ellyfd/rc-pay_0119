@@ -415,15 +415,15 @@ export default function MemberDetail() {
           </div>
 
           <Card className="overflow-hidden">
-            <div className="overflow-x-auto -mx-2 sm:mx-0">
-              <table className="w-full text-[10px] sm:text-sm min-w-[480px]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs sm:text-sm">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="text-left px-1.5 sm:px-4 py-1.5 sm:py-3 font-semibold text-slate-700 w-[12%]">日期</th>
-                    <th className="text-left px-1.5 sm:px-4 py-1.5 sm:py-3 font-semibold text-slate-700 w-[40%]">品項</th>
-                    <th className="text-center px-1 sm:px-4 py-1.5 sm:py-3 font-semibold text-slate-700 w-[18%]">付款</th>
-                    <th className="text-right px-1.5 sm:px-4 py-1.5 sm:py-3 font-semibold text-slate-700 w-[15%]">金額</th>
-                    <th className="text-center px-1 sm:px-4 py-1.5 sm:py-3 font-semibold text-slate-700 w-[15%]">狀態</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">日期</th>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">品項</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">付款</th>
+                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">金額</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">狀態</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -431,20 +431,20 @@ export default function MemberDetail() {
                     order.memberItems.map((item, idx) => (
                       <tr key={`${order.id}-${idx}`} className="hover:bg-slate-50">
                         {idx === 0 && (
-                          <td className="px-1.5 sm:px-4 py-1.5 sm:py-3 align-top text-slate-700 whitespace-nowrap" rowSpan={order.memberItems.length}>
+                          <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-top text-slate-700 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={order.memberItems.length}>
                             <Link 
                               to={createPageUrl('DrinkOrderDetail') + '?id=' + order.id}
-                              className="text-slate-800 hover:text-orange-600 text-[10px] sm:text-sm"
+                              className="text-slate-800 hover:text-orange-600"
                             >
                               {format(new Date(order.order_date), 'MM/dd')}
                             </Link>
                           </td>
                         )}
-                        <td className="px-1.5 sm:px-4 py-1.5 sm:py-3 text-slate-700">
-                          <div className="line-clamp-2 break-words text-[10px] sm:text-sm leading-tight">{item.item_name}</div>
+                        <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
+                          <div className="line-clamp-2">{item.item_name}</div>
                         </td>
-                        <td className="px-1 sm:px-4 py-1.5 sm:py-3 text-center">
-                          <Badge className={`text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 whitespace-nowrap ${
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
                             order.payer_id && item.member_id === order.payer_id ? 'bg-purple-500' :
                             item.payment_method === 'cash' ? 'bg-amber-500' : 'bg-blue-500'
                           }`}>
@@ -452,11 +452,11 @@ export default function MemberDetail() {
                              item.payment_method === 'cash' ? '現金' : '餘額'}
                           </Badge>
                         </td>
-                        <td className="px-1.5 sm:px-4 py-1.5 sm:py-3 text-right text-slate-700 whitespace-nowrap">
-                          <span className="text-[10px] sm:text-sm">${item.price?.toLocaleString() || 0}</span>
+                        <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right text-slate-700 whitespace-nowrap text-[11px] sm:text-sm">
+                          ${item.price?.toLocaleString() || 0}
                         </td>
-                        <td className="px-1 sm:px-4 py-1.5 sm:py-3 text-center">
-                          <Badge className={`text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 ${
+                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                          <Badge className={`text-[10px] sm:text-xs ${
                             order.payer_id && item.member_id === order.payer_id ? 'bg-purple-500' :
                             item.paid ? 'bg-green-500' : 'bg-slate-400'
                           }`}>
