@@ -238,7 +238,7 @@ export default function DrinkOrderDetail() {
                 {formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單
               </h1>
               <p className="text-orange-100 text-sm">
-                {isCompleted ? '已完成' : '待付款'}
+                {isCompleted ? '已結案' : '進行中'}
               </p>
             </div>
           </div>

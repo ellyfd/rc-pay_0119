@@ -649,7 +649,7 @@ export default function DrinkOrder() {
                             <span className="font-semibold text-orange-600">${totalAmount}</span>
                             <span>·</span>
                             <span className={isCompleted ? 'text-green-600' : isPaid ? 'text-blue-600' : 'text-amber-600'}>
-                              {isCompleted ? '已完成' : isPaid ? '已付款' : '待付款'}
+                              {isCompleted ? '已結案' : isPaid ? '已付款' : '待付款'}
                             </span>
                           </div>
                         </div>

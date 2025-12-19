@@ -446,7 +446,7 @@ export default function MemberDetail() {
                         {idx === 0 && (
                           <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={order.memberItems.length}>
                             <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
-                              {order.status === 'completed' ? '已完成' : '待付款'}
+                              {order.status === 'completed' ? '已完成' : '進行中'}
                             </Badge>
                           </td>
                         )}
