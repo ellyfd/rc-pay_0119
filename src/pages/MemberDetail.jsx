@@ -188,43 +188,43 @@ export default function MemberDetail() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4 bg-emerald-50 border-emerald-200">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-              <p className="text-xs text-emerald-700 font-medium">總入帳</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+          <Card className="p-2 md:p-4 bg-emerald-50 border-emerald-200">
+            <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+              <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-emerald-600" />
+              <p className="text-[10px] md:text-xs text-emerald-700 font-medium">總入帳</p>
             </div>
-            <p className="text-xl font-bold text-emerald-700">
+            <p className="text-sm md:text-xl font-bold text-emerald-700">
               ${totalDeposit.toLocaleString()}
             </p>
           </Card>
 
-          <Card className="p-4 bg-red-50 border-red-200">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-red-600" />
-              <p className="text-xs text-red-700 font-medium">總出帳</p>
+          <Card className="p-2 md:p-4 bg-red-50 border-red-200">
+            <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+              <TrendingDown className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
+              <p className="text-[10px] md:text-xs text-red-700 font-medium">總出帳</p>
             </div>
-            <p className="text-xl font-bold text-red-700">
+            <p className="text-sm md:text-xl font-bold text-red-700">
               ${totalWithdraw.toLocaleString()}
             </p>
           </Card>
 
-          <Card className="p-4 bg-blue-50 border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
-              <p className="text-xs text-blue-700 font-medium">轉入金額</p>
+          <Card className="p-2 md:p-4 bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+              <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+              <p className="text-[10px] md:text-xs text-blue-700 font-medium">轉入金額</p>
             </div>
-            <p className="text-xl font-bold text-blue-700">
+            <p className="text-sm md:text-xl font-bold text-blue-700">
               ${totalTransferIn.toLocaleString()}
             </p>
           </Card>
 
-          <Card className="p-4 bg-orange-50 border-orange-200">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-orange-600" />
-              <p className="text-xs text-orange-700 font-medium">轉出金額</p>
+          <Card className="p-2 md:p-4 bg-orange-50 border-orange-200">
+            <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+              <TrendingDown className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
+              <p className="text-[10px] md:text-xs text-orange-700 font-medium">轉出金額</p>
             </div>
-            <p className="text-xl font-bold text-orange-700">
+            <p className="text-sm md:text-xl font-bold text-orange-700">
               ${totalTransferOut.toLocaleString()}
             </p>
           </Card>
