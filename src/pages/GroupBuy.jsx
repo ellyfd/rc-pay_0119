@@ -135,7 +135,8 @@ export default function GroupBuy() {
   };
 
   const openGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'open')));
-  const closedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' || gb.status === 'completed')));
+  const closedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed')));
+  const completedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'completed')));
 
   if (!currentUser) {
     return (
@@ -218,7 +219,7 @@ export default function GroupBuy() {
         </div>
 
         <Tabs defaultValue="open" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-6">
             <TabsTrigger value="open">
               進行中 {openGroupBuys.length > 0 && (
                 <span className="ml-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">
@@ -226,7 +227,20 @@ export default function GroupBuy() {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="closed">已結束</TabsTrigger>
+            <TabsTrigger value="closed">
+              已下單 {closedGroupBuys.length > 0 && (
+                <span className="ml-2 bg-amber-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {closedGroupBuys.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              已完成 {completedGroupBuys.length > 0 && (
+                <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {completedGroupBuys.length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="open">
@@ -265,11 +279,32 @@ export default function GroupBuy() {
             {closedGroupBuys.length === 0 ? (
               <Card className="p-12 text-center border-dashed">
                 <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">沒有已結束的團購</p>
+                <p className="text-slate-500">沒有已下單的團購</p>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {closedGroupBuys.map(groupBuy => (
+                  <GroupBuyCard
+                    key={groupBuy.id}
+                    groupBuy={groupBuy}
+                    currentUser={currentUser}
+                    members={members}
+                    items={allGroupBuyItems}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="completed">
+            {completedGroupBuys.length === 0 ? (
+              <Card className="p-12 text-center border-dashed">
+                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">沒有已完成的團購</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {completedGroupBuys.map(groupBuy => (
                   <GroupBuyCard
                     key={groupBuy.id}
                     groupBuy={groupBuy}
