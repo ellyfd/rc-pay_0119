@@ -98,21 +98,21 @@ export default function OrderHistoryByDate() {
           <div className="space-y-3">
             <div className="flex items-end gap-2 sm:gap-4">
               <div className="flex-1">
-                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">開始日期</label>
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">開始</label>
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="text-sm"
+                  className="text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">結束日期</label>
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">結束</label>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="text-sm"
+                  className="text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3"
                 />
               </div>
             </div>
