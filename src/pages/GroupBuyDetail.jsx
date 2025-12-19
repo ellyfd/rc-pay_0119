@@ -113,6 +113,28 @@ export default function GroupBuyDetail() {
     }
   });
 
+  const updateItem = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.GroupBuyItem.update(id, data),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] });
+
+      // 檢查是否所有項目都已付款，自動更新 is_fully_paid
+      const allItems = await base44.entities.GroupBuyItem.list();
+      const groupItems = allItems.filter(item => item.group_buy_id === groupBuyId);
+      const allPaid = groupItems.length > 0 && groupItems.every(item => item.paid);
+
+      if (allPaid) {
+        await updateGroupBuy.mutateAsync({
+          id: groupBuyId,
+          data: { is_fully_paid: true }
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error('更新失敗：' + error.message);
+    }
+  });
+
   const createItem = useMutation({
     mutationFn: (data) => base44.entities.GroupBuyItem.create(data),
     onSuccess: () => {
@@ -124,16 +146,7 @@ export default function GroupBuyDetail() {
     }
   });
 
-  const updateItem = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.GroupBuyItem.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] });
-      toast.success('已更新訂單！');
-    },
-    onError: (error) => {
-      toast.error('更新失敗：' + error.message);
-    }
-  });
+
 
   const deleteItem = useMutation({
     mutationFn: (id) => base44.entities.GroupBuyItem.delete(id),
@@ -279,9 +292,9 @@ export default function GroupBuyDetail() {
     try {
       await updateGroupBuy.mutateAsync({
         id: groupBuyId,
-        data: { status: 'closed' }
+        data: { status: 'closed', is_fully_paid: false }
       });
-      toast.success('團購已截止，可以開始統計訂單！');
+      toast.success('團購已截止，可以開始統計訂單並收款！');
     } catch (error) {
       toast.error('截止團購失敗：' + error.message);
     }
@@ -324,17 +337,22 @@ export default function GroupBuyDetail() {
     return Math.round(originalPrice * discountMultiplier * 100) / 100;
   };
 
-  const handleCompleteGroupBuy = async () => {
-    if (!confirm(`確定要結單嗎？結單後將產生訂購表單供統計。`)) return;
+  const handleMarkAsFullyPaid = async () => {
+    if (!allPaid) {
+      toast.warning('還有未付款的項目，無法標記為已完成！');
+      return;
+    }
+
+    if (!confirm('確定所有款項都已結清嗎？')) return;
 
     try {
       await updateGroupBuy.mutateAsync({
         id: groupBuyId,
-        data: { status: 'completed' }
+        data: { is_fully_paid: true }
       });
-      toast.success('結單完成！請查看下方訂購彙總表。');
+      toast.success('團購已標記為完成！所有款項已結清。');
     } catch (error) {
-      toast.error('結單失敗：' + error.message);
+      toast.error('標記失敗：' + error.message);
     }
   };
 
@@ -398,11 +416,12 @@ export default function GroupBuyDetail() {
 
   const isOrganizer = currentUser && (groupBuy.created_by === currentUser.email || currentUser.role === 'admin');
   const isOpen = groupBuy.status === 'open';
+  const isClosed = groupBuy.status === 'closed';
+  const isFullyPaid = groupBuy.is_fully_paid === true;
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  
-  // Check if all items are paid (for settled status)
+
+  // Check if all items are paid
   const allPaid = items.length > 0 && items.every(item => item.paid);
-  const isSettled = groupBuy.status === 'completed' && allPaid;
 
   // Check if discount creates decimals
   const hasDiscountDecimals = () => {
@@ -523,12 +542,12 @@ export default function GroupBuyDetail() {
                   <div className="flex items-start justify-between mb-2">
                     <h1 className="text-xl font-bold text-slate-800">{groupBuy.title}</h1>
                     <Badge className={
-                      groupBuy.status === 'open' ? 'bg-green-500' :
-                      groupBuy.status === 'closed' ? 'bg-amber-500' :
+                      isOpen ? 'bg-green-500' :
+                      isClosed && !isFullyPaid ? 'bg-amber-500' :
                       'bg-blue-500'
                     }>
-                      {groupBuy.status === 'open' ? '進行中' :
-                       groupBuy.status === 'closed' ? '已下單' :
+                      {isOpen ? '進行中' :
+                       isClosed && !isFullyPaid ? '已下單 (待收款)' :
                        '已完成'}
                     </Badge>
                   </div>
@@ -607,27 +626,27 @@ export default function GroupBuyDetail() {
                 )}
 
                 <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-600">參與人數</span>
-                    <span className="text-lg font-bold text-purple-600">{memberSummary.length} 人</span>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-600">參與人數</span>
+                  <span className="text-lg font-bold text-purple-600">{memberSummary.length} 人</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-600">總金額</span>
+                  <span className="text-2xl font-bold text-slate-800">${totalAmount.toLocaleString()}</span>
+                </div>
+                {isOrganizer && isClosed && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">已付款</span>
+                    <span className={`font-semibold ${allPaid ? 'text-green-600' : 'text-amber-600'}`}>
+                      {memberSummary.filter(m => m.paid).length} / {memberSummary.length}
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-600">總金額</span>
-                    <span className="text-2xl font-bold text-slate-800">${totalAmount.toLocaleString()}</span>
-                  </div>
-                  {isOrganizer && groupBuy.status !== 'open' && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-600">已付款</span>
-                      <span className="font-semibold text-green-600">
-                        {memberSummary.filter(m => m.paid).length} / {memberSummary.length}
-                      </span>
-                    </div>
-                  )}
+                )}
                 </div>
 
                 {isOrganizer && (
                   <div className="space-y-2 border-t pt-4">
-                    {(isOpen || groupBuy.status === 'closed') && (
+                    {!isFullyPaid && (
                       <Button
                         onClick={() => setShowEditGroupBuy(true)}
                         variant="outline"
@@ -640,20 +659,20 @@ export default function GroupBuyDetail() {
                     {isOpen && (
                       <Button
                         onClick={handleCloseGroupBuy}
-                        variant="outline"
-                        className="w-full"
+                        className="w-full bg-amber-600 hover:bg-amber-700"
                       >
                         <X className="w-4 h-4 mr-2" />
-                        截止團購
+                        截止團購並開始收款
                       </Button>
                     )}
-                    {groupBuy.status === 'closed' && items.length > 0 && !allPaid && (
+                    {isClosed && !isFullyPaid && items.length > 0 && (
                       <Button
-                        onClick={handleCompleteGroupBuy}
-                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={handleMarkAsFullyPaid}
+                        className={`w-full ${allPaid ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-400 cursor-not-allowed'}`}
+                        disabled={!allPaid}
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        標記為已完成
+                        標記為已完成 {!allPaid && `(${memberSummary.filter(m => m.paid).length}/${memberSummary.length})`}
                       </Button>
                     )}
                     <Button
@@ -664,14 +683,16 @@ export default function GroupBuyDetail() {
                       <Copy className="w-4 h-4 mr-2" />
                       另存為範本
                     </Button>
-                    <Button
-                      onClick={() => setDeletingGroupBuy(true)}
-                      variant="outline"
-                      className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      刪除團購
-                    </Button>
+                    {!isFullyPaid && (
+                      <Button
+                        onClick={() => setDeletingGroupBuy(true)}
+                        variant="outline"
+                        className="w-full text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        刪除團購
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -680,7 +701,7 @@ export default function GroupBuyDetail() {
 
           {/* Right: Items List */}
           <div className="lg:col-span-2 space-y-6">
-            {groupBuy.status !== 'open' && productSummary.length > 0 && (
+            {isClosed && productSummary.length > 0 && (
               <Card>
                 <div className="p-4 bg-green-50 border-b flex items-center justify-between">
                   <h3 className="font-semibold text-green-800 flex items-center gap-2">
@@ -770,7 +791,7 @@ export default function GroupBuyDetail() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-slate-800">團購項目（按成員）</h2>
               <div className="flex gap-2">
-                {isOrganizer && groupBuy.status !== 'open' && memberSummary.length > 0 && (
+                {isOrganizer && isClosed && memberSummary.length > 0 && (
                   <Button
                     onClick={() => exportGroupBuyPaymentRecord(
                       memberSummary, 
@@ -824,13 +845,13 @@ export default function GroupBuyDetail() {
                         )}
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">小計</th>
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
-                        {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
+                        {hasDiscountDecimals() && isOrganizer && isClosed && (
                           <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
                         )}
-                        {isOrganizer && groupBuy.status !== 'open' && (
+                        {isOrganizer && isClosed && !isFullyPaid && (
                           <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">支付</th>
                         )}
-                        {isOrganizer && groupBuy.status !== 'open' && (
+                        {isOrganizer && isClosed && !isFullyPaid && (
                           <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">收款</th>
                         )}
                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
@@ -903,7 +924,7 @@ export default function GroupBuyDetail() {
                                 </span>
                               </td>
                             ) : null}
-                            {itemIdx === 0 && hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
+                            {itemIdx === 0 && hasDiscountDecimals() && isOrganizer && isClosed && (
                               <td 
                                 className="px-2 sm:px-3 py-2 text-right align-top"
                                 rowSpan={summary.items.length}
@@ -916,10 +937,11 @@ export default function GroupBuyDetail() {
                                     setActualCharges(newCharges);
                                   }}
                                   className="w-16 sm:w-20 px-1 sm:px-2 py-1 text-xs sm:text-sm text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  disabled={isFullyPaid}
                                 />
                               </td>
                             )}
-                            {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
+                            {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
                               <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
                                 <select
                                   value={item.payment_method || ''}
@@ -947,7 +969,7 @@ export default function GroupBuyDetail() {
                                 </select>
                               </td>
                             )}
-                            {itemIdx === 0 && isOrganizer && groupBuy.status !== 'open' && (
+                            {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
                               <td 
                                 className="px-1 sm:px-2 py-2 align-top"
                                 rowSpan={summary.items.length}
@@ -1030,7 +1052,7 @@ export default function GroupBuyDetail() {
                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-purple-600 whitespace-nowrap">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
-                        {hasDiscountDecimals() && isOrganizer && groupBuy.status !== 'open' && (
+                        {hasDiscountDecimals() && isOrganizer && isClosed && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-orange-600 whitespace-nowrap">
                             ${memberSummary.reduce((sum, m) => {
                               const actualCharge = actualCharges[m.member_id] ?? Math.round(m.total);
@@ -1038,7 +1060,7 @@ export default function GroupBuyDetail() {
                             }, 0).toLocaleString()}
                           </td>
                         )}
-                        {isOrganizer && groupBuy.status !== 'open' && (
+                        {isOrganizer && isClosed && !isFullyPaid && (
                           <td></td>
                         )}
                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (

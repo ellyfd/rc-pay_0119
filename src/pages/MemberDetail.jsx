@@ -273,13 +273,14 @@ export default function MemberDetail() {
 
   // Pending Items - Group Buys (as organizer with unpaid items)
   const pendingOrganizerGroupBuys = organizedGroupBuys.filter(gb => 
-    gb.status !== 'open' && !gb.allPaid
+    gb.status === 'closed' && !gb.is_fully_paid
   );
 
   // Pending Items - Group Buys (as participant with unpaid items)
-  const pendingParticipantGroupBuys = groupBuysByMember.filter(gb => 
-    gb.group_buy_status !== 'open' && gb.items.some(item => !item.paid)
-  );
+  const pendingParticipantGroupBuys = groupBuysByMember.filter(gb => {
+    const groupBuyData = allGroupBuys.find(g => g.id === gb.group_buy_id);
+    return groupBuyData && groupBuyData.status === 'closed' && !groupBuyData.is_fully_paid && gb.items.some(item => !item.paid);
+  });
 
   // Pending Items - Drink Orders (unpaid)
   const pendingDrinkOrders = memberDrinkOrders.filter(order => 
@@ -822,13 +823,13 @@ export default function MemberDetail() {
                           <Badge 
                             className={`text-[10px] sm:text-xs whitespace-nowrap ${
                               gb.status === 'open' ? 'bg-green-500' :
-                              gb.status === 'closed' ? 'bg-amber-500' :
-                              'bg-slate-500'
+                              gb.status === 'closed' && !gb.is_fully_paid ? 'bg-amber-500' :
+                              'bg-blue-500'
                             }`}
                           >
                             {gb.status === 'open' ? '進行中' :
-                             gb.status === 'closed' ? '已截止' :
-                             '已結單'}
+                             gb.status === 'closed' && !gb.is_fully_paid ? '待收款' :
+                             '已完成'}
                           </Badge>
                         </td>
                         <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
@@ -896,17 +897,26 @@ export default function MemberDetail() {
                                 </Link>
                               </td>
                               <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
-                                <Badge 
-                                  className={`text-[10px] sm:text-xs whitespace-nowrap ${
-                                    groupBuy.group_buy_status === 'open' ? 'bg-green-500' :
-                                    groupBuy.group_buy_status === 'closed' ? 'bg-amber-500' :
-                                    allPaid ? 'bg-blue-500' : 'bg-slate-500'
-                                  }`}
-                                >
-                                  {groupBuy.group_buy_status === 'open' ? '進行中' :
-                                   groupBuy.group_buy_status === 'closed' ? '已截止' :
-                                   allPaid ? '已結清' : '已結單'}
-                                </Badge>
+                                {(() => {
+                                  const gbData = allGroupBuys.find(g => g.id === groupBuy.group_buy_id);
+                                  const isOpen = gbData?.status === 'open';
+                                  const isClosed = gbData?.status === 'closed';
+                                  const isFullyPaid = gbData?.is_fully_paid === true;
+                                  
+                                  return (
+                                    <Badge 
+                                      className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                                        isOpen ? 'bg-green-500' :
+                                        isClosed && !isFullyPaid ? 'bg-amber-500' :
+                                        allPaid ? 'bg-blue-500' : 'bg-slate-500'
+                                      }`}
+                                    >
+                                      {isOpen ? '進行中' :
+                                       isClosed && !isFullyPaid ? (allPaid ? '已付款' : '待付款') :
+                                       '已完成'}
+                                    </Badge>
+                                  );
+                                })()}
                               </td>
                             </>
                           )}

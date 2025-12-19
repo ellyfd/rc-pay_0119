@@ -135,8 +135,8 @@ export default function GroupBuy() {
   };
 
   const openGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'open')));
-  const closedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed')));
-  const completedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'completed')));
+  const closedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && !gb.is_fully_paid)));
+  const completedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && gb.is_fully_paid)));
 
   if (!currentUser) {
     return (
@@ -228,7 +228,7 @@ export default function GroupBuy() {
               )}
             </TabsTrigger>
             <TabsTrigger value="closed">
-              已下單 {closedGroupBuys.length > 0 && (
+              待收款 {closedGroupBuys.length > 0 && (
                 <span className="ml-2 bg-amber-600 text-white text-xs px-2 py-0.5 rounded-full">
                   {closedGroupBuys.length}
                 </span>
@@ -279,7 +279,8 @@ export default function GroupBuy() {
             {closedGroupBuys.length === 0 ? (
               <Card className="p-12 text-center border-dashed">
                 <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">沒有已下單的團購</p>
+                <p className="text-slate-500">沒有待收款的團購</p>
+                <p className="text-slate-400 text-sm mt-2">所有團購的款項都已結清</p>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
