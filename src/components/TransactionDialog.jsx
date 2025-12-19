@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from "lucide-react";
+import { format } from "date-fns";
 
 export default function TransactionDialog({ open, onOpenChange, members, onTransaction }) {
   const [type, setType] = useState('deposit');
