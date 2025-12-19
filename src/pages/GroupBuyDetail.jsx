@@ -656,25 +656,6 @@ export default function GroupBuyDetail() {
                         編輯團購
                       </Button>
                     )}
-                    {isOpen && (
-                      <Button
-                        onClick={handleCloseGroupBuy}
-                        className="w-full bg-amber-600 hover:bg-amber-700"
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        截止團購並開始收款
-                      </Button>
-                    )}
-                    {isClosed && !isFullyPaid && items.length > 0 && (
-                      <Button
-                        onClick={handleMarkAsFullyPaid}
-                        className={`w-full ${allPaid ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-400 cursor-not-allowed'}`}
-                        disabled={!allPaid}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        標記為已完成 {!allPaid && `(${memberSummary.filter(m => m.paid).length}/${memberSummary.length})`}
-                      </Button>
-                    )}
                     <Button
                       onClick={handleSaveAsTemplate}
                       variant="outline"
@@ -1068,13 +1049,36 @@ export default function GroupBuyDetail() {
                         )}
                       </tr>
                     </tbody>
-                  </table>
-                </div>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
+                    </table>
+                    </div>
+                    {isOrganizer && (
+                    <div className="p-4 bg-slate-50 border-t flex gap-2">
+                    {isOpen && (
+                      <Button
+                        onClick={handleCloseGroupBuy}
+                        className="bg-amber-600 hover:bg-amber-700"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        截止團購並開始收款
+                      </Button>
+                    )}
+                    {isClosed && !isFullyPaid && items.length > 0 && (
+                      <Button
+                        onClick={handleMarkAsFullyPaid}
+                        className={`${allPaid ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-400 cursor-not-allowed'}`}
+                        disabled={!allPaid}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        標記為已完成 {!allPaid && `(${memberSummary.filter(m => m.paid).length}/${memberSummary.length})`}
+                      </Button>
+                    )}
+                    </div>
+                    )}
+                    </Card>
+                    )}
+                    </div>
+                    </div>
+                    </div>
 
       <AddItemDialog
         open={showAddItem}
