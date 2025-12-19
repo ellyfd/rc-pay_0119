@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
@@ -17,10 +28,25 @@ export default function MemberDetail() {
   const [activeTab, setActiveTab] = useState('pending');
   const [walletTypeFilter, setWalletTypeFilter] = useState('all');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setMemberId(params.get('id'));
+  }, []);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    };
+    loadUser();
   }, []);
 
   const { data: member, isLoading: memberLoading } = useQuery({
@@ -60,6 +86,88 @@ export default function MemberDetail() {
     queryKey: ['drinkOrders'],
     queryFn: () => base44.entities.DrinkOrder.list('-created_date'),
   });
+
+  const { data: allMembers = [] } = useQuery({
+    queryKey: ['allMembers'],
+    queryFn: () => base44.entities.Member.list(),
+  });
+
+  const deleteTransaction = useMutation({
+    mutationFn: (id) => base44.entities.Transaction.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+      queryClient.invalidateQueries({ queryKey: ['allMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    }
+  });
+
+  const updateMemberBalance = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+      queryClient.invalidateQueries({ queryKey: ['allMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    }
+  });
+
+  const handleRevokeTransaction = async (transaction) => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      toast.error('只有管理員可以撤銷交易');
+      return;
+    }
+
+    try {
+      const balanceField = transaction.wallet_type === 'cash' ? 'cash_balance' : 'balance';
+
+      // Reverse balance changes
+      if (transaction.type === 'deposit') {
+        // Reverse deposit: subtract from to_member
+        const toMember = allMembers.find(m => m.id === transaction.to_member_id);
+        if (toMember) {
+          await updateMemberBalance.mutateAsync({
+            id: toMember.id,
+            data: { [balanceField]: (toMember[balanceField] || 0) - transaction.amount }
+          });
+        }
+      } else if (transaction.type === 'withdraw') {
+        // Reverse withdraw: add back to from_member
+        const fromMember = allMembers.find(m => m.id === transaction.from_member_id);
+        if (fromMember) {
+          await updateMemberBalance.mutateAsync({
+            id: fromMember.id,
+            data: { [balanceField]: (fromMember[balanceField] || 0) + transaction.amount }
+          });
+        }
+      } else if (transaction.type === 'transfer') {
+        // Reverse transfer: add back to from_member, subtract from to_member
+        const fromMember = allMembers.find(m => m.id === transaction.from_member_id);
+        const toMember = allMembers.find(m => m.id === transaction.to_member_id);
+        
+        if (fromMember) {
+          await updateMemberBalance.mutateAsync({
+            id: fromMember.id,
+            data: { [balanceField]: (fromMember[balanceField] || 0) + transaction.amount }
+          });
+        }
+        
+        if (toMember) {
+          await updateMemberBalance.mutateAsync({
+            id: toMember.id,
+            data: { [balanceField]: (toMember[balanceField] || 0) - transaction.amount }
+          });
+        }
+      }
+
+      // Delete the transaction
+      await deleteTransaction.mutateAsync(transaction.id);
+      
+      toast.success('交易已撤銷，餘額已更新');
+      setTransactionToDelete(null);
+    } catch (error) {
+      toast.error('撤銷交易失敗：' + error.message);
+    }
+  };
 
   if (!memberId || memberLoading) {
     return (
@@ -565,6 +673,9 @@ export default function MemberDetail() {
                           <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
                           <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
                           <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                          {currentUser?.role === 'admin' && (
+                            <th className="px-2 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b">操作</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -645,17 +756,29 @@ export default function MemberDetail() {
                                 {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
                                 ${transaction.amount?.toLocaleString()}
                               </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </Card>
-              )}
-            </section>
-            )}
-            </TabsContent>
+                              {currentUser?.role === 'admin' && (
+                                <td className="px-2 py-2 sm:py-3 text-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setTransactionToDelete(transaction)}
+                                    className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </td>
+                              )}
+                              </tr>
+                              );
+                              })}
+                              </tbody>
+                              </table>
+                              </div>
+                              </Card>
+                              )}
+                              </section>
+                              )}
+                              </TabsContent>
 
             {/* Group Buy Tab */}
             <TabsContent value="groupbuy" className="space-y-6">
@@ -885,6 +1008,34 @@ export default function MemberDetail() {
           </TabsContent>
         </Tabs>
         </div>
-    </div>
-  );
-}
+
+        {/* Revoke Transaction Confirmation Dialog */}
+        <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認撤銷交易</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作將撤銷這筆交易並更新相關成員的餘額。此操作無法復原，確定要繼續嗎？
+              {transactionToDelete && (
+                <div className="mt-3 p-3 bg-slate-50 rounded text-sm text-slate-700">
+                  <div>類型：{transactionToDelete.type === 'deposit' ? '入帳' : transactionToDelete.type === 'withdraw' ? '出帳' : '轉帳'}</div>
+                  <div>金額：${transactionToDelete.amount?.toLocaleString()}</div>
+                  <div>錢包：{transactionToDelete.wallet_type === 'cash' ? '現金' : '錢包'}</div>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => transactionToDelete && handleRevokeTransaction(transactionToDelete)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              確認撤銷
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+        </AlertDialog>
+        </div>
+        );
+        }
