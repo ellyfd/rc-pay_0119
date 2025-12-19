@@ -95,26 +95,30 @@ export default function OrderHistoryByDate() {
 
       <div className="max-w-6xl mx-auto px-4 py-6">
         <Card className="p-4 sm:p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-2">開始日期</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-2">結束日期</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+          <div className="space-y-3">
+            <div className="flex items-end gap-2 sm:gap-4">
+              <div className="flex-1">
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">開始日期</label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">結束日期</label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
             </div>
             <Button
               onClick={handleSearch}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto sm:px-8"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white w-full"
             >
               <Calendar className="w-4 h-4 mr-2" />
               查詢
