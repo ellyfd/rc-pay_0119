@@ -33,9 +33,10 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
     setLoading(true);
     await onAdd({ 
       name: name.trim(), 
-      alias: aliases.length > 0 ? aliases : undefined,
+      alias: aliases,
       avatar_color: selectedColor, 
-      balance: 0 
+      balance: 0,
+      cash_balance: 0
     });
     setLoading(false);
     setName('');
