@@ -104,25 +104,6 @@ export default function MemberDetail() {
     .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
     .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-  // 篩選未結案項目
-  // 1. 未付款的團購（作為參與者）
-  const unpaidGroupBuys = groupBuysByMember.filter(gb => 
-    gb.group_buy_status !== 'open' && !gb.items.every(item => item.paid)
-  );
-
-  // 2. 款項未收齊的團購（作為開團者）
-  const unpaidOrganizerGroupBuys = organizedGroupBuys.filter(gb => 
-    gb.status !== 'open' && !gb.allPaid
-  );
-
-  // 3. 未付款的飲料訂單
-  const unpaidDrinkOrders = memberDrinkOrders.filter(order => 
-    order.status !== 'completed' && 
-    order.memberItems.some(item => !item.paid && item.member_id !== order.payer_id)
-  );
-
-  const hasUnpaidItems = unpaidGroupBuys.length > 0 || unpaidOrganizerGroupBuys.length > 0 || unpaidDrinkOrders.length > 0;
-
   const colorMap = {
     blue: "bg-blue-500",
     green: "bg-emerald-500",
@@ -183,6 +164,25 @@ export default function MemberDetail() {
       };
     })
     .filter(Boolean);
+
+  // 篩選未結案項目
+  // 1. 未付款的團購（作為參與者）
+  const unpaidGroupBuys = groupBuysByMember.filter(gb => 
+    gb.group_buy_status !== 'open' && !gb.items.every(item => item.paid)
+  );
+
+  // 2. 款項未收齊的團購（作為開團者）
+  const unpaidOrganizerGroupBuys = organizedGroupBuys.filter(gb => 
+    gb.status !== 'open' && !gb.allPaid
+  );
+
+  // 3. 未付款的飲料訂單
+  const unpaidDrinkOrders = memberDrinkOrders.filter(order => 
+    order.status !== 'completed' && 
+    order.memberItems.some(item => !item.paid && item.member_id !== order.payer_id)
+  );
+
+  const hasUnpaidItems = unpaidGroupBuys.length > 0 || unpaidOrganizerGroupBuys.length > 0 || unpaidDrinkOrders.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
