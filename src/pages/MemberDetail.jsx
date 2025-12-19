@@ -467,8 +467,8 @@ export default function MemberDetail() {
                 </table>
               </div>
             </Card>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Transaction History */}
         <section>
