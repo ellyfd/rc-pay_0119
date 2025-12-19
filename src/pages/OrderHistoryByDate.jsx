@@ -97,7 +97,7 @@ export default function OrderHistoryByDate() {
         <Card className="p-4 sm:p-6 mb-6">
           <div className="space-y-3">
             <div className="flex items-end gap-2 sm:gap-4">
-              <div className="flex-1">
+              <div className="w-[140px] sm:flex-1">
                 <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">開始</label>
                 <Input
                   type="date"
@@ -106,7 +106,7 @@ export default function OrderHistoryByDate() {
                   className="text-xs sm:text-sm h-9 sm:h-10 px-2 sm:px-3"
                 />
               </div>
-              <div className="flex-1">
+              <div className="w-[140px] sm:flex-1">
                 <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 sm:mb-2">結束</label>
                 <Input
                   type="date"
