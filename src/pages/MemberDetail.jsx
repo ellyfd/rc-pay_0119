@@ -155,6 +155,60 @@ export default function MemberDetail() {
     }
   };
 
+  const handleRecalculateBalances = async () => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+
+    try {
+      // Fetch all members and transactions
+      const allMembers = await base44.entities.Member.list();
+      const allTransactions = await base44.entities.Transaction.list();
+
+      // Initialize balance counters for each member
+      const balances = {};
+      allMembers.forEach(member => {
+        balances[member.id] = {
+          balance: 0,
+          cash_balance: 0
+        };
+      });
+
+      // Process all transactions
+      allTransactions.forEach(transaction => {
+        const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
+        const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
+
+        if (type === 'deposit' && to_member_id && balances[to_member_id]) {
+          balances[to_member_id][balanceField] += amount;
+        } else if (type === 'withdraw' && from_member_id && balances[from_member_id]) {
+          balances[from_member_id][balanceField] -= amount;
+        } else if (type === 'transfer' && from_member_id && to_member_id) {
+          if (balances[from_member_id]) {
+            balances[from_member_id][balanceField] -= amount;
+          }
+          if (balances[to_member_id]) {
+            balances[to_member_id][balanceField] += amount;
+          }
+        }
+      });
+
+      // Update all members with recalculated balances
+      for (const member of allMembers) {
+        await updateMemberBalance.mutateAsync({
+          id: member.id,
+          data: {
+            balance: balances[member.id].balance,
+            cash_balance: balances[member.id].cash_balance
+          }
+        });
+      }
+
+      alert(`成功重新計算 ${allMembers.length} 位成員的餘額！`);
+    } catch (error) {
+      console.error('Failed to recalculate balances:', error);
+      alert('重新計算失敗，請稍後再試。');
+    }
+  };
+
   if (!memberId || memberLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
@@ -523,6 +577,24 @@ export default function MemberDetail() {
 
           {/* RC Pay Tab */}
           <TabsContent value="rcpay" className="space-y-6">
+            {/* Admin Tools */}
+            {currentUser?.role === 'admin' && (
+              <Card className="p-4 bg-amber-50 border-amber-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-slate-800">管理員工具</h3>
+                    <p className="text-xs text-slate-600 mt-1">根據所有交易記錄重新計算成員餘額</p>
+                  </div>
+                  <Button
+                    onClick={handleRecalculateBalances}
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                  >
+                    重新計算餘額
+                  </Button>
+                </div>
+              </Card>
+            )}
+
             {/* Filters */}
             <Card className="p-4">
               <div className="space-y-3">
