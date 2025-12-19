@@ -49,13 +49,11 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
             <Badge className={
               groupBuy.status === 'open' ? 'bg-green-500' :
               groupBuy.status === 'closed' ? 'bg-amber-500' :
-              isSettled ? 'bg-blue-500' :
-              'bg-slate-500'
+              'bg-blue-500'
             }>
               {groupBuy.status === 'open' ? '進行中' :
-               groupBuy.status === 'closed' ? '已截止' :
-               isSettled ? '已結清' :
-               '已結單'}
+               groupBuy.status === 'closed' ? '已下單' :
+               '已完成'}
             </Badge>
           </div>
           {groupBuy.description && (
