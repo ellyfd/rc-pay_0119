@@ -115,20 +115,8 @@ export default function GroupBuyDetail() {
 
   const updateItem = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuyItem.update(id, data),
-    onSuccess: async () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groupBuyItems'] });
-
-      // 檢查是否所有項目都已付款，自動更新 is_fully_paid
-      const allItems = await base44.entities.GroupBuyItem.list();
-      const groupItems = allItems.filter(item => item.group_buy_id === groupBuyId);
-      const allPaid = groupItems.length > 0 && groupItems.every(item => item.paid);
-
-      if (allPaid) {
-        await updateGroupBuy.mutateAsync({
-          id: groupBuyId,
-          data: { is_fully_paid: true }
-        });
-      }
     },
     onError: (error) => {
       toast.error('更新失敗：' + error.message);
