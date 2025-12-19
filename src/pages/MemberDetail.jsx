@@ -482,7 +482,7 @@ export default function MemberDetail() {
                   <section>
                     <div className="flex items-center gap-2 mb-4">
                       <Coffee className="w-5 h-5 text-red-500" />
-                      <h2 className="text-lg font-semibold text-slate-800">飲料訂單（未付款）</h2>
+                      <h2 className="text-lg font-semibold text-slate-800">飲料訂單（未結清）</h2>
                       <Badge className="bg-red-500">{pendingDrinkOrders.length}</Badge>
                     </div>
                     <Card>
@@ -980,7 +980,7 @@ export default function MemberDetail() {
                         {idx === 0 && (
                           <td className="px-0.5 sm:px-4 py-2 sm:py-3 text-center align-middle" rowSpan={order.memberItems.length}>
                             <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
-                              {order.status === 'completed' ? '已完成' : '待付款'}
+                              {order.status === 'completed' ? '已完成' : '未結清'}
                             </Badge>
                           </td>
                         )}
