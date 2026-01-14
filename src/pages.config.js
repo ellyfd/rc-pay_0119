@@ -1,36 +1,36 @@
-import AdminOrders from './pages/AdminOrders';
-import DrinkOrder from './pages/DrinkOrder';
-import DrinkOrderDetail from './pages/DrinkOrderDetail';
-import FoodOrder from './pages/FoodOrder';
-import GroupBuy from './pages/GroupBuy';
-import GroupBuyDetail from './pages/GroupBuyDetail';
-import GroupBuyTemplates from './pages/GroupBuyTemplates';
 import Home from './pages/Home';
 import MemberDetail from './pages/MemberDetail';
+import FoodOrder from './pages/FoodOrder';
+import ProductManagement from './pages/ProductManagement';
 import MemberManagement from './pages/MemberManagement';
+import AdminOrders from './pages/AdminOrders';
+import GroupBuy from './pages/GroupBuy';
+import GroupBuyDetail from './pages/GroupBuyDetail';
+import ProductCatalog from './pages/ProductCatalog';
+import TransactionHistory from './pages/TransactionHistory';
+import GroupBuyTemplates from './pages/GroupBuyTemplates';
 import OrderHistoryByDate from './pages/OrderHistoryByDate';
 import OrderHistoryByMember from './pages/OrderHistoryByMember';
-import ProductCatalog from './pages/ProductCatalog';
-import ProductManagement from './pages/ProductManagement';
-import TransactionHistory from './pages/TransactionHistory';
+import DrinkOrder from './pages/DrinkOrder';
+import DrinkOrderDetail from './pages/DrinkOrderDetail';
 
 
 export const PAGES = {
-    "AdminOrders": AdminOrders,
-    "DrinkOrder": DrinkOrder,
-    "DrinkOrderDetail": DrinkOrderDetail,
-    "FoodOrder": FoodOrder,
-    "GroupBuy": GroupBuy,
-    "GroupBuyDetail": GroupBuyDetail,
-    "GroupBuyTemplates": GroupBuyTemplates,
     "Home": Home,
     "MemberDetail": MemberDetail,
+    "FoodOrder": FoodOrder,
+    "ProductManagement": ProductManagement,
     "MemberManagement": MemberManagement,
+    "AdminOrders": AdminOrders,
+    "GroupBuy": GroupBuy,
+    "GroupBuyDetail": GroupBuyDetail,
+    "ProductCatalog": ProductCatalog,
+    "TransactionHistory": TransactionHistory,
+    "GroupBuyTemplates": GroupBuyTemplates,
     "OrderHistoryByDate": OrderHistoryByDate,
     "OrderHistoryByMember": OrderHistoryByMember,
-    "ProductCatalog": ProductCatalog,
-    "ProductManagement": ProductManagement,
-    "TransactionHistory": TransactionHistory,
+    "DrinkOrder": DrinkOrder,
+    "DrinkOrderDetail": DrinkOrderDetail,
 }
 
 export const pagesConfig = {

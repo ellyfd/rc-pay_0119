@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, History, Users, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, History, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -27,7 +27,6 @@ export default function AdminOrders() {
   const [orderStatus, setOrderStatus] = useState('pending');
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
-  const [showAddOrder, setShowAddOrder] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
@@ -112,11 +111,6 @@ export default function AdminOrders() {
     mutationFn: async (itemData) => base44.entities.OrderItem.create(itemData),
   });
 
-  const createOrder = useMutation({
-    mutationFn: async (orderData) => base44.entities.Order.create(orderData),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] })
-  });
-
   const getOrderItems = (orderId) => {
     return orderItems.filter(item => item.order_id === orderId);
   };
@@ -175,32 +169,6 @@ export default function AdminOrders() {
     });
 
     setEditingOrder(null);
-  };
-
-  const handleAddOrder = async (data) => {
-    const member = allMembers.find(m => m.id === data.member_id);
-    if (!member) return;
-
-    // Create order
-    const newOrder = await createOrder.mutateAsync({
-      member_id: member.id,
-      member_name: member.name,
-      total_amount: data.total_amount,
-      payment_method: data.payment_method,
-      order_date: selectedDate,
-      status: 'pending',
-      note: data.note
-    });
-
-    // Create order items
-    for (const item of data.items) {
-      await createOrderItem.mutateAsync({
-        order_id: newOrder.id,
-        ...item
-      });
-    }
-
-    setShowAddOrder(false);
   };
 
   const handleCheckoutAll = async () => {
@@ -292,23 +260,12 @@ export default function AdminOrders() {
               <h1 className="text-2xl font-bold">訂單管理</h1>
               <p className="text-emerald-100 text-sm">查詢訂單紀錄與統一結帳</p>
             </div>
-            <div className="flex gap-2">
-              {currentUser?.role === 'admin' && (
-                <Button 
-                  onClick={() => setShowAddOrder(true)} 
-                  className="bg-white text-emerald-600 hover:bg-emerald-50"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  新增訂單
-                </Button>
-              )}
-              <Link to={createPageUrl('OrderHistoryByMember')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500">
-                  <Users className="w-4 h-4 mr-2" />
-                  按成員查詢
-                </Button>
-              </Link>
-            </div>
+            <Link to={createPageUrl('OrderHistoryByMember')}>
+              <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                <Users className="w-4 h-4 mr-2" />
+                按成員查詢
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -513,16 +470,6 @@ export default function AdminOrders() {
         products={products}
         members={allMembers}
         onSave={handleSaveEdit}
-      />
-
-      <EditOrderDialog
-        open={showAddOrder}
-        onOpenChange={() => setShowAddOrder(false)}
-        order={null}
-        orderItems={[]}
-        products={products}
-        members={allMembers}
-        onSave={handleAddOrder}
       />
 
       <AlertDialog open={!!deletingOrder} onOpenChange={() => setDeletingOrder(null)}>
