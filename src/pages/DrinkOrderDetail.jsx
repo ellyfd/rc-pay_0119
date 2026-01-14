@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle, Plus, Edit, X } from "lucide-react";
+import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -14,8 +14,6 @@ export default function DrinkOrderDetail() {
   const [orderId, setOrderId] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [actualCharges, setActualCharges] = useState({});
-  const [editingItem, setEditingItem] = useState(null);
-  const [newItem, setNewItem] = useState({ member_id: '', member_name: '', item_name: '', price: 0 });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -45,65 +43,6 @@ export default function DrinkOrderDetail() {
       toast.success('訂單已更新！');
     }
   });
-
-  const handleAddItem = () => {
-    if (!newItem.member_id || !newItem.item_name || newItem.price <= 0) {
-      toast.error('請填寫完整的項目資訊');
-      return;
-    }
-
-    const updatedItems = [...(order.items || []), {
-      member_id: newItem.member_id,
-      member_name: newItem.member_name,
-      item_name: newItem.item_name,
-      price: Number(newItem.price),
-      payment_method: 'cash',
-      paid: false
-    }];
-
-    updateOrder.mutate({
-      id: orderId,
-      data: {
-        items: updatedItems,
-        total_amount: updatedItems.reduce((sum, item) => sum + item.price, 0) + (order.shipping_fee || 0)
-      }
-    });
-
-    setNewItem({ member_id: '', member_name: '', item_name: '', price: 0 });
-  };
-
-  const handleSaveEdit = (itemIndex) => {
-    setEditingItem(null);
-  };
-
-  const handleDeleteItem = (itemIndex) => {
-    if (!confirm('確定要刪除此項目嗎？')) return;
-
-    const updatedItems = order.items.filter((_, i) => i !== itemIndex);
-    updateOrder.mutate({
-      id: orderId,
-      data: {
-        items: updatedItems,
-        total_amount: updatedItems.reduce((sum, item) => sum + item.price, 0) + (order.shipping_fee || 0)
-      }
-    });
-  };
-
-  const handleItemChange = (itemIndex, field, value) => {
-    const updatedItems = [...order.items];
-    updatedItems[itemIndex] = {
-      ...updatedItems[itemIndex],
-      [field]: field === 'price' ? Number(value) : value
-    };
-    
-    updateOrder.mutate({
-      id: orderId,
-      data: {
-        items: updatedItems,
-        total_amount: updatedItems.reduce((sum, item) => sum + item.price, 0) + (order.shipping_fee || 0)
-      }
-    });
-  };
 
   const deleteOrder = useMutation({
     mutationFn: async (id) => {
@@ -418,7 +357,6 @@ export default function DrinkOrderDetail() {
                   <th className="text-left px-3 py-2 text-slate-700">項目</th>
                   <th className="text-right px-3 py-2 text-slate-700">金額</th>
                   <th className="text-right px-3 py-2 text-slate-700">小計</th>
-                  {!isCompleted && <th className="text-center px-3 py-2 text-slate-700 w-24">編輯</th>}
                   {order.shipping_fee > 0 && (
                     <>
                       <th className="text-right px-3 py-2 text-slate-700">運費</th>
@@ -465,72 +403,8 @@ export default function DrinkOrderDetail() {
                               {item.member_name}
                             </td>
                           )}
-                          <td className="px-3 py-2">
-                            {!isCompleted && editingItem === item.idx ? (
-                              <input
-                                type="text"
-                                value={item.item_name}
-                                onChange={(e) => handleItemChange(item.idx, 'item_name', e.target.value)}
-                                className="w-full px-2 py-1 border rounded text-sm"
-                              />
-                            ) : (
-                              item.item_name
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {!isCompleted && editingItem === item.idx ? (
-                              <input
-                                type="number"
-                                value={item.price}
-                                onChange={(e) => handleItemChange(item.idx, 'price', e.target.value)}
-                                className="w-20 px-2 py-1 border rounded text-sm text-right"
-                              />
-                            ) : (
-                              `$${item.price}`
-                            )}
-                          </td>
-                          {!isCompleted && (
-                            <td className="px-3 py-2 text-center">
-                              {editingItem === item.idx ? (
-                                <div className="flex gap-1 justify-center">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleSaveEdit(item.idx)}
-                                    className="h-7 w-7 p-0 bg-green-600 hover:bg-green-700"
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setEditingItem(null)}
-                                    className="h-7 w-7 p-0"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="flex gap-1 justify-center">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setEditingItem(item.idx)}
-                                    className="h-7 w-7 p-0 text-blue-600 hover:bg-blue-50"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleDeleteItem(item.idx)}
-                                    className="h-7 w-7 p-0 text-red-600 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              )}
-                            </td>
-                          )}
+                          <td className="px-3 py-2">{item.item_name}</td>
+                          <td className="px-3 py-2 text-right">${item.price}</td>
                           {itemIdx === 0 && (
                             <>
                               <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
@@ -633,57 +507,6 @@ export default function DrinkOrderDetail() {
                     </React.Fragment>
                   );
                 })}
-                
-                {/* Add New Item Row */}
-                {!isCompleted && (
-                  <tr className="bg-slate-50 border-t-2">
-                    <td></td>
-                    <td className="px-3 py-2">
-                      <select
-                        value={newItem.member_id}
-                        onChange={(e) => {
-                          const memberId = e.target.value;
-                          const member = members.find(m => m.id === memberId);
-                          setNewItem({ ...newItem, member_id: memberId, member_name: member?.name || '' });
-                        }}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                      >
-                        <option value="">選擇成員</option>
-                        {members.map(member => (
-                          <option key={member.id} value={member.id}>{member.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        placeholder="項目名稱"
-                        value={newItem.item_name}
-                        onChange={(e) => setNewItem({ ...newItem, item_name: e.target.value })}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        placeholder="0"
-                        value={newItem.price || ''}
-                        onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                        className="w-20 px-2 py-1 border rounded text-sm text-right"
-                      />
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <Button
-                        onClick={handleAddItem}
-                        className="h-8 bg-orange-600 hover:bg-orange-700"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        新增
-                      </Button>
-                    </td>
-                    <td colSpan="10"></td>
-                  </tr>
-                )}
                 {order.shipping_fee > 0 && (
                   <tr className="bg-orange-50 font-bold border-t-2">
                     <td colSpan={isCompleted ? 2 : 3} className="px-3 py-3 text-right">總計</td>
