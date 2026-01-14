@@ -357,10 +357,26 @@ export default function DrinkOrder() {
         const processedItems = result.items.map(item => {
           const matchedMember = members.find(m => {
             if (!item.member_name) return false;
-            // 先比對別名陣列，再比對姓名
-            const aliasMatch = m.alias && Array.isArray(m.alias) && 
-              m.alias.some(a => item.member_name.includes(a));
-            return aliasMatch || m.name.includes(item.member_name);
+            
+            const memberNameLower = item.member_name.toLowerCase().trim();
+            const actualNameLower = m.name.toLowerCase().trim();
+            
+            // 先比對姓名（完全匹配或包含）
+            if (actualNameLower.includes(memberNameLower) || memberNameLower.includes(actualNameLower)) {
+              return true;
+            }
+            
+            // 再比對別名陣列（不區分大小寫）
+            if (m.alias && Array.isArray(m.alias)) {
+              return m.alias.some(a => {
+                const aliasLower = a.toLowerCase().trim();
+                return aliasLower === memberNameLower || 
+                       memberNameLower.includes(aliasLower) || 
+                       aliasLower.includes(memberNameLower);
+              });
+            }
+            
+            return false;
           });
           return {
             member_id: matchedMember?.id || '',
