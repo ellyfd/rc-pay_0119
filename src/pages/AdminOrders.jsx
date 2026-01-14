@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, History, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, History, Users, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -28,6 +28,8 @@ export default function AdminOrders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [editingOrderName, setEditingOrderName] = useState(null);
+  const [tempOrderName, setTempOrderName] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -171,6 +173,25 @@ export default function AdminOrders() {
     setEditingOrder(null);
   };
 
+  const handleStartEditOrderName = (order) => {
+    setEditingOrderName(order.id);
+    setTempOrderName(order.order_name || '');
+  };
+
+  const handleSaveOrderName = async (orderId) => {
+    await updateOrder.mutateAsync({
+      id: orderId,
+      data: { order_name: tempOrderName }
+    });
+    setEditingOrderName(null);
+    setTempOrderName('');
+  };
+
+  const handleCancelEditOrderName = () => {
+    setEditingOrderName(null);
+    setTempOrderName('');
+  };
+
   const handleCheckoutAll = async () => {
     if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
@@ -274,7 +295,7 @@ export default function AdminOrders() {
         {/* Date and Status Selection */}
         <Card className="p-3 sm:p-4 mb-6">
           <div className="flex items-center justify-between gap-2 sm:gap-4 mb-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1">
               <label className="font-semibold text-slate-700 text-sm whitespace-nowrap">日期：</label>
               <Input
                 type="date"
@@ -282,6 +303,33 @@ export default function AdminOrders() {
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-32 sm:w-36 text-sm"
               />
+              {editingOrderName ? (
+                <div className="flex items-center gap-1 ml-4">
+                  <Input
+                    value={tempOrderName}
+                    onChange={(e) => setTempOrderName(e.target.value)}
+                    placeholder="訂單名稱"
+                    className="h-8 text-sm w-32"
+                    autoFocus
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleSaveOrderName(editingOrderName)}
+                    className="h-8 w-8 text-green-600 hover:text-green-700"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleCancelEditOrderName}
+                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : null}
             </div>
             <div className="flex gap-2">
               <Button
@@ -340,7 +388,7 @@ export default function AdminOrders() {
                 <table className="w-full text-xs sm:text-sm">
                   <thead className="bg-emerald-50">
                     <tr>
-                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">成員</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">訂單/成員</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">飯量</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">單點</th>
@@ -365,7 +413,23 @@ export default function AdminOrders() {
                       return (
                         <tr key={order.id} className="border-b hover:bg-slate-50">
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3">
-                            <div className="font-medium text-slate-800 leading-tight">{order.member_name}</div>
+                            {order.order_name && (
+                              <div 
+                                className="text-xs text-emerald-600 font-semibold leading-tight cursor-pointer hover:text-emerald-700"
+                                onClick={() => currentUser?.role === 'admin' && orderStatus === 'pending' && handleStartEditOrderName(order)}
+                              >
+                                {order.order_name} {currentUser?.role === 'admin' && orderStatus === 'pending' && <Edit className="w-3 h-3 inline ml-1" />}
+                              </div>
+                            )}
+                            <div className="font-medium text-slate-800 leading-tight flex items-center gap-1">
+                              {order.member_name}
+                              {!order.order_name && currentUser?.role === 'admin' && orderStatus === 'pending' && (
+                                <Edit 
+                                  className="w-3 h-3 text-slate-400 hover:text-slate-600 cursor-pointer" 
+                                  onClick={() => handleStartEditOrderName(order)}
+                                />
+                              )}
+                            </div>
                             <div className="text-[10px] sm:text-xs text-slate-500">
                               {formatTaiwanTime(order.created_date, 'HH:mm')}
                             </div>
