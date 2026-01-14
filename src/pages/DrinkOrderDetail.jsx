@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle, Pencil, Plus, Edit2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -16,6 +17,9 @@ export default function DrinkOrderDetail() {
   const [actualCharges, setActualCharges] = useState({});
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [editItems, setEditItems] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -212,6 +216,84 @@ export default function DrinkOrderDetail() {
     }
   };
 
+  const handleEditMember = (memberId) => {
+    const memberItems = order.items.filter(item => item.member_id === memberId);
+    setEditingMember(memberId);
+    setEditItems(memberItems.map(item => ({ ...item })));
+    setShowEditDialog(true);
+  };
+
+  const handleAddNewMember = () => {
+    setEditingMember(null);
+    setEditItems([{ member_id: '', member_name: '', item_name: '', price: 0, payment_method: 'cash', paid: false }]);
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editItems.every(item => item.member_id && item.item_name && item.price)) {
+      toast.warning('請填寫完整資料！');
+      return;
+    }
+
+    const newItems = [...order.items];
+    
+    if (editingMember) {
+      // 編輯模式：移除舊項目，加入新項目
+      const filteredItems = newItems.filter(item => item.member_id !== editingMember);
+      const updatedItems = [...filteredItems, ...editItems];
+      
+      await updateOrder.mutateAsync({
+        id: orderId,
+        data: { items: updatedItems }
+      });
+    } else {
+      // 新增模式：直接加入
+      await updateOrder.mutateAsync({
+        id: orderId,
+        data: { items: [...newItems, ...editItems] }
+      });
+    }
+
+    setShowEditDialog(false);
+    setEditingMember(null);
+    setEditItems([]);
+    toast.success(editingMember ? '已更新成員訂單' : '已新增成員訂單');
+  };
+
+  const updateEditItem = (index, field, value) => {
+    const newItems = [...editItems];
+    newItems[index][field] = value;
+    
+    if (field === 'member_id') {
+      const member = members.find(m => m.id === value);
+      if (member) {
+        newItems[index].member_name = member.name;
+      }
+    }
+    
+    setEditItems(newItems);
+  };
+
+  const addEditItem = () => {
+    const lastItem = editItems[editItems.length - 1];
+    setEditItems([...editItems, {
+      member_id: lastItem?.member_id || '',
+      member_name: lastItem?.member_name || '',
+      item_name: '',
+      price: 0,
+      payment_method: lastItem?.payment_method || 'cash',
+      paid: false
+    }]);
+  };
+
+  const removeEditItem = (index) => {
+    if (editItems.length === 1) {
+      toast.warning('至少需要保留一個項目！');
+      return;
+    }
+    setEditItems(editItems.filter((_, i) => i !== index));
+  };
+
   if (!order) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex items-center justify-center">
@@ -318,7 +400,7 @@ export default function DrinkOrderDetail() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Card className="overflow-hidden">
           <div className="p-4 bg-slate-50 border-b">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <label className="text-sm text-slate-600 whitespace-nowrap">訂單支付人：</label>
                 <select
@@ -333,17 +415,30 @@ export default function DrinkOrderDetail() {
                   ))}
                 </select>
               </div>
-              {!isCompleted && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => deleteOrder.mutate(orderId)}
-                  className="text-red-500 hover:text-red-700 shrink-0"
-                >
-                  <Trash2 className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">刪除訂單</span>
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {!isCompleted && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddNewMember}
+                      className="bg-green-50 text-green-700 hover:bg-green-100"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      <span className="hidden sm:inline">新增成員</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteOrder.mutate(orderId)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 md:mr-2" />
+                      <span className="hidden md:inline">刪除訂單</span>
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
@@ -449,8 +544,20 @@ export default function DrinkOrderDetail() {
                             </td>
                           )}
                           {itemIdx === 0 && (
-                            <td className="px-3 py-2 font-medium" rowSpan={items.length}>
-                              {item.member_name}
+                            <td className="px-3 py-2" rowSpan={items.length}>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.member_name}</span>
+                                {!isCompleted && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditMember(item.member_id)}
+                                    className="h-6 w-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           )}
                           <td className="px-3 py-2">{item.item_name}</td>
@@ -583,6 +690,128 @@ export default function DrinkOrderDetail() {
           </div>
         </Card>
       </div>
+
+      {/* 編輯/新增對話框 */}
+      {showEditDialog && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold text-slate-800">
+                {editingMember ? '編輯成員訂單' : '新增成員訂單'}
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setShowEditDialog(false);
+                  setEditingMember(null);
+                  setEditItems([]);
+                }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-4">
+              {editItems.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-semibold text-slate-700">成員：</label>
+                    <select
+                      value={editItems[0].member_id}
+                      onChange={(e) => {
+                        const member = members.find(m => m.id === e.target.value);
+                        setEditItems(editItems.map(item => ({
+                          ...item,
+                          member_id: e.target.value,
+                          member_name: member?.name || ''
+                        })));
+                      }}
+                      className="px-3 py-1 border rounded text-sm flex-1"
+                      disabled={editingMember}
+                    >
+                      <option value="">選擇成員</option>
+                      {members.map(m => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="w-full min-w-[500px]">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">品項</th>
+                      <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-24">金額</th>
+                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {editItems.map((item, index) => (
+                      <tr key={index} className="hover:bg-slate-50">
+                        <td className="px-3 py-2">
+                          <Input
+                            value={item.item_name}
+                            onChange={(e) => updateEditItem(index, 'item_name', e.target.value)}
+                            placeholder="飲料名稱"
+                            className="text-sm"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            value={item.price}
+                            onChange={(e) => updateEditItem(index, 'price', parseFloat(e.target.value) || 0)}
+                            placeholder="0"
+                            className="text-sm text-right"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeEditItem(index)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-orange-50">
+                      <td className="px-3 py-2 text-right font-semibold text-slate-700">總計</td>
+                      <td className="px-3 py-2 text-right font-bold text-orange-600">
+                        ${editItems.reduce((sum, item) => sum + (item.price || 0), 0)}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={addEditItem}
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  新增品項
+                </Button>
+                <Button
+                  onClick={handleSaveEdit}
+                  className="bg-orange-600 hover:bg-orange-700 text-white w-full sm:w-auto"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  儲存
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
