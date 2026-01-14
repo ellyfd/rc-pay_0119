@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle, Pencil, Plus, Edit2, X } from "lucide-react";
+import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle, Pencil, Plus, Edit2, X, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -20,6 +20,9 @@ export default function DrinkOrderDetail() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [editItems, setEditItems] = useState([]);
+  const [showSplitDialog, setShowSplitDialog] = useState(false);
+  const [splitItemIndex, setSplitItemIndex] = useState(null);
+  const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -292,6 +295,50 @@ export default function DrinkOrderDetail() {
       return;
     }
     setEditItems(editItems.filter((_, i) => i !== index));
+  };
+
+  const handleSplitItem = (index) => {
+    setSplitItemIndex(index);
+    setSelectedSplitMembers([]);
+    setShowSplitDialog(true);
+  };
+
+  const confirmSplit = () => {
+    if (selectedSplitMembers.length === 0) {
+      toast.warning('請選擇至少一位成員！');
+      return;
+    }
+
+    const item = editItems[splitItemIndex];
+    const pricePerPerson = item.price / (selectedSplitMembers.length + 1); // +1 包含原成員
+
+    // 移除原項目
+    const newItems = editItems.filter((_, i) => i !== splitItemIndex);
+
+    // 為每個選中的成員添加項目
+    const splitItems = selectedSplitMembers.map(memberId => {
+      const member = members.find(m => m.id === memberId);
+      return {
+        member_id: memberId,
+        member_name: member?.name || '',
+        item_name: item.item_name,
+        price: Math.round(pricePerPerson),
+        payment_method: 'cash',
+        paid: false
+      };
+    });
+
+    // 更新原成員的價格
+    const updatedOriginalItem = {
+      ...item,
+      price: Math.round(pricePerPerson)
+    };
+
+    setEditItems([...newItems.slice(0, splitItemIndex), updatedOriginalItem, ...newItems.slice(splitItemIndex), ...splitItems]);
+    setShowSplitDialog(false);
+    setSplitItemIndex(null);
+    setSelectedSplitMembers([]);
+    toast.success(`已將項目平分給 ${selectedSplitMembers.length + 1} 位成員`);
   };
 
   if (!order) {
@@ -745,7 +792,7 @@ export default function DrinkOrderDetail() {
                     <tr>
                       <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">品項</th>
                       <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-24">金額</th>
-                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16">操作</th>
+                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-32">操作</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -768,15 +815,26 @@ export default function DrinkOrderDetail() {
                             className="text-sm text-right"
                           />
                         </td>
-                        <td className="px-3 py-2 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeEditItem(index)}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleSplitItem(index)}
+                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              title="平分"
+                            >
+                              <Users className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeEditItem(index)}
+                              className="h-8 w-8 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -806,6 +864,87 @@ export default function DrinkOrderDetail() {
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   儲存
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* 平分項目對話框 */}
+      {showSplitDialog && splitItemIndex !== null && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-bold text-slate-800">選擇平分成員</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setShowSplitDialog(false);
+                  setSplitItemIndex(null);
+                  setSelectedSplitMembers([]);
+                }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="text-sm text-slate-700">
+                  <div className="font-semibold mb-1">項目：{editItems[splitItemIndex]?.item_name}</div>
+                  <div>原價：${editItems[splitItemIndex]?.price}</div>
+                  <div className="mt-2 text-xs text-slate-600">
+                    選擇要一起平分的成員（含目前成員共 {selectedSplitMembers.length + 1} 人）
+                  </div>
+                  {selectedSplitMembers.length > 0 && (
+                    <div className="mt-1 font-semibold text-orange-600">
+                      每人：${Math.round(editItems[splitItemIndex]?.price / (selectedSplitMembers.length + 1))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {members.filter(m => m.id !== editItems[0]?.member_id).map(member => (
+                  <label
+                    key={member.id}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-slate-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedSplitMembers.includes(member.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedSplitMembers([...selectedSplitMembers, member.id]);
+                        } else {
+                          setSelectedSplitMembers(selectedSplitMembers.filter(id => id !== member.id));
+                        }
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm font-medium text-slate-700">{member.name}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex gap-2 pt-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSplitDialog(false);
+                    setSplitItemIndex(null);
+                    setSelectedSplitMembers([]);
+                  }}
+                  className="flex-1"
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={confirmSplit}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  確認平分
                 </Button>
               </div>
             </div>
