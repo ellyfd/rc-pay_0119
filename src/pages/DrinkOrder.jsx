@@ -706,7 +706,7 @@ export default function DrinkOrder() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <div className="font-semibold text-slate-800">
-                              {format(new Date(order.order_date), 'MM/dd')} {order.store_name || '飲料店'}
+                              {order.order_name || `${formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單`}
                             </div>
                             {order.payer_name && (
                               <span className="text-xs text-slate-500">· {order.payer_name}</span>
