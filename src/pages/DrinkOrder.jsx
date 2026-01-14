@@ -950,6 +950,33 @@ export default function DrinkOrder() {
                       </div>
                     </div>
 
+                    {/* 訂單統計 */}
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">小計</div>
+                          <div className="text-xl font-bold text-orange-600">
+                            ${getTotalAmount().toLocaleString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">共多少人</div>
+                          <div className="text-xl font-bold text-slate-800">
+                            {(() => {
+                              const uniqueMembers = new Set(orderItems.map(item => item.member_id).filter(id => id));
+                              return uniqueMembers.size;
+                            })()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">共多少項目</div>
+                          <div className="text-xl font-bold text-slate-800">
+                            {orderItems.length}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="bg-slate-50 rounded-lg p-4 space-y-3">
                       <div className="text-sm font-semibold text-slate-700 mb-2">費用明細</div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
