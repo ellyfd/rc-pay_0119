@@ -395,9 +395,25 @@ export default function DrinkOrder() {
         // 如果AI識別到支付者，自動填入
         if (result.payer_name) {
           const payerMember = members.find(m => {
-            const aliasMatch = m.alias && Array.isArray(m.alias) && 
-              m.alias.some(a => result.payer_name.includes(a));
-            return aliasMatch || m.name.includes(result.payer_name);
+            const payerNameLower = result.payer_name.toLowerCase().trim();
+            const actualNameLower = m.name.toLowerCase().trim();
+            
+            // 先比對姓名
+            if (actualNameLower.includes(payerNameLower) || payerNameLower.includes(actualNameLower)) {
+              return true;
+            }
+            
+            // 再比對別名
+            if (m.alias && Array.isArray(m.alias)) {
+              return m.alias.some(a => {
+                const aliasLower = a.toLowerCase().trim();
+                return aliasLower === payerNameLower || 
+                       payerNameLower.includes(aliasLower) || 
+                       aliasLower.includes(payerNameLower);
+              });
+            }
+            
+            return false;
           });
           if (payerMember) {
             // 這裡暫時儲存，等儲存訂單時會用到
