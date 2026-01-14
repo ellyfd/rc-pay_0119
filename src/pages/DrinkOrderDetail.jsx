@@ -14,6 +14,8 @@ export default function DrinkOrderDetail() {
   const [orderId, setOrderId] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [actualCharges, setActualCharges] = useState({});
+  const [editingItem, setEditingItem] = useState(null);
+  const [newItem, setNewItem] = useState({ member_id: '', member_name: '', item_name: '', price: 0 });
   const queryClient = useQueryClient();
 
   useEffect(() => {
