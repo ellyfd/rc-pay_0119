@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle } from "lucide-react";
+import { ArrowLeft, Trash2, Coffee, Wallet, CheckCircle, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -14,6 +14,8 @@ export default function DrinkOrderDetail() {
   const [orderId, setOrderId] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [actualCharges, setActualCharges] = useState({});
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -253,11 +255,59 @@ export default function DrinkOrderDetail() {
                 <Coffee className="w-7 h-7 text-orange-600" />
               )}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">
-                {formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單
-              </h1>
-              <p className="text-orange-100 text-sm">
+            <div className="flex-1">
+              {isEditingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="text-2xl font-bold bg-white/20 border-2 border-white/50 rounded px-3 py-1 text-white placeholder-white/70"
+                    placeholder="輸入訂單名稱"
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      await updateOrder.mutateAsync({
+                        id: orderId,
+                        data: { order_name: editedName }
+                      });
+                      setIsEditingName(false);
+                      toast.success('訂單名稱已更新');
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    儲存
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditingName(false)}
+                    className="text-white hover:bg-white/20"
+                  >
+                    取消
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold">
+                    {order.order_name || `${formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單`}
+                  </h1>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditedName(order.order_name || '');
+                      setIsEditingName(true);
+                    }}
+                    className="text-white hover:bg-white/20"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              <p className="text-orange-100 text-sm mt-1">
                 {isCompleted ? '已完成' : '待付款'}
               </p>
             </div>
