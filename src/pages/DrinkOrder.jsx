@@ -939,7 +939,20 @@ export default function DrinkOrder() {
                               </tr>
                             ))}
                             <tr className="bg-orange-50 font-bold">
-                              <td colSpan="3" className="px-4 py-3 text-right text-slate-800">總金額</td>
+                              <td colSpan="3" className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-4 text-slate-800">
+                                  <span>總金額</span>
+                                  <span className="text-sm font-normal">
+                                    共 {(() => {
+                                      const uniqueMembers = new Set(orderItems.map(item => item.member_id).filter(id => id));
+                                      return uniqueMembers.size;
+                                    })()} 人
+                                  </span>
+                                  <span className="text-sm font-normal">
+                                    {orderItems.length} 項目
+                                  </span>
+                                </div>
+                              </td>
                               <td className="px-4 py-3 text-right text-orange-600 text-lg">
                                 ${getTotalAmount().toLocaleString()}
                               </td>
@@ -947,33 +960,6 @@ export default function DrinkOrder() {
                             </tr>
                           </tbody>
                         </table>
-                      </div>
-                    </div>
-
-                    {/* 訂單統計 */}
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">小計</div>
-                          <div className="text-xl font-bold text-orange-600">
-                            ${getTotalAmount().toLocaleString()}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">共多少人</div>
-                          <div className="text-xl font-bold text-slate-800">
-                            {(() => {
-                              const uniqueMembers = new Set(orderItems.map(item => item.member_id).filter(id => id));
-                              return uniqueMembers.size;
-                            })()}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">共多少項目</div>
-                          <div className="text-xl font-bold text-slate-800">
-                            {orderItems.length}
-                          </div>
-                        </div>
                       </div>
                     </div>
 
