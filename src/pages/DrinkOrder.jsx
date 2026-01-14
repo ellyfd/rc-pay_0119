@@ -939,19 +939,15 @@ export default function DrinkOrder() {
                               </tr>
                             ))}
                             <tr className="bg-orange-50 font-bold">
-                              <td colSpan="3" className="px-4 py-3 text-right">
-                                <div className="flex items-center justify-end gap-4 text-slate-800">
-                                  <span>總金額</span>
-                                  <span className="text-sm font-normal">
-                                    共 {(() => {
-                                      const uniqueMembers = new Set(orderItems.map(item => item.member_id).filter(id => id));
-                                      return uniqueMembers.size;
-                                    })()} 人
-                                  </span>
-                                  <span className="text-sm font-normal">
-                                    {orderItems.length} 項目
-                                  </span>
-                                </div>
+                              <td className="px-3 py-3"></td>
+                              <td className="px-4 py-3 text-left text-slate-800">
+                                共 {(() => {
+                                  const uniqueMembers = new Set(orderItems.map(item => item.member_id).filter(id => id));
+                                  return uniqueMembers.size;
+                                })()} 人
+                              </td>
+                              <td className="px-4 py-3 text-left text-slate-800">
+                                {orderItems.length} 項目
                               </td>
                               <td className="px-4 py-3 text-right text-orange-600 text-lg">
                                 ${getTotalAmount().toLocaleString()}
