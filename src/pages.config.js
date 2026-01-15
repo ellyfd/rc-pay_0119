@@ -1,3 +1,6 @@
+import AdminOrders from './pages/AdminOrders';
+import DrinkOrder from './pages/DrinkOrder';
+import DrinkOrderDetail from './pages/DrinkOrderDetail';
 import FoodOrder from './pages/FoodOrder';
 import GroupBuy from './pages/GroupBuy';
 import GroupBuyDetail from './pages/GroupBuyDetail';
@@ -10,12 +13,12 @@ import OrderHistoryByMember from './pages/OrderHistoryByMember';
 import ProductCatalog from './pages/ProductCatalog';
 import ProductManagement from './pages/ProductManagement';
 import TransactionHistory from './pages/TransactionHistory';
-import DrinkOrder from './pages/DrinkOrder';
-import DrinkOrderDetail from './pages/DrinkOrderDetail';
-import AdminOrders from './pages/AdminOrders';
 
 
 export const PAGES = {
+    "AdminOrders": AdminOrders,
+    "DrinkOrder": DrinkOrder,
+    "DrinkOrderDetail": DrinkOrderDetail,
     "FoodOrder": FoodOrder,
     "GroupBuy": GroupBuy,
     "GroupBuyDetail": GroupBuyDetail,
@@ -28,9 +31,6 @@ export const PAGES = {
     "ProductCatalog": ProductCatalog,
     "ProductManagement": ProductManagement,
     "TransactionHistory": TransactionHistory,
-    "DrinkOrder": DrinkOrder,
-    "DrinkOrderDetail": DrinkOrderDetail,
-    "AdminOrders": AdminOrders,
 }
 
 export const pagesConfig = {

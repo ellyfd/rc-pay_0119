@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,11 @@ export default function DrinkOrderDetail() {
     queryKey: ['members'],
     queryFn: () => base44.entities.Member.list('name')
   });
+
+  // 建立成員 Map 以提高查找效率
+  const memberMap = useMemo(() => {
+    return new Map(members.map(m => [m.id, m]));
+  }, [members]);
 
   const { data: order } = useQuery({
     queryKey: ['drinkOrder', orderId],
@@ -90,7 +95,7 @@ export default function DrinkOrderDetail() {
   });
 
   const updateOrderPayer = async (payerId) => {
-    const payer = members.find(m => m.id === payerId);
+    const payer = memberMap.get(payerId);
     if (!payer) return;
 
     await updateOrder.mutateAsync({
@@ -119,6 +124,30 @@ export default function DrinkOrderDetail() {
 
     setSelectedMembers([]);
     toast.success(`已為 ${memberIds.length} 位成員設定支付方式`);
+  };
+
+  // 處理餘額轉帳
+  const processBalanceTransfer = async (fromMember, toMember, totalAmount, orderDate) => {
+    await createTransaction.mutateAsync({
+      type: 'transfer',
+      amount: totalAmount,
+      wallet_type: 'balance',
+      from_member_id: fromMember.id,
+      to_member_id: toMember.id,
+      from_member_name: fromMember.name,
+      to_member_name: toMember.name,
+      note: `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料`
+    });
+
+    await updateMember.mutateAsync({
+      id: fromMember.id,
+      data: { balance: (fromMember.balance || 0) - totalAmount }
+    });
+
+    await updateMember.mutateAsync({
+      id: toMember.id,
+      data: { balance: (toMember.balance || 0) + totalAmount }
+    });
   };
 
   const updateMemberPayment = async (memberId, field, value) => {
@@ -157,18 +186,16 @@ export default function DrinkOrderDetail() {
           return;
         }
 
-        const fromMember = members.find(m => m.id === memberId);
-        const toMember = members.find(m => m.id === order.payer_id);
+        const fromMember = memberMap.get(memberId);
+        const toMember = memberMap.get(order.payer_id);
 
         if (!fromMember || !toMember) return;
 
         const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
-
         const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
         const totalMembers = allMemberIds.length;
         const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
 
-        // Use actual charge if set, otherwise use calculated amount
         const chargeKey = `${orderId}_${memberId}`;
         const calculatedAmount = Math.round(itemTotal + shippingPerMember);
         const totalAmount = actualCharges[chargeKey] ?? calculatedAmount;
@@ -179,32 +206,11 @@ export default function DrinkOrderDetail() {
         }
 
         try {
-          await createTransaction.mutateAsync({
-            type: 'transfer',
-            amount: totalAmount,
-            wallet_type: 'balance',
-            from_member_id: fromMember.id,
-            to_member_id: toMember.id,
-            from_member_name: fromMember.name,
-            to_member_name: toMember.name,
-            note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料`
-          });
-
-          await updateMember.mutateAsync({
-            id: fromMember.id,
-            data: { balance: (fromMember.balance || 0) - totalAmount }
-          });
-
-          await updateMember.mutateAsync({
-            id: toMember.id,
-            data: { balance: (toMember.balance || 0) + totalAmount }
-          });
-
+          await processBalanceTransfer(fromMember, toMember, totalAmount, order.order_date);
           toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
         } catch (error) {
           console.error('轉帳失敗:', error);
           toast.error(`轉帳失敗：${error.message}`);
-          // Revert the paid status
           await updateOrder.mutateAsync({
             id: orderId,
             data: { 
@@ -268,7 +274,7 @@ export default function DrinkOrderDetail() {
     newItems[index][field] = value;
     
     if (field === 'member_id') {
-      const member = members.find(m => m.id === value);
+      const member = memberMap.get(value);
       if (member) {
         newItems[index].member_name = member.name;
       }
@@ -317,7 +323,7 @@ export default function DrinkOrderDetail() {
 
     // 為每個選中的成員添加項目
     const splitItems = selectedSplitMembers.map(memberId => {
-      const member = members.find(m => m.id === memberId);
+      const member = memberMap.get(memberId);
       return {
         member_id: memberId,
         member_name: member?.name || '',
@@ -767,7 +773,7 @@ export default function DrinkOrderDetail() {
                     <select
                       value={editItems[0].member_id}
                       onChange={(e) => {
-                        const member = members.find(m => m.id === e.target.value);
+                        const member = memberMap.get(e.target.value);
                         setEditItems(editItems.map(item => ({
                           ...item,
                           member_id: e.target.value,
