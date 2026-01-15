@@ -457,43 +457,45 @@ export default function GroupBuyDetail() {
   // Group items by product for order summary
   const productSummary = useMemo(() => 
     items.reduce((acc, item) => {
-    // For split items, extract original price from note
-    const isSplitItem = item.note && item.note.includes('平分');
-    let actualPrice = item.price;
+      // For split items, extract original price from note
+      const isSplitItem = item.note && item.note.includes('平分');
+      let actualPrice = item.price;
 
-    if (isSplitItem) {
-      // Find the orderer's name from note (format: "XXX訂購，和YYY、ZZZ平分")
-      const noteMatch = item.note.match(/(.+?)訂購，和(.+)平分/);
-      if (noteMatch) {
-        const otherMemberNames = noteMatch[2].split('、');
-        const splitCount = otherMemberNames.length + 1; // +1 for the orderer
-        actualPrice = item.price * splitCount; // Restore original total price
+      if (isSplitItem) {
+        // Find the orderer's name from note (format: "XXX訂購，和YYY、ZZZ平分")
+        const noteMatch = item.note.match(/(.+?)訂購，和(.+)平分/);
+        if (noteMatch) {
+          const otherMemberNames = noteMatch[2].split('、');
+          const splitCount = otherMemberNames.length + 1; // +1 for the orderer
+          actualPrice = item.price * splitCount; // Restore original total price
+        }
       }
-    }
 
-    const key = `${item.product_name}_${actualPrice}`;
-    const existing = acc.find(p => p.key === key);
+      const key = `${item.product_name}_${actualPrice}`;
+      const existing = acc.find(p => p.key === key);
 
-    if (existing) {
-      // For split items, only count once (use orderer's entry)
-      if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
-        existing.quantity += item.quantity;
-        existing.members.push({ name: item.member_name, quantity: item.quantity, note: item.note });
+      if (existing) {
+        // For split items, only count once (use orderer's entry)
+        if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
+          existing.quantity += item.quantity;
+          existing.members.push({ name: item.member_name, quantity: item.quantity, note: item.note });
+        }
+      } else {
+        // Only create entry if not split, or if this is the orderer
+        if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
+          acc.push({
+            key,
+            product_name: item.product_name,
+            price: actualPrice,
+            quantity: item.quantity,
+            members: [{ name: item.member_name, quantity: item.quantity, note: item.note }]
+          });
+        }
       }
-    } else {
-      // Only create entry if not split, or if this is the orderer
-      if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
-        acc.push({
-          key,
-          product_name: item.product_name,
-          price: actualPrice,
-          quantity: item.quantity,
-          members: [{ name: item.member_name, quantity: item.quantity, note: item.note }]
-        });
-      }
-    }
-    return acc;
-  }, []);
+      return acc;
+    }, []),
+    [items]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
@@ -886,7 +888,7 @@ export default function GroupBuyDetail() {
                                 </span>
                               </td>
                             ) : null}
-                            {itemIdx === 0 && hasDiscountDecimals() && isOrganizer && isClosed && (
+                            {itemIdx === 0 && hasDiscountDecimals && isOrganizer && isClosed && (
                               <td 
                                 className="px-2 sm:px-3 py-2 text-right align-top"
                                 rowSpan={summary.items.length}
