@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -77,8 +77,19 @@ export default function AdminOrders() {
     queryFn: () => base44.entities.Product.list()
   });
 
-  const mealBoxes = products.filter(p => p.category === 'meal_box');
-  const sideDishProducts = products.filter(p => p.category === 'side_dish');
+  const mealBoxes = useMemo(() => 
+    products.filter(p => p.category === 'meal_box'),
+    [products]
+  );
+  const sideDishProducts = useMemo(() => 
+    products.filter(p => p.category === 'side_dish'),
+    [products]
+  );
+
+  const memberMap = useMemo(() => 
+    new Map(allMembers.map(m => [m.id, m])),
+    [allMembers]
+  );
 
   const updateOrder = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Order.update(id, data),
@@ -175,7 +186,7 @@ export default function AdminOrders() {
     if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
     for (const order of orders) {
-      const member = allMembers.find(m => m.id === order.member_id);
+      const member = memberMap.get(order.member_id);
       if (!member) continue;
 
       // Update order status
@@ -223,14 +234,21 @@ export default function AdminOrders() {
     alert('結帳完成！');
   };
 
-  const totalAmount = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-  const groupedOrders = orders.reduce((acc, order) => {
-    if (!acc[order.member_name]) {
-      acc[order.member_name] = [];
-    }
-    acc[order.member_name].push(order);
-    return acc;
-  }, {});
+  const totalAmount = useMemo(() => 
+    orders.reduce((sum, order) => sum + (order.total_amount || 0), 0),
+    [orders]
+  );
+  
+  const groupedOrders = useMemo(() => 
+    orders.reduce((acc, order) => {
+      if (!acc[order.member_name]) {
+        acc[order.member_name] = [];
+      }
+      acc[order.member_name].push(order);
+      return acc;
+    }, {}),
+    [orders]
+  );
 
   if (!currentUser) {
     return (

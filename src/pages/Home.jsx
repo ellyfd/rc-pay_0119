@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -64,10 +64,19 @@ export default function Home() {
     }
   }, [currentUser, allMembers]);
 
+  // Create member Map for efficient lookups
+  const memberMap = useMemo(() => 
+    new Map(allMembers.map(m => [m.id, m])),
+    [allMembers]
+  );
+
   // Filter active members with non-zero balance for display
-  const members = allMembers.filter(m => 
-    m.is_active !== false && 
-    ((m.balance || 0) !== 0 || (m.cash_balance || 0) !== 0)
+  const members = useMemo(() => 
+    allMembers.filter(m => 
+      m.is_active !== false && 
+      ((m.balance || 0) !== 0 || (m.cash_balance || 0) !== 0)
+    ),
+    [allMembers]
   );
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
@@ -97,8 +106,8 @@ export default function Home() {
   const handleTransaction = async (transactionData) => {
     const { type, amount, from_member_id, to_member_id, wallet_type, note } = transactionData;
 
-    const fromMember = allMembers.find((m) => m.id === from_member_id);
-    const toMember = allMembers.find((m) => m.id === to_member_id);
+    const fromMember = memberMap.get(from_member_id);
+    const toMember = memberMap.get(to_member_id);
     const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
     // Create transaction record
@@ -139,7 +148,7 @@ export default function Home() {
   const handleBatchTransaction = async (transactions) => {
     // Process all transactions
     for (const item of transactions) {
-      const member = allMembers.find((m) => m.id === item.member_id);
+      const member = memberMap.get(item.member_id);
       if (!member) continue;
 
       const isDeposit = item.type === 'deposit';
@@ -170,7 +179,7 @@ export default function Home() {
   };
 
   const handleSelectMember = async (memberId) => {
-    const member = allMembers.find(m => m.id === memberId);
+    const member = memberMap.get(memberId);
     if (!member || !currentUser) return;
 
     const updatedEmails = [...(member.user_emails || []), currentUser.email];
@@ -181,11 +190,17 @@ export default function Home() {
     setShowSelectMember(false);
   };
 
-  const totalBalance = allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0);
+  const totalBalance = useMemo(() => 
+    allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0),
+    [allMembers]
+  );
 
   // Find current user's member
-  const currentMember = allMembers.find(m => 
-    m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+  const currentMember = useMemo(() => 
+    allMembers.find(m => 
+      m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+    ),
+    [allMembers, currentUser]
   );
 
   return (

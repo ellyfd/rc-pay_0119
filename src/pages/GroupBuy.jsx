@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -67,11 +67,16 @@ export default function GroupBuy() {
     }
   });
 
+  const memberMap = useMemo(() => 
+    new Map(members.map(m => [m.id, m])),
+    [members]
+  );
+
   const handleCreate = async (data) => {
     const { products, organizer_id, ...groupBuyData } = data;
     
     // Find organizer member
-    const organizerMember = members.find(m => m.id === organizer_id);
+    const organizerMember = memberMap.get(organizer_id);
     if (!organizerMember) return;
     
     // Create group buy
@@ -93,12 +98,15 @@ export default function GroupBuy() {
   };
 
   // Find current user's member
-  const currentMember = members.find(m => 
-    m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+  const currentMember = useMemo(() => 
+    members.find(m => 
+      m.user_emails && currentUser && m.user_emails.includes(currentUser.email)
+    ),
+    [members, currentUser]
   );
 
-  // Filter function
-  const filterGroupBuys = (gbs) => {
+  // Filter function with useMemo
+  const filterGroupBuys = useMemo(() => (gbs) => {
     let filtered = gbs;
     
     if (filterType === 'my_organized' && currentMember) {
@@ -111,10 +119,10 @@ export default function GroupBuy() {
     }
     
     return filtered;
-  };
+  }, [currentMember, allGroupBuyItems]);
 
-  // Sort function
-  const sortGroupBuys = (gbs) => {
+  // Sort function with useMemo
+  const sortGroupBuys = useMemo(() => (gbs) => {
     const sorted = [...gbs];
     
     if (sortBy === 'deadline') {
@@ -132,11 +140,20 @@ export default function GroupBuy() {
     }
     
     return sorted;
-  };
+  }, [allGroupBuyItems, sortBy]);
 
-  const openGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'open')));
-  const closedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && !gb.is_fully_paid)));
-  const completedGroupBuys = sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && gb.is_fully_paid)));
+  const openGroupBuys = useMemo(() => 
+    sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'open'))),
+    [groupBuys, sortGroupBuys, filterGroupBuys]
+  );
+  const closedGroupBuys = useMemo(() => 
+    sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && !gb.is_fully_paid))),
+    [groupBuys, sortGroupBuys, filterGroupBuys]
+  );
+  const completedGroupBuys = useMemo(() => 
+    sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && gb.is_fully_paid))),
+    [groupBuys, sortGroupBuys, filterGroupBuys]
+  );
 
   if (!currentUser) {
     return (

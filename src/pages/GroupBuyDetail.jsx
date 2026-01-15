@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -105,6 +105,11 @@ export default function GroupBuyDetail() {
     staleTime: 30000 // Cache for 30 seconds
   });
 
+  const memberMap = useMemo(() => 
+    new Map(members.map(m => [m.id, m])),
+    [members]
+  );
+
   const updateGroupBuy = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuy.update(id, data),
     onSuccess: () => {
@@ -181,7 +186,7 @@ export default function GroupBuyDetail() {
   });
 
   const handleSelectMember = async (memberId) => {
-    const member = members.find(m => m.id === memberId);
+    const member = memberMap.get(memberId);
     if (!member || !currentUser) return;
 
     const updatedEmails = member.user_emails || [];
@@ -289,7 +294,7 @@ export default function GroupBuyDetail() {
   };
 
   // Calculate total quantity across all items in the group buy (only count orderers, not split members)
-  const getTotalQuantity = () => {
+  const getTotalQuantity = useMemo(() => {
     return items.reduce((sum, item) => {
       // If it's a split item and this member is not the orderer, don't count it
       const isSplitItem = item.note && item.note.includes('平分');
@@ -298,32 +303,29 @@ export default function GroupBuyDetail() {
       }
       return sum + item.quantity;
     }, 0);
-  };
+  }, [items]);
 
   // Calculate applicable discount based on total group buy quantity
-  const getApplicableDiscount = () => {
-    if (!groupBuy.discount_rules || groupBuy.discount_rules.length === 0) {
+  const getApplicableDiscount = useMemo(() => {
+    if (!groupBuy?.discount_rules || groupBuy.discount_rules.length === 0) {
       return null;
     }
 
-    const totalQuantity = getTotalQuantity();
-
     // Find applicable discount rule (highest min_quantity that is met)
     const sortedRules = [...groupBuy.discount_rules].sort((a, b) => b.min_quantity - a.min_quantity);
-    const applicableRule = sortedRules.find(rule => totalQuantity >= rule.min_quantity);
+    const applicableRule = sortedRules.find(rule => getTotalQuantity >= rule.min_quantity);
 
     return applicableRule;
-  };
+  }, [groupBuy?.discount_rules, getTotalQuantity]);
 
   // Calculate discounted price
-  const getDiscountedPrice = (originalPrice) => {
-    const discount = getApplicableDiscount();
-    if (!discount || discount.discount_percent === 0) {
+  const getDiscountedPrice = useMemo(() => (originalPrice) => {
+    if (!getApplicableDiscount || getApplicableDiscount.discount_percent === 0) {
       return originalPrice;
     }
-    const discountMultiplier = 1 - (discount.discount_percent / 100);
+    const discountMultiplier = 1 - (getApplicableDiscount.discount_percent / 100);
     return Math.round(originalPrice * discountMultiplier * 100) / 100;
-  };
+  }, [getApplicableDiscount]);
 
   const handleMarkAsFullyPaid = async () => {
     if (!allPaid) {
@@ -356,7 +358,7 @@ export default function GroupBuyDetail() {
     
     // If marking as paid and using RC Pay, check balance (but don't deduct)
     if (newPaidStatus && summary.hasRcPay) {
-      const member = members.find(m => m.id === summary.member_id);
+      const member = memberMap.get(summary.member_id);
       if (member && member.balance < summary.total) {
         toast.warning(`提醒：${summary.member_name} 的錢包餘額不足（餘額：$${member.balance}，需支付：$${summary.total}）`);
       }
@@ -412,46 +414,49 @@ export default function GroupBuyDetail() {
   const allPaid = items.length > 0 && items.every(item => item.paid);
 
   // Check if discount creates decimals
-  const hasDiscountDecimals = () => {
-    if (!groupBuy.discount_rules || groupBuy.discount_rules.length === 0) return false;
-    const discount = getApplicableDiscount();
-    if (!discount) return false;
+  const hasDiscountDecimals = useMemo(() => {
+    if (!groupBuy?.discount_rules || groupBuy.discount_rules.length === 0) return false;
+    if (!getApplicableDiscount) return false;
     
     return items.some(item => {
       const discountedPrice = getDiscountedPrice(item.price);
       const itemTotal = discountedPrice * item.quantity;
       return itemTotal % 1 !== 0;
     });
-  };
+  }, [groupBuy?.discount_rules, getApplicableDiscount, items, getDiscountedPrice]);
 
   // Group items by member
-  const memberSummary = items.reduce((acc, item) => {
-    const existing = acc.find(m => m.member_id === item.member_id);
-    const discountedPrice = getDiscountedPrice(item.price);
-    const itemTotal = discountedPrice * item.quantity;
-    if (existing) {
-      existing.items.push(item);
-      existing.total += itemTotal;
-      existing.paid = existing.paid && item.paid;
-      // Check if any item uses RC Pay
-      if (item.payment_method === 'rcpay') {
-        existing.hasRcPay = true;
+  const memberSummary = useMemo(() => 
+    items.reduce((acc, item) => {
+      const existing = acc.find(m => m.member_id === item.member_id);
+      const discountedPrice = getDiscountedPrice(item.price);
+      const itemTotal = discountedPrice * item.quantity;
+      if (existing) {
+        existing.items.push(item);
+        existing.total += itemTotal;
+        existing.paid = existing.paid && item.paid;
+        // Check if any item uses RC Pay
+        if (item.payment_method === 'rcpay') {
+          existing.hasRcPay = true;
+        }
+      } else {
+        acc.push({
+          member_id: item.member_id,
+          member_name: item.member_name,
+          items: [item],
+          total: itemTotal,
+          paid: item.paid || false,
+          hasRcPay: item.payment_method === 'rcpay'
+        });
       }
-    } else {
-      acc.push({
-        member_id: item.member_id,
-        member_name: item.member_name,
-        items: [item],
-        total: itemTotal,
-        paid: item.paid || false,
-        hasRcPay: item.payment_method === 'rcpay'
-      });
-    }
-    return acc;
-  }, []);
+      return acc;
+    }, []),
+    [items, getDiscountedPrice]
+  );
 
   // Group items by product for order summary
-  const productSummary = items.reduce((acc, item) => {
+  const productSummary = useMemo(() => 
+    items.reduce((acc, item) => {
     // For split items, extract original price from note
     const isSplitItem = item.note && item.note.includes('平分');
     let actualPrice = item.price;
@@ -583,22 +588,16 @@ export default function GroupBuyDetail() {
                             • 滿 {rule.min_quantity} 件：{rule.discount_percent}% off
                           </p>
                         ))}
-                      {(() => {
-                        const totalQty = getTotalQuantity();
-                        const discount = getApplicableDiscount();
-                        return (
-                          <div className="mt-2 pt-2 border-t border-amber-200">
-                            <p className="text-xs font-semibold text-amber-800">
-                              🎉 目前全團總數量：{totalQty} 件
-                            </p>
-                            {discount && (
-                              <p className="text-xs font-bold text-green-700 mt-1">
-                                ✨ 已達標！全團享 {discount.discount_percent}% off
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })()}
+                      <div className="mt-2 pt-2 border-t border-amber-200">
+                        <p className="text-xs font-semibold text-amber-800">
+                          🎉 目前全團總數量：{getTotalQuantity} 件
+                        </p>
+                        {getApplicableDiscount && (
+                          <p className="text-xs font-bold text-green-700 mt-1">
+                            ✨ 已達標！全團享 {getApplicableDiscount.discount_percent}% off
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -608,7 +607,7 @@ export default function GroupBuyDetail() {
                   <div className="border-t pt-4">
                     <DiscountProgressBar 
                       discountRules={groupBuy.discount_rules}
-                      currentQuantity={getTotalQuantity()}
+                      currentQuantity={getTotalQuantity}
                     />
                   </div>
                 )}
@@ -702,14 +701,11 @@ export default function GroupBuyDetail() {
                         {groupBuy.discount_rules?.length > 0 && (
                           <th className="text-right px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">
                             <div className="whitespace-nowrap">折扣價</div>
-                            {(() => {
-                              const discount = getApplicableDiscount();
-                              return discount ? (
-                                <div className="text-[10px] sm:text-xs text-green-600 font-normal mt-0.5">
-                                  ({discount.discount_percent}% off)
-                                </div>
-                              ) : null;
-                            })()}
+                            {getApplicableDiscount && (
+                              <div className="text-[10px] sm:text-xs text-green-600 font-normal mt-0.5">
+                                ({getApplicableDiscount.discount_percent}% off)
+                              </div>
+                            )}
                           </th>
                         )}
                         <th className="text-center px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">總數量</th>
@@ -720,7 +716,6 @@ export default function GroupBuyDetail() {
                       {productSummary.map((product) => {
                         const discountedPrice = getDiscountedPrice(product.price);
                         const hasDiscount = discountedPrice !== product.price;
-                        const discount = getApplicableDiscount();
                         return (
                           <tr key={product.key} className="hover:bg-slate-50">
                             <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-slate-800 text-xs sm:text-sm">{product.product_name}</td>
@@ -925,7 +920,7 @@ export default function GroupBuyDetail() {
                                 >
                                   <option value="">請選擇</option>
                                   {(() => {
-                                    const member = members.find(m => m.id === item.member_id);
+                                    const member = memberMap.get(item.member_id);
                                     return member && member.balance > 0 ? (
                                       <option value="rcpay">RC Pay</option>
                                     ) : null;
@@ -1006,14 +1001,11 @@ export default function GroupBuyDetail() {
                         <td colSpan={groupBuy.discount_rules?.length > 0 ? 2 : 2}></td>
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
-                            {(() => {
-                              const discount = getApplicableDiscount();
-                              return discount ? (
-                                <span className="text-base sm:text-lg font-bold text-orange-600">
-                                  -{discount.discount_percent}%
-                                </span>
-                              ) : null;
-                            })()}
+                            {getApplicableDiscount && (
+                              <span className="text-base sm:text-lg font-bold text-orange-600">
+                                -{getApplicableDiscount.discount_percent}%
+                              </span>
+                            )}
                           </td>
                         )}
                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-purple-600 whitespace-nowrap">
