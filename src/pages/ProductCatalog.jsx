@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -126,23 +126,32 @@ export default function ProductCatalog() {
   }
 
   // Get unique categories
-  const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
+  const categories = useMemo(() => 
+    ['all', ...new Set(products.map(p => p.category).filter(Boolean))],
+    [products]
+  );
 
   // Filter products
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProducts = useMemo(() => 
+    products.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    }),
+    [products, searchTerm, selectedCategory]
+  );
 
   // Group by category
-  const groupedProducts = filteredProducts.reduce((acc, product) => {
-    const cat = product.category || '未分類';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(product);
-    return acc;
-  }, {});
+  const groupedProducts = useMemo(() => 
+    filteredProducts.reduce((acc, product) => {
+      const cat = product.category || '未分類';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(product);
+      return acc;
+    }, {}),
+    [filteredProducts]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">

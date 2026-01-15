@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -105,8 +105,8 @@ export default function GroupBuy() {
     [members, currentUser]
   );
 
-  // Filter function with useMemo
-  const filterGroupBuys = useMemo(() => (gbs) => {
+  // Filter function
+  const filterGroupBuys = useCallback((gbs) => {
     let filtered = gbs;
     
     if (filterType === 'my_organized' && currentMember) {
@@ -119,10 +119,10 @@ export default function GroupBuy() {
     }
     
     return filtered;
-  }, [currentMember, allGroupBuyItems]);
+  }, [filterType, currentMember, allGroupBuyItems]);
 
-  // Sort function with useMemo
-  const sortGroupBuys = useMemo(() => (gbs) => {
+  // Sort function
+  const sortGroupBuys = useCallback((gbs) => {
     const sorted = [...gbs];
     
     if (sortBy === 'deadline') {
@@ -140,7 +140,7 @@ export default function GroupBuy() {
     }
     
     return sorted;
-  }, [allGroupBuyItems, sortBy]);
+  }, [sortBy, allGroupBuyItems]);
 
   const openGroupBuys = useMemo(() => 
     sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'open'))),

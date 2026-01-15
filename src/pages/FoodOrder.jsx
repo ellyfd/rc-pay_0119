@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -63,22 +63,33 @@ export default function FoodOrder() {
     }
   }, [currentUser, allMembers, selectedMember, isOrderingForOthers]);
 
-  const activeProducts = products.filter(p => p.is_active);
-  const mealBoxes = activeProducts.filter(p => p.category === 'meal_box');
-  const sideDishProducts = activeProducts.filter(p => p.category === 'side_dish');
+  const activeProducts = useMemo(() => 
+    products.filter(p => p.is_active),
+    [products]
+  );
+  
+  const mealBoxes = useMemo(() => 
+    activeProducts.filter(p => p.category === 'meal_box'),
+    [activeProducts]
+  );
+  
+  const sideDishProducts = useMemo(() => 
+    activeProducts.filter(p => p.category === 'side_dish'),
+    [activeProducts]
+  );
 
-  const getTotal = () => {
-    let total = 0;
+  const total = useMemo(() => {
+    let sum = 0;
     if (mealBoxId) {
       const mealBox = mealBoxes.find(p => p.id === mealBoxId);
-      if (mealBox) total += mealBox.price;
+      if (mealBox) sum += mealBox.price;
     }
     sideDishes.forEach(dishId => {
       const dish = sideDishProducts.find(p => p.id === dishId);
-      if (dish) total += dish.price;
+      if (dish) sum += dish.price;
     });
-    return total;
-  };
+    return sum;
+  }, [mealBoxId, mealBoxes, sideDishes, sideDishProducts]);
 
   const createOrder = useMutation({
     mutationFn: async (orderData) => base44.entities.Order.create(orderData),
@@ -103,7 +114,7 @@ export default function FoodOrder() {
     const member = allMembers.find(m => m.id === selectedMember);
     if (!member) return;
 
-    const totalAmount = getTotal();
+    const totalAmount = total;
     
     // Determine payment method based on whether member is the payer
     const finalPaymentMethod = payerId && selectedMember === payerId ? 'payer' : paymentMethod;
@@ -412,7 +423,7 @@ export default function FoodOrder() {
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-lg font-semibold text-slate-700">總計</span>
-                  <span className="text-2xl font-bold text-emerald-600">${getTotal().toLocaleString()}</span>
+                  <span className="text-2xl font-bold text-emerald-600">${total.toLocaleString()}</span>
                 </div>
                 <Button
                   onClick={handleSubmitOrder}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -122,9 +122,9 @@ export default function AdminOrders() {
     mutationFn: async (itemData) => base44.entities.OrderItem.create(itemData),
   });
 
-  const getOrderItems = (orderId) => {
+  const getOrderItems = useCallback((orderId) => {
     return orderItems.filter(item => item.order_id === orderId);
-  };
+  }, [orderItems]);
 
   const handleDelete = async () => {
     if (!deletingOrder) return;

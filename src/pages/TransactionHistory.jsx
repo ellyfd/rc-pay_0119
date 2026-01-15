@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,15 @@ export default function TransactionHistory() {
     queryFn: () => base44.entities.Transaction.list('-created_date', 1000)
   });
 
-  const totalPages = Math.ceil(allTransactions.length / pageSize);
-  const transactions = allTransactions.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = useMemo(() => 
+    Math.ceil(allTransactions.length / pageSize),
+    [allTransactions.length, pageSize]
+  );
+  
+  const transactions = useMemo(() => 
+    allTransactions.slice((page - 1) * pageSize, page * pageSize),
+    [allTransactions, page, pageSize]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
