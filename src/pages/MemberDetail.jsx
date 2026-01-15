@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -88,7 +88,7 @@ export default function MemberDetail() {
   });
 
   const handleCancelTransaction = async (transaction) => {
-    if (!currentUser?.role === 'admin') {
+    if (currentUser?.role !== 'admin') {
       toast.error('只有管理員可以執行此操作');
       return;
     }
