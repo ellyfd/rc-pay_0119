@@ -809,7 +809,7 @@ export default function GroupBuyDetail() {
                         )}
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">小計</th>
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
-                        {hasDiscountDecimals() && isOrganizer && isClosed && (
+                        {hasDiscountDecimals && isOrganizer && isClosed && (
                           <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
                         )}
                         {isOrganizer && isClosed && !isFullyPaid && (
@@ -1013,7 +1013,7 @@ export default function GroupBuyDetail() {
                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-purple-600 whitespace-nowrap">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
-                        {hasDiscountDecimals() && isOrganizer && isClosed && (
+                        {hasDiscountDecimals && isOrganizer && isClosed && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-orange-600 whitespace-nowrap">
                             ${memberSummary.reduce((sum, m) => {
                               const actualCharge = actualCharges[m.member_id] ?? Math.round(m.total);
