@@ -454,7 +454,11 @@ export default function GroupBuyDetail() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中... ID: {groupBuyId}</p>
+          <p className="text-slate-500 mt-4">載入中...</p>
+          <p className="text-xs text-slate-400 mt-2">ID: {groupBuyId}</p>
+          <p className="text-xs text-slate-400">User: {currentUser ? '已登入' : '未登入'}</p>
+          <p className="text-xs text-slate-400">Loading: {groupBuyLoading ? '是' : '否'}</p>
+          <p className="text-xs text-slate-400">GroupBuy: {groupBuy ? '已載入' : '未載入'}</p>
         </div>
       </div>
     );
