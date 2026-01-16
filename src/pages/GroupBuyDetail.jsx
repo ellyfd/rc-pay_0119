@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function GroupBuyDetail() {
+  const groupBuyId = new URLSearchParams(window.location.search).get('id');
+  
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
@@ -38,21 +40,8 @@ export default function GroupBuyDetail() {
   const [actualCharges, setActualCharges] = useState({});
   const queryClient = useQueryClient();
 
-  const groupBuyId = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('id');
-  }, []);
-
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
+    base44.auth.me().then(setCurrentUser).catch(console.error);
   }, []);
 
   const { data: groupBuy, isLoading: groupBuyLoading } = useQuery({
@@ -392,13 +381,26 @@ export default function GroupBuyDetail() {
     );
   }
 
-  if (!currentUser || groupBuyLoading || !groupBuy) {
+  if (groupBuyLoading || !currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
           <p className="text-slate-500 mt-4">載入中...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!groupBuy) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500">找不到此團購</p>
+          <Link to={createPageUrl('GroupBuy')}>
+            <Button className="mt-4">返回團購列表</Button>
+          </Link>
+        </Card>
       </div>
     );
   }
