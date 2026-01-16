@@ -104,21 +104,21 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
         {/* Actions */}
         <div className="pt-2">
           {isOpen ? (
-            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+            <Link to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.id}>
               <Button className="w-full bg-purple-600 hover:bg-purple-700">
                 <Plus className="w-4 h-4 mr-2" />
                 我要跟團
               </Button>
             </Link>
           ) : isClosed && !isFullyPaid ? (
-            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+            <Link to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.id}>
               <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
                 <Eye className="w-4 h-4 mr-2" />
                 查看收款進度
               </Button>
             </Link>
           ) : (
-            <Link to={createPageUrl(`GroupBuyDetail?id=${groupBuy.id}`)}>
+            <Link to={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.id}>
               <Button variant="outline" className="w-full">
                 <Eye className="w-4 h-4 mr-2" />
                 查看詳情
