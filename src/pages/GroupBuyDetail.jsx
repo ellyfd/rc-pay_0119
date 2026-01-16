@@ -781,12 +781,7 @@ export default function GroupBuyDetail() {
               </div>
             </div>
 
-            {itemsLoading ? (
-              <Card className="p-8 text-center">
-                <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
-                <p className="text-slate-500 mt-4">載入中...</p>
-              </Card>
-            ) : memberSummary.length === 0 ? (
+            {memberSummary.length === 0 ? (
               <Card className="p-12 text-center border-dashed">
                 <p className="text-slate-500 text-lg mb-2">還沒有人跟團</p>
                 {isOpen && <p className="text-slate-400 text-sm">點擊「新增項目」開始跟團！</p>}
