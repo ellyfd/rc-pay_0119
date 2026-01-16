@@ -26,9 +26,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function GroupBuyDetail() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const groupBuyId = urlParams.get('id');
-  
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
@@ -40,6 +37,10 @@ export default function GroupBuyDetail() {
   const [userMember, setUserMember] = useState(null);
   const [actualCharges, setActualCharges] = useState({});
   const queryClient = useQueryClient();
+
+  // Get ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupBuyId = urlParams.get('id');
 
   useEffect(() => {
     const loadUser = async () => {
@@ -377,26 +378,26 @@ export default function GroupBuyDetail() {
 
 
 
-  if (!currentUser || groupBuyLoading) {
+  if (!groupBuyId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500">找不到團購 ID</p>
+          <Link to={createPageUrl('GroupBuy')}>
+            <Button className="mt-4">返回團購列表</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!currentUser || groupBuyLoading || !groupBuy) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
           <p className="text-slate-500 mt-4">載入中...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (!groupBuy) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <p className="text-slate-500">找不到此團購</p>
-          <Link to={createPageUrl('GroupBuy')}>
-            <Button className="mt-4">返回團購列表</Button>
-          </Link>
-        </Card>
       </div>
     );
   }
