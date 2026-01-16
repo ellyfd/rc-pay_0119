@@ -385,8 +385,17 @@ export default function AdminOrders() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((order, index) => {
-                      const { items, mealBoxItem, mealBox, sideItems } = orderItemsData[index];
+                    {orders.map((order) => {
+                      const items = getOrderItems(order.id);
+                      const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
+                      const mealBox = items.find(item => {
+                        const product = mealBoxes.find(p => p.id === item.product_id);
+                        return product && product.category === 'meal_box';
+                      });
+                      const sideItems = items.filter(item => {
+                        const product = sideDishProducts.find(p => p.id === item.product_id);
+                        return product && product.category === 'side_dish';
+                      });
                       
                       return (
                         <tr key={order.id} className="border-b hover:bg-slate-50">
