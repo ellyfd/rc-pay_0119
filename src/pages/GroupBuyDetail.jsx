@@ -40,36 +40,46 @@ export default function GroupBuyDetail() {
   const [actualCharges, setActualCharges] = useState({});
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(console.error);
-  }, []);
-
   const { data: groupBuy, isLoading: groupBuyLoading } = useQuery({
     queryKey: ['groupBuy', groupBuyId],
     queryFn: async () => {
       const allGroupBuys = await base44.entities.GroupBuy.list();
       return allGroupBuys.find(gb => gb.id === groupBuyId);
     },
-    enabled: !!groupBuyId,
-    staleTime: 30000 // Cache for 30 seconds
+    enabled: !!groupBuyId
   });
 
-  const { data: items = [], isLoading: itemsLoading } = useQuery({
+  const { data: items = [] } = useQuery({
     queryKey: ['groupBuyItems', groupBuyId],
     queryFn: async () => {
       const allItems = await base44.entities.GroupBuyItem.list('-created_date');
       return allItems.filter(item => item.group_buy_id === groupBuyId);
     },
-    enabled: !!groupBuyId,
-    select: (items) => items, // Can add transformation here
-    staleTime: 10000 // Cache for 10 seconds
+    enabled: !!groupBuyId
   });
 
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('name'),
-    staleTime: 60000 // Cache for 1 minute
+    queryFn: () => base44.entities.Member.list('name')
   });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ['groupBuyProducts', groupBuyId],
+    queryFn: async () => {
+      const allProducts = await base44.entities.GroupBuyProduct.list('-created_date');
+      return allProducts.filter(p => p.group_buy_id === groupBuyId);
+    },
+    enabled: !!groupBuyId
+  });
+
+  const memberMap = useMemo(() => 
+    new Map(members.map(m => [m.id, m])),
+    [members]
+  );
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (currentUser && members.length > 0) {
@@ -82,21 +92,6 @@ export default function GroupBuyDetail() {
       }
     }
   }, [currentUser, members]);
-
-  const { data: products = [] } = useQuery({
-    queryKey: ['groupBuyProducts', groupBuyId],
-    queryFn: async () => {
-      const allProducts = await base44.entities.GroupBuyProduct.list('-created_date');
-      return allProducts.filter(p => p.group_buy_id === groupBuyId);
-    },
-    enabled: !!groupBuyId,
-    staleTime: 30000 // Cache for 30 seconds
-  });
-
-  const memberMap = useMemo(() => 
-    new Map(members.map(m => [m.id, m])),
-    [members]
-  );
 
   const updateGroupBuy = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroupBuy.update(id, data),
