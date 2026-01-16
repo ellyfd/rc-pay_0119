@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 export default function MemberDetail() {
   const [memberId, setMemberId] = useState(null);
+  const [urlChecked, setUrlChecked] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const [walletTypeFilter, setWalletTypeFilter] = useState('all');
@@ -35,6 +36,7 @@ export default function MemberDetail() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setMemberId(params.get('id'));
+    setUrlChecked(true);
   }, []);
 
   useEffect(() => {
@@ -155,7 +157,7 @@ export default function MemberDetail() {
 
 
 
-  if (!memberId || memberLoading) {
+  if (!urlChecked || memberLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -166,11 +168,11 @@ export default function MemberDetail() {
     );
   }
 
-  if (!member) {
+  if (!memberId || !member) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <Card className="p-8 text-center">
-          <p className="text-slate-500">找不到此成員</p>
+          <p className="text-slate-500">{!memberId ? '缺少成員 ID' : '找不到此成員'}</p>
           <Link to={createPageUrl('Home')}>
             <Button className="mt-4">返回首頁</Button>
           </Link>
