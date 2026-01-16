@@ -38,9 +38,10 @@ export default function GroupBuyDetail() {
   const [actualCharges, setActualCharges] = useState({});
   const queryClient = useQueryClient();
 
-  // Get ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const groupBuyId = urlParams.get('id');
+  const groupBuyId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }, []);
 
   useEffect(() => {
     const loadUser = async () => {
