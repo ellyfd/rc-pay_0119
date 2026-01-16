@@ -424,12 +424,12 @@ export default function MemberDetail() {
                             {pendingOrganizerGroupBuys.map((gb) => (
                               <tr key={gb.id} className="hover:bg-slate-50">
                                 <td className="px-4 py-3">
-                                  <a 
-                                    href={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                                    className="font-medium text-slate-800 hover:text-purple-600"
+                                  <button
+                                    onClick={() => window.location.href = createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
+                                    className="font-medium text-slate-800 hover:text-purple-600 cursor-pointer text-left"
                                   >
                                     {gb.title}
-                                  </a>
+                                  </button>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <Badge className="bg-amber-500">款項未齊</Badge>
@@ -473,12 +473,12 @@ export default function MemberDetail() {
                                 <tr key={item.id} className="hover:bg-slate-50">
                                   {itemIdx === 0 && (
                                     <td className="px-4 py-3 align-top" rowSpan={unpaidItems.length}>
-                                      <a 
-                                        href={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
-                                        className="font-medium text-slate-800 hover:text-purple-600"
+                                      <button
+                                        onClick={() => window.location.href = createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
+                                        className="font-medium text-slate-800 hover:text-purple-600 cursor-pointer text-left"
                                       >
                                         {groupBuy.group_buy_title}
-                                      </a>
+                                      </button>
                                     </td>
                                   )}
                                   <td className="px-4 py-3 text-slate-700">{item.product_name}</td>
@@ -847,12 +847,12 @@ export default function MemberDetail() {
                     {organizedGroupBuys.map((gb) => (
                       <tr key={gb.id} className="hover:bg-slate-50">
                         <td className="px-1.5 sm:px-4 py-2 sm:py-3">
-                          <a 
-                            href={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                            className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
+                          <button
+                            onClick={() => window.location.href = createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
+                            className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm cursor-pointer text-left"
                           >
                             {gb.title}
-                          </a>
+                          </button>
                         </td>
                         <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
                           <Badge 
@@ -924,12 +924,12 @@ export default function MemberDetail() {
                           {itemIdx === 0 && (
                             <>
                               <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-top" rowSpan={groupBuy.items.length}>
-                                <a 
-                                  href={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
-                                  className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
+                                <button
+                                  onClick={() => window.location.href = createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
+                                  className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm cursor-pointer text-left"
                                 >
                                   {groupBuy.group_buy_title}
-                                </a>
+                                </button>
                               </td>
                               <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
                                 {(() => {
