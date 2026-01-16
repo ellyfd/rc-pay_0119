@@ -361,7 +361,92 @@ export default function GroupBuyDetail() {
     }
   };
 
+  // Check if all items are paid
+  const allPaid = items.length > 0 && items.every(item => item.paid);
 
+  // Check if discount creates decimals
+  const hasDiscountDecimals = useMemo(() => {
+    if (!groupBuy?.discount_rules || groupBuy.discount_rules.length === 0) return false;
+    if (!getApplicableDiscount) return false;
+    
+    return items.some(item => {
+      const discountedPrice = getDiscountedPrice(item.price);
+      const itemTotal = discountedPrice * item.quantity;
+      return itemTotal % 1 !== 0;
+    });
+  }, [groupBuy?.discount_rules, getApplicableDiscount, items, getDiscountedPrice]);
+
+  // Group items by member
+  const memberSummary = useMemo(() => 
+    items.reduce((acc, item) => {
+      const existing = acc.find(m => m.member_id === item.member_id);
+      const discountedPrice = getDiscountedPrice(item.price);
+      const itemTotal = discountedPrice * item.quantity;
+      if (existing) {
+        existing.items.push(item);
+        existing.total += itemTotal;
+        existing.paid = existing.paid && item.paid;
+        // Check if any item uses RC Pay
+        if (item.payment_method === 'rcpay') {
+          existing.hasRcPay = true;
+        }
+      } else {
+        acc.push({
+          member_id: item.member_id,
+          member_name: item.member_name,
+          items: [item],
+          total: itemTotal,
+          paid: item.paid || false,
+          hasRcPay: item.payment_method === 'rcpay'
+        });
+      }
+      return acc;
+    }, []),
+    [items, getDiscountedPrice]
+  );
+
+  // Group items by product for order summary
+  const productSummary = useMemo(() => 
+    items.reduce((acc, item) => {
+      // For split items, extract original price from note
+      const isSplitItem = item.note && item.note.includes('平分');
+      let actualPrice = item.price;
+
+      if (isSplitItem) {
+        // Find the orderer's name from note (format: "XXX訂購，和YYY、ZZZ平分")
+        const noteMatch = item.note.match(/(.+?)訂購，和(.+)平分/);
+        if (noteMatch) {
+          const otherMemberNames = noteMatch[2].split('、');
+          const splitCount = otherMemberNames.length + 1; // +1 for the orderer
+          actualPrice = item.price * splitCount; // Restore original total price
+        }
+      }
+
+      const key = `${item.product_name}_${actualPrice}`;
+      const existing = acc.find(p => p.key === key);
+
+      if (existing) {
+        // For split items, only count once (use orderer's entry)
+        if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
+          existing.quantity += item.quantity;
+          existing.members.push({ name: item.member_name, quantity: item.quantity, note: item.note });
+        }
+      } else {
+        // Only create entry if not split, or if this is the orderer
+        if (!isSplitItem || item.note.includes(`${item.member_name}訂購`)) {
+          acc.push({
+            key,
+            product_name: item.product_name,
+            price: actualPrice,
+            quantity: item.quantity,
+            members: [{ name: item.member_name, quantity: item.quantity, note: item.note }]
+          });
+        }
+      }
+      return acc;
+    }, []),
+    [items]
+  );
 
   // Show loading state
   if (!currentUser || groupBuyLoading) {
