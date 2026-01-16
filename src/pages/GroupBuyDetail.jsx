@@ -363,6 +363,19 @@ export default function GroupBuyDetail() {
 
 
 
+  // Show loading state
+  if (!currentUser || groupBuyLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-500 mt-4">載入中... ID: {groupBuyId}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if ID exists
   if (!groupBuyId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
@@ -376,22 +389,12 @@ export default function GroupBuyDetail() {
     );
   }
 
-  if (groupBuyLoading || !currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Check if group buy exists
   if (!groupBuy) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
         <Card className="p-8 text-center">
-          <p className="text-slate-500">找不到此團購</p>
+          <p className="text-slate-500">找不到此團購 (ID: {groupBuyId})</p>
           <Link to={createPageUrl('GroupBuy')}>
             <Button className="mt-4">返回團購列表</Button>
           </Link>
