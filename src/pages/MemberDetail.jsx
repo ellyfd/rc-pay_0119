@@ -86,28 +86,31 @@ export default function MemberDetail() {
   });
 
   // Get all transactions related to this member (for statistics)
-  const allMemberTransactions = useMemo(() => 
-    allTransactions.filter(
+  const allMemberTransactions = useMemo(() => {
+    if (!memberId) return [];
+    return allTransactions.filter(
       t => t.from_member_id === memberId || t.to_member_id === memberId
-    ),
-    [allTransactions, memberId]
-  );
+    );
+  }, [allTransactions, memberId]);
 
   // Calculate statistics from ALL transactions (not filtered)
-  const { totalDeposit, totalWithdraw, totalTransferIn, totalTransferOut } = useMemo(() => ({
-    totalDeposit: allMemberTransactions
-      .filter(t => t.type === 'deposit' && t.to_member_id === memberId)
-      .reduce((sum, t) => sum + (t.amount || 0), 0),
-    totalWithdraw: allMemberTransactions
-      .filter(t => t.type === 'withdraw' && t.from_member_id === memberId)
-      .reduce((sum, t) => sum + (t.amount || 0), 0),
-    totalTransferIn: allMemberTransactions
-      .filter(t => t.type === 'transfer' && t.to_member_id === memberId)
-      .reduce((sum, t) => sum + (t.amount || 0), 0),
-    totalTransferOut: allMemberTransactions
-      .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
-      .reduce((sum, t) => sum + (t.amount || 0), 0),
-  }), [allMemberTransactions, memberId]);
+  const { totalDeposit, totalWithdraw, totalTransferIn, totalTransferOut } = useMemo(() => {
+    if (!memberId) return { totalDeposit: 0, totalWithdraw: 0, totalTransferIn: 0, totalTransferOut: 0 };
+    return {
+      totalDeposit: allMemberTransactions
+        .filter(t => t.type === 'deposit' && t.to_member_id === memberId)
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
+      totalWithdraw: allMemberTransactions
+        .filter(t => t.type === 'withdraw' && t.from_member_id === memberId)
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
+      totalTransferIn: allMemberTransactions
+        .filter(t => t.type === 'transfer' && t.to_member_id === memberId)
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
+      totalTransferOut: allMemberTransactions
+        .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
+    };
+  }, [allMemberTransactions, memberId]);
 
   // Apply filters for display only
   const memberTransactions = useMemo(() => {
@@ -122,8 +125,9 @@ export default function MemberDetail() {
   }, [allMemberTransactions, walletTypeFilter, transactionTypeFilter]);
 
   // Group items by group buy (as participant)
-  const groupBuysByMember = useMemo(() => 
-    groupBuyItems.reduce((acc, item) => {
+  const groupBuysByMember = useMemo(() => {
+    if (!memberId) return [];
+    return groupBuyItems.reduce((acc, item) => {
       const existing = acc.find(g => g.group_buy_id === item.group_buy_id);
       const itemTotal = item.price * item.quantity;
       if (existing) {
@@ -140,13 +144,13 @@ export default function MemberDetail() {
         });
       }
       return acc;
-    }, []),
-    [groupBuyItems, allGroupBuys]
-  );
+    }, []);
+  }, [groupBuyItems, allGroupBuys, memberId]);
 
   // Group buys organized by this member
-  const organizedGroupBuys = useMemo(() => 
-    allGroupBuys.filter(gb => gb.organizer_id === memberId).map(gb => {
+  const organizedGroupBuys = useMemo(() => {
+    if (!memberId) return [];
+    return allGroupBuys.filter(gb => gb.organizer_id === memberId).map(gb => {
       const items = allGroupBuyItems.filter(item => item.group_buy_id === gb.id);
       const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       const participantCount = new Set(items.map(item => item.member_id)).size;
@@ -158,13 +162,13 @@ export default function MemberDetail() {
         participantCount,
         allPaid
       };
-    }),
-    [allGroupBuys, allGroupBuyItems, memberId]
-  );
+    });
+  }, [allGroupBuys, allGroupBuyItems, memberId]);
 
   // Drink orders by this member
-  const memberDrinkOrders = useMemo(() => 
-    allDrinkOrders
+  const memberDrinkOrders = useMemo(() => {
+    if (!memberId) return [];
+    return allDrinkOrders
       .map(order => {
         const memberItems = (order.items || []).filter(item => item.member_id === memberId);
         if (memberItems.length === 0) return null;
@@ -176,9 +180,8 @@ export default function MemberDetail() {
           totalAmount
         };
       })
-      .filter(Boolean),
-    [allDrinkOrders, memberId]
-  );
+      .filter(Boolean);
+  }, [allDrinkOrders, memberId]);
 
   // Pending Items - Group Buys (as organizer with unpaid items)
   const pendingOrganizerGroupBuys = useMemo(() => 
@@ -207,6 +210,17 @@ export default function MemberDetail() {
   const hasPendingItems = pendingOrganizerGroupBuys.length > 0 || 
                           pendingParticipantGroupBuys.length > 0 || 
                           pendingDrinkOrders.length > 0;
+
+  const colorMap = {
+    blue: "bg-blue-500",
+    green: "bg-emerald-500",
+    purple: "bg-purple-500",
+    orange: "bg-orange-500",
+    pink: "bg-pink-500",
+    cyan: "bg-cyan-500",
+  };
+
+  const bgColor = member ? (colorMap[member.avatar_color] || "bg-slate-500") : "bg-slate-500";
 
   const handleCancelTransaction = async (transaction) => {
     if (currentUser?.role !== 'admin') {
@@ -312,17 +326,6 @@ export default function MemberDetail() {
       </div>
     );
   }
-
-  const colorMap = {
-    blue: "bg-blue-500",
-    green: "bg-emerald-500",
-    purple: "bg-purple-500",
-    orange: "bg-orange-500",
-    pink: "bg-pink-500",
-    cyan: "bg-cyan-500",
-  };
-
-  const bgColor = member ? (colorMap[member.avatar_color] || "bg-slate-500") : "bg-slate-500";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
