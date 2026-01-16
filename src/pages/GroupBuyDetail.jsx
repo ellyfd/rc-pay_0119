@@ -26,7 +26,9 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function GroupBuyDetail() {
-  const [groupBuyId, setGroupBuyId] = useState(null);
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupBuyId = urlParams.get('id');
+  
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
@@ -38,13 +40,6 @@ export default function GroupBuyDetail() {
   const [userMember, setUserMember] = useState(null);
   const [actualCharges, setActualCharges] = useState({});
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    console.log('GroupBuyDetail - URL ID:', id);
-    setGroupBuyId(id);
-  }, []);
 
   useEffect(() => {
     const loadUser = async () => {
