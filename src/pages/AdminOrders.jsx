@@ -234,23 +234,6 @@ export default function AdminOrders() {
     alert('結帳完成！');
   };
 
-  // Precompute order items data for each order
-  const orderItemsData = useMemo(() => {
-    return orders.map(order => {
-      const items = orderItems.filter(item => item.order_id === order.id);
-      const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
-      const mealBox = items.find(item => {
-        const product = mealBoxes.find(p => p.id === item.product_id);
-        return product && product.category === 'meal_box';
-      });
-      const sideItems = items.filter(item => {
-        const product = sideDishProducts.find(p => p.id === item.product_id);
-        return product && product.category === 'side_dish';
-      });
-      return { orderId: order.id, items, mealBoxItem, mealBox, sideItems };
-    });
-  }, [orders, orderItems, mealBoxes, sideDishProducts]);
-
   const totalAmount = useMemo(() => 
     orders.reduce((sum, order) => sum + (order.total_amount || 0), 0),
     [orders]
