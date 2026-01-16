@@ -26,7 +26,15 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function GroupBuyDetail() {
-  const groupBuyId = new URLSearchParams(window.location.search).get('id');
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupBuyId = urlParams.get('id');
+  
+  // Debug: log URL info
+  console.log('=== GroupBuyDetail Debug ===');
+  console.log('Full URL:', window.location.href);
+  console.log('Search params:', window.location.search);
+  console.log('groupBuyId:', groupBuyId);
+  console.log('All params:', Object.fromEntries(urlParams));
   
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
