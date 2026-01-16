@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Upload, Plus, Trash2, Sparkles, FileText } from "lucide-react";
+import { createPageUrl } from "@/utils";
 import {
   Select,
   SelectContent,
@@ -242,7 +243,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     // Filter valid products
     const validProducts = products.filter((p) => p.product_name && p.price > 0);
 
-    await onCreate({
+    const newGroupBuy = await onCreate({
       ...formData,
       products: validProducts,
       discount_rules: discountRules.filter(r => r.min_quantity > 0)
@@ -263,6 +264,11 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       description: ''
     }]);
     setDiscountRules([]);
+
+    // Redirect to the newly created group buy
+    if (newGroupBuy && newGroupBuy.id) {
+      window.location.href = createPageUrl('GroupBuyDetail') + '?id=' + newGroupBuy.id;
+    }
   };
 
   return (
