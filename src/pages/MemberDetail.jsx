@@ -313,6 +313,42 @@ export default function MemberDetail() {
     );
   }
 
+  // Get all transactions related to this member (for statistics)
+  const allMemberTransactions = useMemo(() => 
+    allTransactions.filter(
+      t => t.from_member_id === memberId || t.to_member_id === memberId
+    ),
+    [allTransactions, memberId]
+  );
+
+  // Calculate statistics from ALL transactions (not filtered)
+  const { totalDeposit, totalWithdraw, totalTransferIn, totalTransferOut } = useMemo(() => ({
+    totalDeposit: allMemberTransactions
+      .filter(t => t.type === 'deposit' && t.to_member_id === memberId)
+      .reduce((sum, t) => sum + (t.amount || 0), 0),
+    totalWithdraw: allMemberTransactions
+      .filter(t => t.type === 'withdraw' && t.from_member_id === memberId)
+      .reduce((sum, t) => sum + (t.amount || 0), 0),
+    totalTransferIn: allMemberTransactions
+      .filter(t => t.type === 'transfer' && t.to_member_id === memberId)
+      .reduce((sum, t) => sum + (t.amount || 0), 0),
+    totalTransferOut: allMemberTransactions
+      .filter(t => t.type === 'transfer' && t.from_member_id === memberId)
+      .reduce((sum, t) => sum + (t.amount || 0), 0),
+  }), [allMemberTransactions, memberId]);
+
+  // Apply filters for display only
+  const memberTransactions = useMemo(() => {
+    let filtered = [...allMemberTransactions];
+    if (walletTypeFilter !== 'all') {
+      filtered = filtered.filter(t => t.wallet_type === walletTypeFilter);
+    }
+    if (transactionTypeFilter !== 'all') {
+      filtered = filtered.filter(t => t.type === transactionTypeFilter);
+    }
+    return filtered;
+  }, [allMemberTransactions, walletTypeFilter, transactionTypeFilter]);
+
   const colorMap = {
     blue: "bg-blue-500",
     green: "bg-emerald-500",
@@ -323,6 +359,130 @@ export default function MemberDetail() {
   };
 
   const bgColor = member ? (colorMap[member.avatar_color] || "bg-slate-500") : "bg-slate-500";
+
+  // Group items by group buy (as participant)
+  const groupBuysByMember = useMemo(() => 
+    groupBuyItems.reduce((acc, item) => {
+      const existing = acc.find(g => g.group_buy_id === item.group_buy_id);
+      const itemTotal = item.price * item.quantity;
+      if (existing) {
+        existing.items.push(item);
+        existing.total += itemTotal;
+      } else {
+        const groupBuy = allGroupBuys.find(gb => gb.id === item.group_buy_id);
+        acc.push({
+          group_buy_id: item.group_buy_id,
+          group_buy_title: groupBuy?.title || '未知團購',
+          group_buy_status: groupBuy?.status || 'open',
+          items: [item],
+          total: itemTotal
+        });
+      }
+      return acc;
+    }, []),
+    [groupBuyItems, allGroupBuys]
+  );
+
+  // Group buys organized by this member
+  const organizedGroupBuys = useMemo(() => 
+    allGroupBuys.filter(gb => gb.organizer_id === memberId).map(gb => {
+      const items = allGroupBuyItems.filter(item => item.group_buy_id === gb.id);
+      const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const participantCount = new Set(items.map(item => item.member_id)).size;
+      const allPaid = items.length > 0 && items.every(item => item.paid);
+      
+      return {
+        ...gb,
+        totalAmount,
+        participantCount,
+        allPaid
+      };
+    }),
+    [allGroupBuys, allGroupBuyItems, memberId]
+  );
+
+  // Drink orders by this member
+  const memberDrinkOrders = useMemo(() => 
+    allDrinkOrders
+      .map(order => {
+        const memberItems = (order.items || []).filter(item => item.member_id === memberId);
+        if (memberItems.length === 0) return null;
+
+        const totalAmount = memberItems.reduce((sum, item) => sum + (item.price || 0), 0);
+        return {
+          ...order,
+          memberItems,
+          totalAmount
+        };
+      })
+      .filter(Boolean),
+    [allDrinkOrders, memberId]
+  );
+
+  // Pending Items - Group Buys (as organizer with unpaid items)
+  const pendingOrganizerGroupBuys = useMemo(() => 
+    organizedGroupBuys.filter(gb => gb.status === 'closed' && !gb.is_fully_paid),
+    [organizedGroupBuys]
+  );
+
+  // Pending Items - Group Buys (as participant with unpaid items)
+  const pendingParticipantGroupBuys = useMemo(() => 
+    groupBuysByMember.filter(gb => {
+      const groupBuyData = allGroupBuys.find(g => g.id === gb.group_buy_id);
+      return groupBuyData && groupBuyData.status === 'closed' && !groupBuyData.is_fully_paid && gb.items.some(item => !item.paid);
+    }),
+    [groupBuysByMember, allGroupBuys]
+  );
+
+  // Pending Items - Drink Orders (unpaid)
+  const pendingDrinkOrders = useMemo(() => 
+    memberDrinkOrders.filter(order => 
+      order.status !== 'completed' && 
+      order.memberItems.some(item => !item.paid && item.member_id !== order.payer_id)
+    ),
+    [memberDrinkOrders]
+  );
+
+  const hasPendingItems = pendingOrganizerGroupBuys.length > 0 || 
+                          pendingParticipantGroupBuys.length > 0 || 
+                          pendingDrinkOrders.length > 0;
+
+  if (!memberId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500">缺少成員 ID</p>
+          <Link to={createPageUrl('Home')}>
+            <Button className="mt-4">返回首頁</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  if (memberLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-500 mt-4">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500">找不到此成員</p>
+          <Link to={createPageUrl('Home')}>
+            <Button className="mt-4">返回首頁</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
