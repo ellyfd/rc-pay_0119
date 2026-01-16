@@ -157,7 +157,7 @@ export default function MemberDetail() {
 
 
 
-  if (!urlChecked || memberLoading) {
+  if (!urlChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -168,11 +168,35 @@ export default function MemberDetail() {
     );
   }
 
-  if (!memberId || !member) {
+  if (!memberId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <Card className="p-8 text-center">
-          <p className="text-slate-500">{!memberId ? '缺少成員 ID' : '找不到此成員'}</p>
+          <p className="text-slate-500">缺少成員 ID</p>
+          <Link to={createPageUrl('Home')}>
+            <Button className="mt-4">返回首頁</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  if (memberLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-500 mt-4">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-slate-500">找不到此成員</p>
           <Link to={createPageUrl('Home')}>
             <Button className="mt-4">返回首頁</Button>
           </Link>
