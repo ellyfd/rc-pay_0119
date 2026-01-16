@@ -23,8 +23,10 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function MemberDetail() {
-  const [memberId, setMemberId] = useState(null);
-  const [urlChecked, setUrlChecked] = useState(false);
+  // Read member ID directly from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const memberId = urlParams.get('id');
+  
   const [showStats, setShowStats] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const [walletTypeFilter, setWalletTypeFilter] = useState('all');
@@ -32,12 +34,6 @@ export default function MemberDetail() {
   const [currentUser, setCurrentUser] = useState(null);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setMemberId(params.get('id'));
-    setUrlChecked(true);
-  }, []);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -279,17 +275,6 @@ export default function MemberDetail() {
   };
 
 
-
-  if (!urlChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!memberId) {
     return (
