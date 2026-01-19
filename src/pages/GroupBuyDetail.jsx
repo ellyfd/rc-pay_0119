@@ -1164,7 +1164,7 @@ export default function GroupBuyDetail() {
                         )}
                       </tr>
                       {groupBuy.discount_rules?.length > 0 && groupBuy.discount_rules.some(r => r.discount_type === 'fixed') && (
-                        <tr>
+                        <tr className="bg-slate-50">
                           <td colSpan={4}></td>
                           {groupBuy.discount_rules?.length > 0 && (
                             <td className="px-2 sm:px-3 py-1 sm:py-1.5 text-right text-red-500 text-[10px] sm:text-xs whitespace-nowrap">
