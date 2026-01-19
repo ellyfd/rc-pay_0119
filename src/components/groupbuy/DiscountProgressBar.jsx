@@ -34,8 +34,8 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
 
     const prevThreshold = currentTier?.min_quantity || 0;
     const nextThreshold = nextTier.min_quantity;
-    const progress = Math.max(0, Math.min(100, ((currentQuantity - prevThreshold) / (nextThreshold - prevThreshold)) * 100));
-    const remaining = Math.max(0, nextThreshold - currentQuantity);
+    const progress = ((currentQuantity - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
+    const remaining = nextThreshold - currentQuantity;
 
     return (
       <div className="space-y-2">
@@ -53,7 +53,7 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
             再 <span className="font-bold text-purple-600">{remaining}</span> 件達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={Math.min(progress, 100)} className="h-2" />
         <div className="flex justify-between text-xs text-slate-500">
           <span>{prevThreshold} 件</span>
           <span className="font-semibold">{currentQuantity} 件</span>
@@ -81,8 +81,7 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
           </div>
           <Progress value={100} className="h-2" />
           <div className="flex justify-between text-xs text-slate-500">
-            <span>${currentTier?.min_amount?.toLocaleString()}</span>
-            <span className="font-semibold">${currentAmount.toLocaleString()}</span>
+            <span>目前總金額：${currentAmount.toLocaleString()}</span>
           </div>
         </div>
       );
@@ -90,8 +89,8 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
 
     const prevThreshold = currentTier?.min_amount || 0;
     const nextThreshold = nextTier.min_amount;
-    const progress = Math.max(0, Math.min(100, ((currentAmount - prevThreshold) / (nextThreshold - prevThreshold)) * 100));
-    const remaining = Math.max(0, nextThreshold - currentAmount);
+    const progress = ((currentAmount - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
+    const remaining = nextThreshold - currentAmount;
 
     return (
       <div className="space-y-2">
@@ -109,7 +108,7 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
             再 <span className="font-bold text-purple-600">${remaining.toLocaleString()}</span> 達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={Math.min(progress, 100)} className="h-2" />
         <div className="flex justify-between text-xs text-slate-500">
           <span>${prevThreshold.toLocaleString()}</span>
           <span className="font-semibold">${currentAmount.toLocaleString()}</span>
