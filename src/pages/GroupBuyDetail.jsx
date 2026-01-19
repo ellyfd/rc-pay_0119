@@ -1137,17 +1137,20 @@ export default function GroupBuyDetail() {
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm">
-                            <div className="whitespace-nowrap">
-                              {getTotalDiscountAmount > 0 && (
-                                <span className="font-bold">
-                                  -${Math.round(getTotalDiscountAmount).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            {groupBuy.fixed_discount_allocation && (
+                            {getTotalDiscountAmount > 0 && (
+                              <span className="font-bold whitespace-nowrap">
+                                -${Math.round(getTotalDiscountAmount).toLocaleString()}
+                              </span>
+                            )}
+                            {groupBuy.fixed_discount_allocation === 'per_item' && (
                               <div className="text-[10px] text-slate-500 mt-0.5">
-                                ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例' : groupBuy.fixed_discount_allocation === 'per_item' ? '按項目' : '按人數'})
+                                (按項目)
                               </div>
+                            )}
+                            {(groupBuy.fixed_discount_allocation === 'proportional' || groupBuy.fixed_discount_allocation === 'per_member') && (
+                              <span className="text-[10px] text-slate-500 ml-1">
+                                ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例' : '按人數'})
+                              </span>
                             )}
                           </td>
                         )}
