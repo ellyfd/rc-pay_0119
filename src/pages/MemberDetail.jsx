@@ -813,8 +813,8 @@ export default function MemberDetail() {
                                 {getAmountPrefix()}${transaction.amount?.toLocaleString()}
                               </td>
                               <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap text-[11px] sm:text-sm">
-                                <span className={`font-semibold ${balanceAfterTransaction >= 0 ? (transaction.wallet_type === 'cash' ? 'text-amber-600' : 'text-blue-600') : 'text-red-600'}`}>
-                                  ${balanceAfterTransaction.toLocaleString()}
+                                <span className={`font-semibold ${balanceAtThisTransaction >= 0 ? (transaction.wallet_type === 'cash' ? 'text-amber-600' : 'text-blue-600') : 'text-red-600'}`}>
+                                  ${balanceAtThisTransaction.toLocaleString()}
                                 </span>
                               </td>
                               {currentUser?.role === 'admin' && (
