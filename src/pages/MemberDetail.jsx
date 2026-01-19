@@ -843,10 +843,10 @@ export default function MemberDetail() {
                               </tbody>
                     </table>
                   </div>
-                </Card>
-                
-                {/* Pagination */}
-                <div className="flex items-center justify-center gap-2 mt-4 px-4 py-3">
+                  </Card>
+
+                  {/* Pagination */}
+                  <div className="flex items-center justify-center gap-2 mt-4 px-4 py-3">
                   <Button
                     variant="outline"
                     size="sm"
