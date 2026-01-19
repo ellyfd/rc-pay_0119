@@ -704,7 +704,7 @@ export default function MemberDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {memberTransactions.map((transaction) => {
+                        {memberTransactions.slice((transactionPage - 1) * pageSize, transactionPage * pageSize).map((transaction) => {
                           const isTransferOut = transaction.type === 'transfer' && transaction.from_member_id === memberId;
                           const isTransferIn = transaction.type === 'transfer' && transaction.to_member_id === memberId;
 
