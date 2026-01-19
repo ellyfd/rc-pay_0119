@@ -308,13 +308,22 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
           <div className="space-y-3">
             <div>
               <h3 className="font-semibold text-slate-800 text-sm border-b pb-2 mb-3">💰 團購優惠規則（選填）</h3>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  <span className="font-semibold">設定折扣規則範例：</span><br/>
-                  • 按數量：滿 10 件打 9 折、滿 20 件全團折 $500<br/>
-                  • 按金額：滿 $5,000 打 9 折、滿 $10,000 全團折 $1,000
-                </p>
-              </div>
+              
+              {/* Example Tips - Collapsible */}
+              <Collapsible open={showTipExample} onOpenChange={setShowTipExample} className="mb-3">
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors">
+                    <ChevronDown className={`w-4 h-4 text-amber-700 transition-transform ${showTipExample ? 'rotate-180' : ''}`} />
+                    <span className="text-xs font-semibold text-amber-800">📌 設定折扣規則範例</span>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 border-t-0">
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    • 按數量：滿 10 件打 9 折、滿 20 件全團折 $500<br/>
+                    • 按金額：滿 $5,000 打 9 折、滿 $10,000 全團折 $1,000
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
             
             {/* Global Type Selectors */}
