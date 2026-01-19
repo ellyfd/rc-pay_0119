@@ -867,9 +867,9 @@ export default function MemberDetail() {
                   </Button>
                 </div>
               )}
-            </section>
-            }
-            </TabsContent>
+              </section>
+              )}
+              </TabsContent>
 
             {/* Group Buy Tab */}
             <TabsContent value="groupbuy" className="space-y-6">
