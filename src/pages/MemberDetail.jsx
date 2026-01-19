@@ -760,25 +760,21 @@ export default function MemberDetail() {
                             return '';
                           };
 
-                          // Calculate running balance (from oldest to newest)
-                          const isCurrentWalletType = (t) => t.wallet_type === transaction.wallet_type;
-                          const transactionsUpToThis = memberTransactions
-                            .filter(isCurrentWalletType)
-                            .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+                          // Calculate balance at this transaction (from current balance working backwards)
+                          const allWalletTransactions = allMemberTransactions
+                            .filter(t => t.wallet_type === transaction.wallet_type)
+                            .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
 
-                          let runningBalance = 0;
-                          for (const t of transactionsUpToThis) {
+                          let balanceAtThisTransaction = transaction.wallet_type === 'cash' ? member.cash_balance : member.balance;
+
+                          // Subtract all more recent transactions to get balance at this transaction
+                          for (const t of allWalletTransactions) {
                             if (t.id === transaction.id) break;
                             const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId)) 
                               ? t.amount 
                               : -t.amount;
-                            runningBalance += change;
+                            balanceAtThisTransaction -= change;
                           }
-
-                          const transactionChange = (transaction.type === 'deposit' || (transaction.type === 'transfer' && transaction.to_member_id === memberId)) 
-                            ? transaction.amount 
-                            : -transaction.amount;
-                          const balanceAfterTransaction = runningBalance + transactionChange;
 
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
