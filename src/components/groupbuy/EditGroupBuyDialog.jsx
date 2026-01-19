@@ -43,6 +43,8 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
   const [discountType, setDiscountType] = useState('percent');
   const [fixedDiscountAllocation, setFixedDiscountAllocation] = useState('per_item');
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showTipExample, setShowTipExample] = useState(false);
+  const [showAllocationTip, setShowAllocationTip] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: existingProducts = [] } = useQuery({
