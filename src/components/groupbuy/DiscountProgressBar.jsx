@@ -38,25 +38,20 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
     const remaining = nextThreshold - currentQuantity;
 
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-700">
-            {currentTier ? (
-              <span className="text-green-600 font-semibold">
-                數量享 {currentTier.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
-              </span>
-            ) : (
-              <span className="text-slate-500">數量尚未達標</span>
-            )}
-          </span>
-          <span className="text-slate-600">
-            再 <span className="font-bold text-purple-600">{remaining}</span> 件達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-3 text-sm flex-wrap">
+          {currentTier && (
+            <span className="text-green-700 font-semibold">
+              全團享 {currentTier.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
+            </span>
+          )}
+          <span className="text-amber-700">
+            再 <span className="font-bold">{remaining}</span> 件達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <Progress value={Math.min(progress, 100)} className="h-2" />
-        <div className="flex justify-between text-xs text-slate-500">
-          <span>{prevThreshold} 件</span>
-          <span className="font-semibold">{currentQuantity} 件</span>
+        <Progress value={Math.min(progress, 100)} className="h-2.5" />
+        <div className="flex justify-between text-xs text-slate-600">
+          <span>{currentQuantity} 件</span>
           <span>{nextThreshold} 件</span>
         </div>
       </div>
@@ -93,25 +88,20 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
     const remaining = nextThreshold - currentAmount;
 
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-700">
-            {currentTier ? (
-              <span className="text-green-600 font-semibold">
-                金額享 {currentTier.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
-              </span>
-            ) : (
-              <span className="text-slate-500">金額尚未達標</span>
-            )}
-          </span>
-          <span className="text-slate-600">
-            再 <span className="font-bold text-purple-600">${remaining.toLocaleString()}</span> 達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-3 text-sm flex-wrap">
+          {currentTier && (
+            <span className="text-green-700 font-semibold">
+              全團享 {currentTier.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
+            </span>
+          )}
+          <span className="text-amber-700">
+            再 <span className="font-bold">${remaining.toLocaleString()}</span> 達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <Progress value={Math.min(progress, 100)} className="h-2" />
-        <div className="flex justify-between text-xs text-slate-500">
-          <span>${prevThreshold.toLocaleString()}</span>
-          <span className="font-semibold">${currentAmount.toLocaleString()}</span>
+        <Progress value={Math.min(progress, 100)} className="h-2.5" />
+        <div className="flex justify-between text-xs text-slate-600">
+          <span>${currentAmount.toLocaleString()}</span>
           <span>${nextThreshold.toLocaleString()}</span>
         </div>
       </div>
@@ -119,7 +109,7 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {renderQuantityProgress()}
       {renderAmountProgress()}
     </div>
