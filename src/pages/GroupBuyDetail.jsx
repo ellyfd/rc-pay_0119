@@ -957,16 +957,16 @@ export default function GroupBuyDetail() {
                             {itemIdx === 0 && (
                               <>
                                 <td 
-                                  className="px-2 sm:px-3 py-2 font-medium align-top text-xs sm:text-sm"
-                                  rowSpan={summary.items.length}
-                                >
-                                  <Link
-                                    to={createPageUrl('MemberDetail') + '?id=' + summary.member_id}
-                                    className="text-purple-600 hover:text-purple-700 hover:underline"
-                                  >
-                                    {summary.member_name}
-                                  </Link>
-                                </td>
+                                      className="px-3 py-2 font-medium align-top text-xs whitespace-nowrap"
+                                      rowSpan={summary.items.length}
+                                    >
+                                      <Link
+                                        to={createPageUrl('MemberDetail') + '?id=' + summary.member_id}
+                                        className="text-purple-600 hover:text-purple-700 hover:underline"
+                                      >
+                                        {summary.member_name}
+                                      </Link>
+                                    </td>
                               </>
                             )}
                             <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">
