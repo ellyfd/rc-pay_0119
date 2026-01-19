@@ -686,7 +686,6 @@ export default function MemberDetail() {
               </div>
 
               {memberTransactions.length > 0 && (
-                <>
                 <Card className="overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs sm:text-sm">
