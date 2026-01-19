@@ -1162,21 +1162,23 @@ export default function GroupBuyDetail() {
                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
                           <td></td>
                         )}
-                        </tr>
-                        {groupBuy.discount_rules?.length > 0 && groupBuy.discount_rules.some(r => r.discount_type === 'fixed') && (
+                      </tr>
+                      {groupBuy.discount_rules?.length > 0 && groupBuy.discount_rules.some(r => r.discount_type === 'fixed') && (
                         <tr>
-                          <td colSpan={5}></td>
-                          <td className="px-2 sm:px-3 py-1 text-right text-red-500 text-[10px] sm:text-xs">
-                            ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分費' : 
-                              groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分費' : '按人數分費'})
-                          </td>
+                          <td colSpan={4}></td>
+                          {groupBuy.discount_rules?.length > 0 && (
+                            <td className="px-2 sm:px-3 py-1 sm:py-1.5 text-right text-red-500 text-[10px] sm:text-xs whitespace-nowrap">
+                              ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分費' : 
+                                groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分費' : '按人數分費'})
+                            </td>
+                          )}
                           <td colSpan={10}></td>
                         </tr>
-                        )}
-                        </tbody>
-                        </table>
-                        </div>
-                        </Card>
+                      )}
+                    </tbody>
+                    </table>
+                    </div>
+                    </Card>
                     )}
 
                     {isOrganizer && (
