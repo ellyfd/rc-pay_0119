@@ -1164,21 +1164,10 @@ export default function GroupBuyDetail() {
                         )}
                       </tr>
                       {groupBuy.discount_rules?.length > 0 && getApplicableDiscount?.discount_type === 'fixed' && (
-                        <tr className="bg-slate-50">
-                          <td colSpan={2} className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-600 text-xs sm:text-sm"></td>
-                          <td colSpan={3} className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-600 text-xs sm:text-sm">
-                            <span className="text-orange-600">(按{groupBuy.fixed_discount_allocation === 'proportional' ? '比例' : groupBuy.fixed_discount_allocation === 'per_item' ? '項目' : '人數'}分攤)</span>
+                        <tr className="bg-slate-50 border-none">
+                          <td colSpan={4} className="px-2 sm:px-3 py-1 sm:py-2 text-right text-orange-600 text-xs sm:text-sm font-normal border-none">
+                            (按{groupBuy.fixed_discount_allocation === 'proportional' ? '比例' : groupBuy.fixed_discount_allocation === 'per_item' ? '項目' : '人數'}分攤)
                           </td>
-                          <td></td>
-                          {hasDiscountDecimals && isOrganizer && isClosed && (
-                            <td></td>
-                          )}
-                          {isOrganizer && isClosed && !isFullyPaid && (
-                            <td></td>
-                          )}
-                          {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
-                            <td></td>
-                          )}
                         </tr>
                       )}
                     </tbody>
