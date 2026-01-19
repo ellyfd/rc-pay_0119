@@ -350,14 +350,45 @@ export default function GroupBuyDetail() {
     return bestRule;
   }, [groupBuy?.discount_rules, getTotalQuantity, getTotalAmount]);
 
-  // Calculate discounted price
+  // Calculate total discount amount for the entire group buy
+  const getTotalDiscountAmount = useMemo(() => {
+    if (!getApplicableDiscount) return 0;
+
+    const totalBeforeDiscount = items.reduce((sum, item) => {
+      const isSplitItem = item.note && item.note.includes('平分');
+      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+        return sum;
+      }
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    if (getApplicableDiscount.discount_type === 'percent') {
+      return totalBeforeDiscount * (getApplicableDiscount.discount_percent / 100);
+    } else {
+      return getApplicableDiscount.discount_amount;
+    }
+  }, [getApplicableDiscount, items]);
+
+  // Calculate discounted price per item (proportional discount)
   const getDiscountedPrice = useMemo(() => (originalPrice) => {
-    if (!getApplicableDiscount || getApplicableDiscount.discount_percent === 0) {
+    if (!getApplicableDiscount || getTotalDiscountAmount === 0) {
       return originalPrice;
     }
-    const discountMultiplier = 1 - (getApplicableDiscount.discount_percent / 100);
-    return Math.round(originalPrice * discountMultiplier * 100) / 100;
-  }, [getApplicableDiscount]);
+
+    const totalBeforeDiscount = items.reduce((sum, item) => {
+      const isSplitItem = item.note && item.note.includes('平分');
+      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+        return sum;
+      }
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    if (totalBeforeDiscount === 0) return originalPrice;
+
+    const discountRatio = getTotalDiscountAmount / totalBeforeDiscount;
+    const discountedPrice = originalPrice * (1 - discountRatio);
+    return Math.round(discountedPrice * 100) / 100;
+  }, [getApplicableDiscount, getTotalDiscountAmount, items]);
 
   const handleMarkAsFullyPaid = async () => {
     if (!allPaid) {
@@ -1066,14 +1097,9 @@ export default function GroupBuyDetail() {
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
-                            {getApplicableDiscount && (
+                            {getTotalDiscountAmount > 0 && (
                               <span className="font-bold">
-                                -${(items.reduce((sum, item) => {
-                                  const isSplitItem = item.note && item.note.includes('平分');
-                                  const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
-                                  if (isSplitItem && !isOrderer) return sum;
-                                  return sum + (item.price * item.quantity);
-                                }, 0) - memberSummary.reduce((sum, m) => sum + m.total, 0)).toLocaleString()}
+                                -${Math.round(getTotalDiscountAmount).toLocaleString()}
                               </span>
                             )}
                           </td>
