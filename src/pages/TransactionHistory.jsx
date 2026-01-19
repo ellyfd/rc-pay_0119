@@ -10,11 +10,11 @@ import TransactionItem from "@/components/TransactionItem";
 
 export default function TransactionHistory() {
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 20; // Keep consistent with other pages
 
   const { data: allTransactions = [], isLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 1000)
+    queryFn: () => base44.entities.Transaction.list('-created_date')
   });
 
   const totalPages = useMemo(() => 
