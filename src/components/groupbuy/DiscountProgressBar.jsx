@@ -1,70 +1,127 @@
 import React from 'react';
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp } from "lucide-react";
 
-export default function DiscountProgressBar({ discountRules, currentQuantity }) {
-  if (!discountRules || discountRules.length === 0) {
-    return null;
-  }
+export default function DiscountProgressBar({ discountRules, currentQuantity, currentAmount }) {
+  if (!discountRules || discountRules.length === 0) return null;
 
-  // Sort rules by min_quantity
-  const sortedRules = [...discountRules].sort((a, b) => a.min_quantity - b.min_quantity);
-  
-  // Find current tier and next tier
-  let currentTier = null;
-  let nextTier = null;
-  
-  for (let i = 0; i < sortedRules.length; i++) {
-    if (currentQuantity >= sortedRules[i].min_quantity) {
-      currentTier = sortedRules[i];
-    } else {
-      nextTier = sortedRules[i];
-      break;
+  // Separate and sort rules by type
+  const quantityRules = discountRules.filter(r => r.type === 'quantity').sort((a, b) => a.min_quantity - b.min_quantity);
+  const amountRules = discountRules.filter(r => r.type === 'amount').sort((a, b) => a.min_amount - b.min_amount);
+
+  // Render quantity-based progress bar
+  const renderQuantityProgress = () => {
+    if (quantityRules.length === 0) return null;
+
+    const currentTier = quantityRules.filter(rule => currentQuantity >= rule.min_quantity).pop();
+    const nextTier = quantityRules.find(rule => currentQuantity < rule.min_quantity);
+
+    if (!nextTier) {
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-green-600 font-semibold">🎉 已達數量最高折扣！</span>
+            <span className="text-green-600 font-bold">
+              {currentTier?.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
+            </span>
+          </div>
+          <Progress value={100} className="h-2" />
+          <div className="flex justify-between text-xs text-slate-500">
+            <span>目前總數量：{currentQuantity} 件</span>
+          </div>
+        </div>
+      );
     }
-  }
 
-  // If no next tier, we've reached the maximum
-  if (!nextTier) {
+    const prevThreshold = currentTier?.min_quantity || 0;
+    const nextThreshold = nextTier.min_quantity;
+    const progress = ((currentQuantity - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
+    const remaining = nextThreshold - currentQuantity;
+
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-4 h-4 text-green-600" />
-          <span className="text-sm font-semibold text-green-800">
-            🎉 已達最高折扣！{currentTier.discount_percent}% off
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-700">
+            {currentTier ? (
+              <span className="text-green-600 font-semibold">
+                數量享 {currentTier.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
+              </span>
+            ) : (
+              <span className="text-slate-500">數量尚未達標</span>
+            )}
+          </span>
+          <span className="text-slate-600">
+            再 <span className="font-bold text-purple-600">{remaining}</span> 件達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <Progress value={100} className="h-2" />
-        <p className="text-xs text-green-700 mt-2">
-          目前總數量：{currentQuantity} 件
-        </p>
+        <Progress value={Math.min(progress, 100)} className="h-2" />
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>{prevThreshold} 件</span>
+          <span className="font-semibold">{currentQuantity} 件</span>
+          <span>{nextThreshold} 件</span>
+        </div>
       </div>
     );
-  }
+  };
 
-  // Calculate progress towards next tier
-  const prevTierQty = currentTier ? currentTier.min_quantity : 0;
-  const nextTierQty = nextTier.min_quantity;
-  const progress = Math.min(((currentQuantity - prevTierQty) / (nextTierQty - prevTierQty)) * 100, 100);
-  const remaining = Math.max(nextTierQty - currentQuantity, 0);
+  // Render amount-based progress bar
+  const renderAmountProgress = () => {
+    if (amountRules.length === 0 || currentAmount === undefined) return null;
 
-  return (
-    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-purple-600" />
-          <span className="text-sm font-semibold text-purple-800">
-            {currentTier ? `目前 ${currentTier.discount_percent}% off` : '折扣進度'}
+    const currentTier = amountRules.filter(rule => currentAmount >= rule.min_amount).pop();
+    const nextTier = amountRules.find(rule => currentAmount < rule.min_amount);
+
+    if (!nextTier) {
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-green-600 font-semibold">🎉 已達金額最高折扣！</span>
+            <span className="text-green-600 font-bold">
+              {currentTier?.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
+            </span>
+          </div>
+          <Progress value={100} className="h-2" />
+          <div className="flex justify-between text-xs text-slate-500">
+            <span>目前總金額：${currentAmount.toLocaleString()}</span>
+          </div>
+        </div>
+      );
+    }
+
+    const prevThreshold = currentTier?.min_amount || 0;
+    const nextThreshold = nextTier.min_amount;
+    const progress = ((currentAmount - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
+    const remaining = nextThreshold - currentAmount;
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-700">
+            {currentTier ? (
+              <span className="text-green-600 font-semibold">
+                金額享 {currentTier.discount_type === 'percent' ? `${currentTier.discount_percent}% off` : `-$${currentTier.discount_amount}`}
+              </span>
+            ) : (
+              <span className="text-slate-500">金額尚未達標</span>
+            )}
+          </span>
+          <span className="text-slate-600">
+            再 <span className="font-bold text-purple-600">${remaining.toLocaleString()}</span> 達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <span className="text-xs font-medium text-purple-700">
-          再 {remaining} 件達 {nextTier.discount_percent}% off
-        </span>
+        <Progress value={Math.min(progress, 100)} className="h-2" />
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>${prevThreshold.toLocaleString()}</span>
+          <span className="font-semibold">${currentAmount.toLocaleString()}</span>
+          <span>${nextThreshold.toLocaleString()}</span>
+        </div>
       </div>
-      <Progress value={progress} className="h-2" />
-      <div className="flex justify-between text-xs text-purple-700 mt-2">
-        <span>目前：{currentQuantity} 件</span>
-        <span>目標：{nextTierQty} 件</span>
-      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {renderQuantityProgress()}
+      {renderAmountProgress()}
     </div>
   );
 }
