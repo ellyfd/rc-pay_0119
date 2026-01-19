@@ -33,8 +33,6 @@ export default function MemberDetail() {
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
   const [currentUser, setCurrentUser] = useState(null);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
-  const [transactionPage, setTransactionPage] = useState(1);
-  const pageSize = 10;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -123,7 +121,7 @@ export default function MemberDetail() {
     if (transactionTypeFilter !== 'all') {
       filtered = filtered.filter(t => t.type === transactionTypeFilter);
     }
-    return filtered.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    return filtered;
   }, [allMemberTransactions, walletTypeFilter, transactionTypeFilter]);
 
   // Group items by group buy (as participant)
@@ -703,7 +701,7 @@ export default function MemberDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {memberTransactions.slice((transactionPage - 1) * pageSize, transactionPage * pageSize).map((transaction) => {
+                        {memberTransactions.map((transaction) => {
                           const isTransferOut = transaction.type === 'transfer' && transaction.from_member_id === memberId;
                           const isTransferIn = transaction.type === 'transfer' && transaction.to_member_id === memberId;
 
@@ -843,29 +841,6 @@ export default function MemberDetail() {
                     </table>
                   </div>
                 </Card>
-                
-                {/* Pagination */}
-                <div className="flex items-center justify-center gap-2 mt-4 px-4 py-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setTransactionPage(p => Math.max(1, p - 1))}
-                    disabled={transactionPage === 1}
-                  >
-                    上一頁
-                  </Button>
-                  <span className="text-sm text-slate-600 px-2">
-                    第 {transactionPage} / {Math.ceil(memberTransactions.length / pageSize)} 頁
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setTransactionPage(p => Math.min(Math.ceil(memberTransactions.length / pageSize), p + 1))}
-                    disabled={transactionPage === Math.ceil(memberTransactions.length / pageSize)}
-                  >
-                    下一頁
-                  </Button>
-                </div>
               )}
             </section>
             )}
