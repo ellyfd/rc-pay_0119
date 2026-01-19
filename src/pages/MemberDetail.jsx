@@ -694,6 +694,7 @@ export default function MemberDetail() {
                           <th className="px-1 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b hidden sm:table-cell">錢包</th>
                           <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">說明</th>
                           <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">金額</th>
+                          <th className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b">錢包餘額</th>
                           {currentUser?.role === 'admin' && (
                             <th className="px-1 sm:px-4 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b">操作</th>
                           )}
