@@ -183,6 +183,10 @@ export default function AdminOrders() {
   };
 
   const handleCheckoutAll = async () => {
+    if (currentUser?.role !== 'admin') {
+      alert('僅管理員可執行此操作');
+      return;
+    }
     if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
 
     for (const order of orders) {
