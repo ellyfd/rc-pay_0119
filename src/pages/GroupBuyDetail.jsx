@@ -991,10 +991,23 @@ export default function GroupBuyDetail() {
                                 {(() => {
                                   const discountedPrice = getDiscountedPrice(item.price, item.member_id);
                                   const hasDiscount = discountedPrice !== item.price;
+                                  const allocationMethod = groupBuy?.fixed_discount_allocation;
+                                  const allocationLabel = allocationMethod === 'proportional' ? '按比例' : 
+                                                         allocationMethod === 'per_item' ? '按項目' : 
+                                                         allocationMethod === 'per_member' ? '按人數' : '';
+                                  const showAllocation = getApplicableDiscount?.discount_type === 'fixed' && hasDiscount;
+                                  
                                   return (
-                                    <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
-                                      ${discountedPrice.toLocaleString()}
-                                    </span>
+                                    <div>
+                                      <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
+                                        ${discountedPrice.toLocaleString()}
+                                      </span>
+                                      {showAllocation && (
+                                        <div className="text-[10px] text-slate-500 mt-0.5">
+                                          ({allocationLabel})
+                                        </div>
+                                      )}
+                                    </div>
                                   );
                                 })()}
                               </td>
