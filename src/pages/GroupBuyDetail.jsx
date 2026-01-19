@@ -923,8 +923,8 @@ export default function GroupBuyDetail() {
               </Card>
             ) : (
               <Card>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[700px]">
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                   <table className="w-full min-w-[800px]">
                     <thead className="bg-slate-50 border-b">
                       <tr>
                         <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">成員</th>
