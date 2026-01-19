@@ -1163,20 +1163,6 @@ export default function GroupBuyDetail() {
                           <td></td>
                         )}
                       </tr>
-                      {groupBuy.discount_rules?.length > 0 && getApplicableDiscount?.discount_type === 'fixed' && (
-                        <tr className="bg-slate-50">
-                          <td colSpan={groupBuy.discount_rules?.length > 0 ? 6 : 5} className="px-2 sm:px-3 py-1 sm:py-2 text-right text-xs sm:text-sm text-slate-600">
-                            ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' : 
-                              groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' : '按人數分攤'})
-                          </td>
-                          <td colSpan={
-                            (hasDiscountDecimals && isOrganizer && isClosed ? 1 : 0) +
-                            (isOrganizer && isClosed && !isFullyPaid ? 1 : 0) +
-                            ((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen ? 1 : 0) +
-                            1
-                          }></td>
-                        </tr>
-                      )}
                     </tbody>
                     </table>
                     </div>
