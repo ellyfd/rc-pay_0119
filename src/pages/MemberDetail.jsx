@@ -844,6 +844,30 @@ export default function MemberDetail() {
                     </table>
                   </div>
                 </Card>
+                
+                {/* Pagination */}
+                <div className="flex items-center justify-center gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTransactionPage(p => Math.max(1, p - 1))}
+                    disabled={transactionPage === 1}
+                  >
+                    上一頁
+                  </Button>
+                  <span className="text-sm text-slate-600 px-2">
+                    第 {transactionPage} / {Math.ceil(memberTransactions.length / pageSize)} 頁
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTransactionPage(p => Math.min(Math.ceil(memberTransactions.length / pageSize), p + 1))}
+                    disabled={transactionPage === Math.ceil(memberTransactions.length / pageSize)}
+                  >
+                    下一頁
+                  </Button>
+                </div>
+                </>
               )}
             </section>
             )}
