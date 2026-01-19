@@ -930,9 +930,9 @@ export default function GroupBuyDetail() {
                         <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">成員</th>
                         <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">產品</th>
                         <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">數量</th>
-                        <th className="hidden md:table-cell text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <th className="hidden lg:table-cell text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
+                          <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
                         )}
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">小計</th>
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
@@ -940,10 +940,10 @@ export default function GroupBuyDetail() {
                           <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
                         )}
                         {isOrganizer && isClosed && !isFullyPaid && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap text-[10px]">支付</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">支付</th>
                         )}
                         {isOrganizer && isClosed && !isFullyPaid && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap text-[10px]">收款</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">收款</th>
                         )}
                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
                           <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">操作</th>
@@ -985,9 +985,9 @@ export default function GroupBuyDetail() {
                                 return item.quantity;
                               })()}
                             </td>
-                            <td className="hidden md:table-cell text-right px-2 sm:px-3 py-2 text-right text-slate-700 text-xs sm:text-sm whitespace-nowrap">${item.price.toLocaleString()}</td>
+                            <td className="px-2 sm:px-3 py-2 text-right text-slate-700 text-xs sm:text-sm whitespace-nowrap">${item.price.toLocaleString()}</td>
                             {groupBuy.discount_rules?.length > 0 && (
-                              <td className="hidden lg:table-cell px-2 sm:px-3 py-2 text-right font-medium text-slate-700 text-xs sm:text-sm whitespace-nowrap">
+                              <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-700 text-xs sm:text-sm whitespace-nowrap">
                                 {(() => {
                                   const discountedPrice = getDiscountedPrice(item.price, item.member_id);
                                   const hasDiscount = discountedPrice !== item.price;
@@ -1127,7 +1127,7 @@ export default function GroupBuyDetail() {
                             return sum + item.quantity;
                           }, 0)}
                         </td>
-                        <td className="hidden md:table-cell px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-800 text-xs sm:text-sm whitespace-nowrap">
+                        <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-800 text-xs sm:text-sm whitespace-nowrap">
                           ${items.reduce((sum, item) => {
                             const isSplitItem = item.note && item.note.includes('平分');
                             const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
@@ -1136,7 +1136,7 @@ export default function GroupBuyDetail() {
                           }, 0).toLocaleString()}
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <td className="hidden lg:table-cell px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
                             {getTotalDiscountAmount > 0 && (
                               <span className="font-bold">
                                 -${Math.round(getTotalDiscountAmount).toLocaleString()}
@@ -1165,15 +1165,14 @@ export default function GroupBuyDetail() {
                       </tr>
                       {groupBuy.discount_rules?.length > 0 && groupBuy.discount_rules.some(r => r.discount_type === 'fixed') && (
                         <tr className="bg-slate-50 border-none">
-                          <td className="hidden md:table-cell" colSpan={2}></td>
-                          <td></td>
+                          <td colSpan={4}></td>
                           {groupBuy.discount_rules?.length > 0 && (
                             <td className="px-2 sm:px-3 py-0 -mt-2.5 text-right text-red-500 text-[10px] sm:text-xs whitespace-nowrap">
                               ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' : 
                                 groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' : '按人數分攤'})
                             </td>
                           )}
-                          <td colSpan={20}></td>
+                          <td colSpan={10}></td>
                         </tr>
                       )}
                     </tbody>
