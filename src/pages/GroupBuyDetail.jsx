@@ -1164,7 +1164,7 @@ export default function GroupBuyDetail() {
                         )}
                       </tr>
                       {groupBuy.discount_rules?.length > 0 && (
-                        <tr className="bg-white">
+                        <tr>
                           <td colSpan={2} className="px-2 sm:px-3 py-1 sm:py-2"></td>
                           <td colSpan={100} className="px-2 sm:px-3 py-1 sm:py-2 text-right text-red-500 text-xs sm:text-sm">
                             ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' : groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' : '按人數分攤'})
