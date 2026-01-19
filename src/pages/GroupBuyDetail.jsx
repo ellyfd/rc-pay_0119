@@ -999,7 +999,7 @@ export default function GroupBuyDetail() {
                                 })()}
                               </td>
                             )}
-                            <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-800 text-xs sm:text-sm whitespace-nowrap">
+                            <td className="px-3 py-2 text-right font-medium text-slate-800 text-xs whitespace-nowrap">
                               {(() => {
                                 const discountedPrice = groupBuy.discount_rules?.length > 0 ? getDiscountedPrice(item.price, item.member_id) : item.price;
                                 return `$${(discountedPrice * item.quantity).toLocaleString()}`;
