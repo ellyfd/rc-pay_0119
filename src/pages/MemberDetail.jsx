@@ -58,7 +58,7 @@ export default function MemberDetail() {
 
   const { data: allTransactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 100),
+    queryFn: () => base44.entities.Transaction.list('-created_date'),
   });
 
   const { data: groupBuyItems = [], isLoading: groupBuyItemsLoading } = useQuery({
