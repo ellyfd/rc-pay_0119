@@ -866,9 +866,10 @@ export default function MemberDetail() {
                   >
                     下一頁
                   </Button>
-                </div>
-              )}
-              </section>
+                  </div>
+                  </>
+                  )}
+                  </section>
               )}
               </TabsContent>
 
