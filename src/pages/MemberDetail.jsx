@@ -246,33 +246,33 @@ export default function MemberDetail() {
         const member = allMembers.find(m => m.id === to_member_id);
         if (member) {
           const newBalance = wallet_type === 'cash' 
-            ? { balance: member.balance, cash_balance: (member.cash_balance || 0) - amount }
-            : { balance: (member.balance || 0) - amount, cash_balance: member.cash_balance };
+            ? { balance: member.balance || 0, cash_balance: (member.cash_balance || 0) - amount }
+            : { balance: (member.balance || 0) - amount, cash_balance: member.cash_balance || 0 };
           await base44.entities.Member.update(to_member_id, newBalance);
         }
       } else if (type === 'withdraw' && from_member_id) {
         const member = allMembers.find(m => m.id === from_member_id);
         if (member) {
           const newBalance = wallet_type === 'cash'
-            ? { balance: member.balance, cash_balance: (member.cash_balance || 0) + amount }
-            : { balance: (member.balance || 0) + amount, cash_balance: member.cash_balance };
+            ? { balance: member.balance || 0, cash_balance: (member.cash_balance || 0) + amount }
+            : { balance: (member.balance || 0) + amount, cash_balance: member.cash_balance || 0 };
           await base44.entities.Member.update(from_member_id, newBalance);
         }
       } else if (type === 'transfer' && from_member_id && to_member_id) {
         const fromMember = allMembers.find(m => m.id === from_member_id);
         const toMember = allMembers.find(m => m.id === to_member_id);
-        
+
         if (fromMember) {
           const newBalance = wallet_type === 'cash'
-            ? { balance: fromMember.balance, cash_balance: (fromMember.cash_balance || 0) + amount }
-            : { balance: (fromMember.balance || 0) + amount, cash_balance: fromMember.cash_balance };
+            ? { balance: fromMember.balance || 0, cash_balance: (fromMember.cash_balance || 0) + amount }
+            : { balance: (fromMember.balance || 0) + amount, cash_balance: fromMember.cash_balance || 0 };
           await base44.entities.Member.update(from_member_id, newBalance);
         }
-        
+
         if (toMember) {
           const newBalance = wallet_type === 'cash'
-            ? { balance: toMember.balance, cash_balance: (toMember.cash_balance || 0) - amount }
-            : { balance: (toMember.balance || 0) - amount, cash_balance: toMember.cash_balance };
+            ? { balance: toMember.balance || 0, cash_balance: (toMember.cash_balance || 0) - amount }
+            : { balance: (toMember.balance || 0) - amount, cash_balance: toMember.cash_balance || 0 };
           await base44.entities.Member.update(to_member_id, newBalance);
         }
       }

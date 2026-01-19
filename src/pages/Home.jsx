@@ -154,22 +154,24 @@ export default function Home() {
       const isDeposit = item.type === 'deposit';
       const balanceField = item.wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
-      // Create transaction record
-      await createTransaction.mutateAsync({
-        type: item.type,
-        amount: item.amount,
-        wallet_type: item.wallet_type,
-        from_member_id: isDeposit ? null : item.member_id,
-        to_member_id: isDeposit ? item.member_id : null,
-        from_member_name: isDeposit ? '' : member.name,
-        to_member_name: isDeposit ? member.name : '',
-        note: item.note
-      });
+      const amount = item.amount || 0;
 
-      // Update balance
-      const newBalance = isDeposit 
-        ? (member[balanceField] || 0) + item.amount
-        : (member[balanceField] || 0) - item.amount;
+       // Create transaction record
+       await createTransaction.mutateAsync({
+         type: item.type,
+         amount: amount,
+         wallet_type: item.wallet_type,
+         from_member_id: isDeposit ? null : item.member_id,
+         to_member_id: isDeposit ? item.member_id : null,
+         from_member_name: isDeposit ? '' : member.name,
+         to_member_name: isDeposit ? member.name : '',
+         note: item.note
+       });
+
+       // Update balance
+       const newBalance = isDeposit 
+         ? (member[balanceField] || 0) + amount
+         : (member[balanceField] || 0) - amount;
       
       await updateMember.mutateAsync({
         id: item.member_id,

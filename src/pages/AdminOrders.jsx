@@ -201,13 +201,15 @@ export default function AdminOrders() {
 
       const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
 
+      const amount = order.total_amount || 0;
+
       if (order.payment_method === 'payer') {
         // Skip transaction for payer
         continue;
       } else if (order.payment_method === 'balance') {
         await createTransaction.mutateAsync({
           type: 'withdraw',
-          amount: order.total_amount,
+          amount: amount,
           wallet_type: 'balance',
           from_member_id: member.id,
           from_member_name: member.name,
@@ -216,12 +218,12 @@ export default function AdminOrders() {
 
         await updateMember.mutateAsync({
           id: member.id,
-          data: { balance: (member.balance || 0) - order.total_amount }
+          data: { balance: (member.balance || 0) - amount }
         });
       } else if (order.payment_method === 'cash') {
         await createTransaction.mutateAsync({
           type: 'withdraw',
-          amount: order.total_amount,
+          amount: amount,
           wallet_type: 'cash',
           from_member_id: member.id,
           from_member_name: member.name,
@@ -230,7 +232,7 @@ export default function AdminOrders() {
 
         await updateMember.mutateAsync({
           id: member.id,
-          data: { cash_balance: (member.cash_balance || 0) - order.total_amount }
+          data: { cash_balance: (member.cash_balance || 0) - amount }
         });
       }
     }
