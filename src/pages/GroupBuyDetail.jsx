@@ -1136,18 +1136,11 @@ export default function GroupBuyDetail() {
                           }, 0).toLocaleString()}
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm">
-                            <div className="whitespace-nowrap">
-                              {getTotalDiscountAmount > 0 && (
-                                <span className="font-bold">
-                                  -${Math.round(getTotalDiscountAmount).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            {groupBuy.fixed_discount_allocation && (
-                              <div className="text-[10px] text-slate-500 mt-0.5">
-                                ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例' : groupBuy.fixed_discount_allocation === 'per_item' ? '按項目' : '按人數'})
-                              </div>
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
+                            {getTotalDiscountAmount > 0 && (
+                              <span className="font-bold">
+                                -${Math.round(getTotalDiscountAmount).toLocaleString()}
+                              </span>
                             )}
                           </td>
                         )}
@@ -1170,6 +1163,14 @@ export default function GroupBuyDetail() {
                           <td></td>
                         )}
                       </tr>
+                      {groupBuy.discount_rules?.length > 0 && (
+                        <tr className="bg-white">
+                          <td colSpan={2} className="px-2 sm:px-3 py-1 sm:py-2"></td>
+                          <td colSpan={100} className="px-2 sm:px-3 py-1 sm:py-2 text-right text-red-500 text-xs sm:text-sm">
+                            ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' : groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' : '按人數分攤'})
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                     </table>
                     </div>
