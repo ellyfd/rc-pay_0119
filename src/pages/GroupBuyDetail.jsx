@@ -1136,14 +1136,14 @@ export default function GroupBuyDetail() {
                           }, 0).toLocaleString()}
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right whitespace-nowrap">
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right">
                             {getTotalDiscountAmount > 0 && (
-                              <div>
-                                <span className="font-bold text-orange-600 text-xs sm:text-sm block">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-orange-600 text-xs sm:text-sm">
                                   -${Math.round(getTotalDiscountAmount).toLocaleString()}
                                 </span>
                                 {groupBuy.discount_rules.some(r => r.discount_type === 'fixed') && (
-                                  <span className="text-orange-600 text-[10px] sm:text-xs block mt-1">
+                                  <span className="text-orange-600 text-[10px] sm:text-xs mt-0.5">
                                     ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例' : 
                                       groupBuy.fixed_discount_allocation === 'per_item' ? '按項目' : '按人數'}分攤)
                                   </span>
