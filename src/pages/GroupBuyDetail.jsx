@@ -1164,10 +1164,10 @@ export default function GroupBuyDetail() {
                         )}
                       </tr>
                       {groupBuy.discount_rules?.length > 0 && groupBuy.discount_rules.some(r => r.discount_type === 'fixed') && (
-                        <tr className="bg-slate-50">
+                        <tr className="bg-slate-50 border-none">
                           <td colSpan={4}></td>
                           {groupBuy.discount_rules?.length > 0 && (
-                            <td className="px-2 sm:px-3 py-1 sm:py-1.5 text-right text-red-500 text-[10px] sm:text-xs whitespace-nowrap">
+                            <td className="px-2 sm:px-3 py-0 text-right text-red-500 text-[10px] sm:text-xs whitespace-nowrap">
                               ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分費' : 
                                 groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分費' : '按人數分費'})
                             </td>
