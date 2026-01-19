@@ -991,10 +991,23 @@ export default function GroupBuyDetail() {
                                 {(() => {
                                   const discountedPrice = getDiscountedPrice(item.price, item.member_id);
                                   const hasDiscount = discountedPrice !== item.price;
+                                  const allocationMethod = groupBuy?.fixed_discount_allocation;
+                                  const allocationText = 
+                                    allocationMethod === 'proportional' ? '按比例' :
+                                    allocationMethod === 'per_item' ? '按項目' :
+                                    allocationMethod === 'per_member' ? '按人數' : '';
+                                  const isFixedDiscount = getApplicableDiscount?.discount_type === 'fixed';
                                   return (
-                                    <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
-                                      ${discountedPrice.toLocaleString()}
-                                    </span>
+                                    <div>
+                                      <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
+                                        ${discountedPrice.toLocaleString()}
+                                      </span>
+                                      {isFixedDiscount && itemIdx === 0 && (
+                                        <div className="text-[10px] text-red-500 mt-0.5">
+                                          ({allocationText}分攤)
+                                        </div>
+                                      )}
+                                    </div>
                                   );
                                 })()}
                               </td>
@@ -1138,9 +1151,11 @@ export default function GroupBuyDetail() {
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
                             {getTotalDiscountAmount > 0 && (
-                              <span className="font-bold">
-                                -${Math.round(getTotalDiscountAmount).toLocaleString()}
-                              </span>
+                              <div>
+                                <span className="font-bold">
+                                  -${Math.round(getTotalDiscountAmount).toLocaleString()}
+                                </span>
+                              </div>
                             )}
                           </td>
                         )}
