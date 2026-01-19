@@ -354,7 +354,20 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
               </div>
               {discountType === 'fixed' && (
                 <div className="flex flex-col gap-1.5">
-                  <Label className="text-xs font-medium text-slate-700">分攤方式</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-700">分攤方式</Label>
+                    <Collapsible open={showAllocationTip} onOpenChange={setShowAllocationTip}>
+                      <CollapsibleTrigger className="text-[10px] text-slate-500 hover:text-slate-700">
+                        <span className="hover:underline">?</span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2 ml-0 text-[10px] text-slate-600 bg-slate-50 rounded p-2 border border-slate-200 absolute z-10">
+                        <p className="font-semibold mb-1">分攤方式說明：</p>
+                        <p>• 按比例：依各商品原價比例分配折扣</p>
+                        <p>• 按項目：每個商品品項平均分攤折扣</p>
+                        <p>• 按人數：每位參與者平均分攤折扣</p>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
                   <Select value={fixedDiscountAllocation} onValueChange={setFixedDiscountAllocation}>
                     <SelectTrigger className="h-8 text-sm">
                       <SelectValue />
