@@ -123,7 +123,7 @@ export default function MemberDetail() {
     if (transactionTypeFilter !== 'all') {
       filtered = filtered.filter(t => t.type === transactionTypeFilter);
     }
-    return filtered;
+    return filtered.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
   }, [allMemberTransactions, walletTypeFilter, transactionTypeFilter]);
 
   // Group items by group buy (as participant)
