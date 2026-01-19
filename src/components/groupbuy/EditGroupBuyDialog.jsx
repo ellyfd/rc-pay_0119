@@ -59,8 +59,16 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
         deadline: groupBuy.deadline || '',
         note: groupBuy.note || ''
       });
-      setDiscountRules(groupBuy.discount_rules || []);
+      const rules = groupBuy.discount_rules || [];
+      setDiscountRules(rules);
       setFixedDiscountAllocation(groupBuy.fixed_discount_allocation || 'per_item');
+      
+      // 根據現有折扣規則設定類型
+      if (rules.length > 0) {
+        const firstRule = rules[0];
+        setDiscountRuleType(firstRule.type || 'quantity');
+        setDiscountType(firstRule.discount_type || 'percent');
+      }
     }
   }, [groupBuy]);
 
