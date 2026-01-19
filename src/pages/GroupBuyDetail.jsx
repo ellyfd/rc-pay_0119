@@ -1165,15 +1165,6 @@ export default function GroupBuyDetail() {
                       </tr>
                     </tbody>
                     </table>
-                    {groupBuy.discount_rules?.length > 0 && groupBuy.fixed_discount_allocation && (
-                      <div className="px-2 sm:px-3 py-1 text-center text-red-500 text-xs sm:text-sm font-medium">
-                        （{
-                          groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' :
-                          groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' :
-                          '按人數分攤'
-                        }）
-                      </div>
-                    )}
                     </div>
                     </Card>
                     )}
