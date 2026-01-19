@@ -1138,20 +1138,9 @@ export default function GroupBuyDetail() {
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
                             {getTotalDiscountAmount > 0 && (
-                              <div className="leading-tight">
-                                <div className="font-bold">
-                                  -${Math.round(getTotalDiscountAmount).toLocaleString()}
-                                </div>
-                                {groupBuy.fixed_discount_allocation && (
-                                  <div className="text-[10px] sm:text-xs text-red-500 leading-tight">
-                                    （{
-                                      groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' :
-                                      groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' :
-                                      '按人數分攤'
-                                    }）
-                                  </div>
-                                )}
-                              </div>
+                              <span className="font-bold">
+                                -${Math.round(getTotalDiscountAmount).toLocaleString()}
+                              </span>
                             )}
                           </td>
                         )}
@@ -1176,6 +1165,15 @@ export default function GroupBuyDetail() {
                       </tr>
                     </tbody>
                     </table>
+                    {groupBuy.discount_rules?.length > 0 && groupBuy.fixed_discount_allocation && (
+                      <div className="px-2 sm:px-3 py-1 text-center text-red-500 text-xs sm:text-sm font-medium">
+                        （{
+                          groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' :
+                          groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' :
+                          '按人數分攤'
+                        }）
+                      </div>
+                    )}
                     </div>
                     </Card>
                     )}
