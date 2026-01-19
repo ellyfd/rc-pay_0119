@@ -837,17 +837,7 @@ export default function GroupBuyDetail() {
                             <div className="whitespace-nowrap">折扣價</div>
                             {getApplicableDiscount && (
                               <div className="text-[10px] sm:text-xs text-green-600 font-normal mt-0.5">
-                                {getApplicableDiscount.discount_type === 'percent' ? (
-                                  `(${getApplicableDiscount.discount_percent}% off)`
-                                ) : (
-                                  <>
-                                    (-${getApplicableDiscount.discount_amount})
-                                    <br />
-                                    {groupBuy.fixed_discount_allocation === 'proportional' && '按比例'}
-                                    {groupBuy.fixed_discount_allocation === 'per_item' && '按項目'}
-                                    {groupBuy.fixed_discount_allocation === 'per_member' && '按人數'}
-                                  </>
-                                )}
+                                ({getApplicableDiscount.discount_percent}% off)
                               </div>
                             )}
                           </th>
@@ -1146,20 +1136,11 @@ export default function GroupBuyDetail() {
                           }, 0).toLocaleString()}
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-xs sm:text-sm whitespace-nowrap">
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
                             {getTotalDiscountAmount > 0 && (
-                              <div>
-                                <div className="font-bold text-orange-600">
-                                  -${Math.round(getTotalDiscountAmount).toLocaleString()}
-                                </div>
-                                {getApplicableDiscount?.discount_type === 'fixed' && (
-                                  <div className="text-[10px] text-slate-500 mt-0.5">
-                                    {groupBuy.fixed_discount_allocation === 'proportional' && '按比例'}
-                                    {groupBuy.fixed_discount_allocation === 'per_item' && '按項目'}
-                                    {groupBuy.fixed_discount_allocation === 'per_member' && '按人數'}
-                                  </div>
-                                )}
-                              </div>
+                              <span className="font-bold">
+                                -${Math.round(getTotalDiscountAmount).toLocaleString()}
+                              </span>
                             )}
                           </td>
                         )}
