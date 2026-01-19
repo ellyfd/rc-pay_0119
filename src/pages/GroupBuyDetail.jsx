@@ -470,11 +470,12 @@ export default function GroupBuyDetail() {
     
     const newPaidStatus = !summary.paid;
     
-    // If marking as paid and using RC Pay, check balance (but don't deduct)
+    // If marking as paid and using RC Pay, check balance
     if (newPaidStatus && summary.hasRcPay) {
       const member = memberMap.get(summary.member_id);
       if (member && member.balance < summary.total) {
         toast.warning(`提醒：${summary.member_name} 的錢包餘額不足（餘額：$${member.balance}，需支付：$${summary.total}）`);
+        return;
       }
     }
     
@@ -486,6 +487,41 @@ export default function GroupBuyDetail() {
           data: { paid: newPaidStatus }
         });
       }
+      
+      // If marking as paid with RC PAY, create transaction and update balances
+      if (newPaidStatus && summary.hasRcPay && groupBuy) {
+        const payerMember = memberMap.get(summary.member_id);
+        const organizerMember = memberMap.get(groupBuy.organizer_id);
+        
+        if (payerMember && organizerMember) {
+          // Create transaction: from member to organizer
+          await createTransaction.mutateAsync({
+            type: 'transfer',
+            amount: summary.total,
+            wallet_type: 'balance',
+            from_member_id: summary.member_id,
+            to_member_id: groupBuy.organizer_id,
+            from_member_name: summary.member_name,
+            to_member_name: groupBuy.organizer_name,
+            note: `團購「${groupBuy.title}」RC Pay 支付`
+          });
+          
+          // Update member's balance
+          const newPayerBalance = Math.max(0, (payerMember.balance || 0) - summary.total);
+          await updateMember.mutateAsync({
+            id: summary.member_id,
+            data: { balance: newPayerBalance }
+          });
+          
+          // Update organizer's balance
+          const newOrganizerBalance = (organizerMember.balance || 0) + summary.total;
+          await updateMember.mutateAsync({
+            id: groupBuy.organizer_id,
+            data: { balance: newOrganizerBalance }
+          });
+        }
+      }
+      
       toast.success(newPaidStatus ? '已標記為已付款' : '已標記為未付款');
     } catch (error) {
       toast.error('更新付款狀態失敗：' + error.message);
