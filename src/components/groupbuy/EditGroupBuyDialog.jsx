@@ -300,31 +300,64 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
             </div>
             
             {/* Global Type Selectors */}
-            <div className="flex gap-4 p-3 bg-slate-50 rounded-lg border">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">折扣類型：</Label>
-                <Select value={discountRuleType} onValueChange={setDiscountRuleType}>
-                  <SelectTrigger className="h-9 w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="quantity">數量</SelectItem>
-                    <SelectItem value="amount">金額</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="space-y-3">
+              <div className="flex gap-4 p-3 bg-slate-50 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm whitespace-nowrap">折扣類型：</Label>
+                  <Select value={discountRuleType} onValueChange={setDiscountRuleType}>
+                    <SelectTrigger className="h-9 w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="quantity">數量</SelectItem>
+                      <SelectItem value="amount">金額</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm whitespace-nowrap">優惠方式：</Label>
+                  <Select value={discountType} onValueChange={setDiscountType}>
+                    <SelectTrigger className="h-9 w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percent">百分比</SelectItem>
+                      <SelectItem value="fixed">固定金額</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">優惠方式：</Label>
-                <Select value={discountType} onValueChange={setDiscountType}>
-                  <SelectTrigger className="h-9 w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="percent">百分比</SelectItem>
-                    <SelectItem value="fixed">固定金額</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              
+              {discountType === 'fixed' && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Label className="text-sm text-blue-900 font-semibold mb-2 block">固定金額折扣分攤方式</Label>
+                  <Select value={fixedDiscountAllocation} onValueChange={setFixedDiscountAllocation}>
+                    <SelectTrigger className="h-9 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="proportional">
+                        <div>
+                          <div className="font-medium">按比例分攤</div>
+                          <div className="text-xs text-slate-500">依各商品原價比例分配折扣</div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="per_item">
+                        <div>
+                          <div className="font-medium">按項目分攤</div>
+                          <div className="text-xs text-slate-500">每個商品平均分攤折扣</div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="per_member">
+                        <div>
+                          <div className="font-medium">按人頭數分攤</div>
+                          <div className="text-xs text-slate-500">每位參與者平均分攤折扣</div>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             {discountRules.length > 0 && (

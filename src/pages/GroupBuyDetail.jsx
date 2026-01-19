@@ -369,8 +369,8 @@ export default function GroupBuyDetail() {
     }
   }, [getApplicableDiscount, items]);
 
-  // Calculate discounted price per item (proportional discount)
-  const getDiscountedPrice = useMemo(() => (originalPrice) => {
+  // Calculate discounted price per item based on allocation method
+  const getDiscountedPrice = useMemo(() => (originalPrice, memberId = null) => {
     if (!getApplicableDiscount || getTotalDiscountAmount === 0) {
       return originalPrice;
     }
@@ -385,10 +385,61 @@ export default function GroupBuyDetail() {
 
     if (totalBeforeDiscount === 0) return originalPrice;
 
-    const discountRatio = getTotalDiscountAmount / totalBeforeDiscount;
-    const discountedPrice = originalPrice * (1 - discountRatio);
-    return Math.round(discountedPrice * 100) / 100;
-  }, [getApplicableDiscount, getTotalDiscountAmount, items]);
+    // For percentage discounts, always use proportional
+    if (getApplicableDiscount.discount_type === 'percent') {
+      const discountRatio = getTotalDiscountAmount / totalBeforeDiscount;
+      const discountedPrice = originalPrice * (1 - discountRatio);
+      return Math.round(discountedPrice * 100) / 100;
+    }
+
+    // For fixed amount discounts, use the specified allocation method
+    const allocationMethod = groupBuy?.fixed_discount_allocation || 'proportional';
+    
+    if (allocationMethod === 'proportional') {
+      // 按比例分攤：依各商品原價比例分配折扣
+      const discountRatio = getTotalDiscountAmount / totalBeforeDiscount;
+      const discountedPrice = originalPrice * (1 - discountRatio);
+      return Math.round(discountedPrice * 100) / 100;
+    } else if (allocationMethod === 'per_item') {
+      // 按項目分攤：每個商品品項平均分攤折扣
+      const totalItemCount = items.reduce((sum, item) => {
+        const isSplitItem = item.note && item.note.includes('平分');
+        if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+          return sum;
+        }
+        return sum + item.quantity;
+      }, 0);
+      
+      if (totalItemCount === 0) return originalPrice;
+      
+      const discountPerItem = getTotalDiscountAmount / totalItemCount;
+      const discountedPrice = originalPrice - discountPerItem;
+      return Math.round(Math.max(0, discountedPrice) * 100) / 100;
+    } else if (allocationMethod === 'per_member') {
+      // 按人頭數分攤：每位參與者平均分攤折扣
+      const uniqueMembers = new Set(items.map(item => item.member_id));
+      const memberCount = uniqueMembers.size;
+      
+      if (memberCount === 0) return originalPrice;
+      
+      const discountPerMember = getTotalDiscountAmount / memberCount;
+      
+      // Calculate this member's total before discount
+      const memberItems = items.filter(item => item.member_id === memberId);
+      const memberTotalBeforeDiscount = memberItems.reduce((sum, item) => {
+        return sum + (item.price * item.quantity);
+      }, 0);
+      
+      if (memberTotalBeforeDiscount === 0) return originalPrice;
+      
+      // Distribute member's share of discount proportionally among their items
+      const memberDiscountRatio = discountPerMember / memberTotalBeforeDiscount;
+      const discountedPrice = originalPrice * (1 - memberDiscountRatio);
+      return Math.round(Math.max(0, discountedPrice) * 100) / 100;
+    }
+
+    return originalPrice;
+  }, [getApplicableDiscount, getTotalDiscountAmount, items, groupBuy?.fixed_discount_allocation]);
 
   const handleMarkAsFullyPaid = async () => {
     if (!allPaid) {
@@ -450,7 +501,7 @@ export default function GroupBuyDetail() {
     if (!getApplicableDiscount) return false;
     
     return items.some(item => {
-      const discountedPrice = getDiscountedPrice(item.price);
+      const discountedPrice = getDiscountedPrice(item.price, item.member_id);
       const itemTotal = discountedPrice * item.quantity;
       return itemTotal % 1 !== 0;
     });
@@ -460,7 +511,7 @@ export default function GroupBuyDetail() {
   const memberSummary = useMemo(() => 
     items.reduce((acc, item) => {
       const existing = acc.find(m => m.member_id === item.member_id);
-      const discountedPrice = getDiscountedPrice(item.price);
+      const discountedPrice = getDiscountedPrice(item.price, item.member_id);
       const itemTotal = discountedPrice * item.quantity;
       if (existing) {
         existing.items.push(item);
@@ -938,7 +989,7 @@ export default function GroupBuyDetail() {
                             {groupBuy.discount_rules?.length > 0 && (
                               <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-700 text-xs sm:text-sm whitespace-nowrap">
                                 {(() => {
-                                  const discountedPrice = getDiscountedPrice(item.price);
+                                  const discountedPrice = getDiscountedPrice(item.price, item.member_id);
                                   const hasDiscount = discountedPrice !== item.price;
                                   return (
                                     <span className={hasDiscount ? 'text-amber-600 font-semibold' : ''}>
@@ -950,7 +1001,7 @@ export default function GroupBuyDetail() {
                             )}
                             <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-800 text-xs sm:text-sm whitespace-nowrap">
                               {(() => {
-                                const discountedPrice = groupBuy.discount_rules?.length > 0 ? getDiscountedPrice(item.price) : item.price;
+                                const discountedPrice = groupBuy.discount_rules?.length > 0 ? getDiscountedPrice(item.price, item.member_id) : item.price;
                                 return `$${(discountedPrice * item.quantity).toLocaleString()}`;
                               })()}
                             </td>
