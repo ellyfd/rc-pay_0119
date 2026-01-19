@@ -369,11 +369,11 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                   </thead>
                   <tbody className="divide-y">
                     {discountRules.map((rule, index) => (
-                      <tr key={index}>
-                        <td className="px-3 py-2">
+                      <tr key={index} className="hover:bg-slate-50">
+                        <td className="px-3 py-1.5">
                           {discountRuleType === 'amount' ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-600">$</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-500">$</span>
                               <Input
                                 type="number"
                                 min="1"
@@ -384,7 +384,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                                   setDiscountRules(newRules);
                                 }}
                                 placeholder="1000"
-                                className="h-9"
+                                className="h-8 text-sm"
                               />
                             </div>
                           ) : (
@@ -398,14 +398,14 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                                 setDiscountRules(newRules);
                               }}
                               placeholder="10"
-                              className="h-9"
+                              className="h-8 text-sm"
                             />
                           )}
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="px-3 py-1.5">
                           {discountType === 'fixed' ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-600">-$</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-500">-$</span>
                               <Input
                                 type="number"
                                 min="0"
@@ -416,11 +416,11 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                                   setDiscountRules(newRules);
                                 }}
                                 placeholder="100"
-                                className="h-9"
+                                className="h-8 text-sm"
                               />
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                               <Input
                                 type="number"
                                 min="0"
@@ -432,21 +432,21 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                                   setDiscountRules(newRules);
                                 }}
                                 placeholder="10"
-                                className="h-9"
+                                className="h-8 text-sm"
                               />
-                              <span className="text-sm text-slate-600">% off</span>
+                              <span className="text-xs text-slate-500">%</span>
                             </div>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-3 py-1.5 text-center">
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => setDiscountRules(discountRules.filter((_, i) => i !== index))}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                            className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </td>
                       </tr>
