@@ -311,11 +311,11 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
             </div>
             
             {/* Global Type Selectors */}
-            <div className="flex gap-4 p-3 bg-slate-50 rounded-lg border flex-wrap">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">折扣類型：</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg border">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-medium text-slate-700">折扣類型</Label>
                 <Select value={discountRuleType} onValueChange={setDiscountRuleType}>
-                  <SelectTrigger className="h-9 w-28">
+                  <SelectTrigger className="h-8 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -324,10 +324,10 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">優惠方式：</Label>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs font-medium text-slate-700">優惠方式</Label>
                 <Select value={discountType} onValueChange={setDiscountType}>
-                  <SelectTrigger className="h-9 w-28">
+                  <SelectTrigger className="h-8 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -337,10 +337,10 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                 </Select>
               </div>
               {discountType === 'fixed' && (
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm whitespace-nowrap">分攤方式：</Label>
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs font-medium text-slate-700">分攤方式</Label>
                   <Select value={fixedDiscountAllocation} onValueChange={setFixedDiscountAllocation}>
-                    <SelectTrigger className="h-9 w-32">
+                    <SelectTrigger className="h-8 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
