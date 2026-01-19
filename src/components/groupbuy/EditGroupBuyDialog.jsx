@@ -59,6 +59,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
         note: groupBuy.note || ''
       });
       setDiscountRules(groupBuy.discount_rules || []);
+      setFixedDiscountAllocation(groupBuy.fixed_discount_allocation || 'proportional');
     }
   }, [groupBuy]);
 
@@ -139,7 +140,8 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
         const hasDiscount = (r.discount_type === 'percent' && r.discount_percent > 0) || 
                            (r.discount_type === 'fixed' && r.discount_amount > 0);
         return hasCondition && hasDiscount;
-      })
+      }),
+      fixed_discount_allocation: fixedDiscountAllocation
     });
 
     // Handle products
