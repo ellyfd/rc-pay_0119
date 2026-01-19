@@ -1007,10 +1007,10 @@ export default function GroupBuyDetail() {
                             </td>
                             {itemIdx === 0 ? (
                               <td 
-                                className="px-2 sm:px-3 py-2 text-right align-top"
+                                className="px-3 py-2 text-right align-top"
                                 rowSpan={summary.items.length}
                               >
-                                <span className="text-base sm:text-lg font-bold text-purple-600">
+                                <span className="text-base font-bold text-purple-600 whitespace-nowrap">
                                   ${summary.total.toLocaleString()}
                                 </span>
                               </td>
