@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Plus, Trash2, ZoomIn, X } from "lucide-react";
+import { Upload, Plus, Trash2, ZoomIn, X, ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Select,
@@ -21,6 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSave }) {
   const [formData, setFormData] = useState({
