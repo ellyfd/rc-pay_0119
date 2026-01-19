@@ -827,10 +827,10 @@ export default function GroupBuyDetail() {
                   )}
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[500px]">
-                    <thead className="bg-slate-50 border-b">
-                      <tr>
-                        <th className="text-left px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">產品名稱</th>
+                   <table className="w-full">
+                     <thead className="bg-slate-50 border-b sticky top-0">
+                       <tr>
+                         <th className="text-left px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">產品名稱</th>
                         <th className="text-right px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
                         {groupBuy.discount_rules?.length > 0 && (
                           <th className="text-right px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">
