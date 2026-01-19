@@ -23,6 +23,17 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
       return sum + item.quantity;
     }, 0);
 
+  // Calculate total amount for this group buy
+  const totalAmount = items
+    .filter(item => item.group_buy_id === groupBuy.id)
+    .reduce((sum, item) => {
+      const isSplitItem = item.note && item.note.includes('平分');
+      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+        return sum;
+      }
+      return sum + (item.price * item.quantity);
+    }, 0);
+
   // Status logic
   const isClosed = groupBuy.status === 'closed';
   const isFullyPaid = groupBuy.is_fully_paid === true;
@@ -95,10 +106,13 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
 
         {/* Discount Progress */}
         {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
-          <DiscountProgressBar 
-            discountRules={groupBuy.discount_rules}
-            currentQuantity={totalQuantity}
-          />
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <DiscountProgressBar 
+              discountRules={groupBuy.discount_rules}
+              currentQuantity={totalQuantity}
+              currentAmount={totalAmount}
+            />
+          </div>
         )}
 
         {/* Actions */}
