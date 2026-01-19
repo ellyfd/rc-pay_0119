@@ -760,21 +760,25 @@ export default function MemberDetail() {
                             return '';
                           };
 
-                          // Calculate balance at this transaction (from current balance working backwards)
-                          const allWalletTransactions = allMemberTransactions
-                            .filter(t => t.wallet_type === transaction.wallet_type)
-                            .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+                          // Calculate running balance (from oldest to newest)
+                          const isCurrentWalletType = (t) => t.wallet_type === transaction.wallet_type;
+                          const transactionsUpToThis = memberTransactions
+                            .filter(isCurrentWalletType)
+                            .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
-                          let balanceAtThisTransaction = transaction.wallet_type === 'cash' ? member.cash_balance : member.balance;
-
-                          // Subtract all more recent transactions to get balance at this transaction
-                          for (const t of allWalletTransactions) {
+                          let runningBalance = 0;
+                          for (const t of transactionsUpToThis) {
                             if (t.id === transaction.id) break;
                             const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId)) 
                               ? t.amount 
                               : -t.amount;
-                            balanceAtThisTransaction -= change;
+                            runningBalance += change;
                           }
+
+                          const transactionChange = (transaction.type === 'deposit' || (transaction.type === 'transfer' && transaction.to_member_id === memberId)) 
+                            ? transaction.amount 
+                            : -transaction.amount;
+                          const balanceAfterTransaction = runningBalance + transactionChange;
 
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
@@ -813,8 +817,8 @@ export default function MemberDetail() {
                                 {getAmountPrefix()}${transaction.amount?.toLocaleString()}
                               </td>
                               <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap text-[11px] sm:text-sm">
-                                <span className={`font-semibold ${balanceAtThisTransaction >= 0 ? (transaction.wallet_type === 'cash' ? 'text-amber-600' : 'text-blue-600') : 'text-red-600'}`}>
-                                  ${balanceAtThisTransaction.toLocaleString()}
+                                <span className={`font-semibold ${balanceAfterTransaction >= 0 ? (transaction.wallet_type === 'cash' ? 'text-amber-600' : 'text-blue-600') : 'text-red-600'}`}>
+                                  ${balanceAfterTransaction.toLocaleString()}
                                 </span>
                               </td>
                               {currentUser?.role === 'admin' && (
