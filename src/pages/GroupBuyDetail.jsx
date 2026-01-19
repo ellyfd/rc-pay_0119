@@ -930,9 +930,9 @@ export default function GroupBuyDetail() {
                         <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">成員</th>
                         <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">產品</th>
                         <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">數量</th>
-                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                        <th className="hidden md:table-cell text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
+                          <th className="hidden lg:table-cell text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
                         )}
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">小計</th>
                         <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
@@ -940,10 +940,10 @@ export default function GroupBuyDetail() {
                           <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
                         )}
                         {isOrganizer && isClosed && !isFullyPaid && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">支付</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap text-[10px]">支付</th>
                         )}
                         {isOrganizer && isClosed && !isFullyPaid && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">收款</th>
+                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap text-[10px]">收款</th>
                         )}
                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
                           <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">操作</th>
