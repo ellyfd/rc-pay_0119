@@ -36,6 +36,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
   const [discountRules, setDiscountRules] = useState([]);
   const [discountRuleType, setDiscountRuleType] = useState('quantity');
   const [discountType, setDiscountType] = useState('percent');
+  const [fixedDiscountAllocation, setFixedDiscountAllocation] = useState('per_item');
   const [showImageModal, setShowImageModal] = useState(false);
   const queryClient = useQueryClient();
 
@@ -59,7 +60,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
         note: groupBuy.note || ''
       });
       setDiscountRules(groupBuy.discount_rules || []);
-      setFixedDiscountAllocation(groupBuy.fixed_discount_allocation || 'proportional');
+      setFixedDiscountAllocation(groupBuy.fixed_discount_allocation || 'per_item');
     }
   }, [groupBuy]);
 

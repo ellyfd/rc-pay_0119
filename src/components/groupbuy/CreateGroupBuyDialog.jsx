@@ -35,7 +35,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   const [discountRules, setDiscountRules] = useState([]);
   const [discountRuleType, setDiscountRuleType] = useState('quantity'); // 全局折扣類型
   const [discountType, setDiscountType] = useState('percent'); // 全局折扣方式
-  const [fixedDiscountAllocation, setFixedDiscountAllocation] = useState('proportional'); // 固定金額折扣分攤方式
+  const [fixedDiscountAllocation, setFixedDiscountAllocation] = useState('per_item'); // 固定金額折扣分攤方式
   const [imageUrls, setImageUrls] = useState([]);
   const [products, setProducts] = useState([{
     product_name: '',
