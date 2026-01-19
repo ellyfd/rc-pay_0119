@@ -108,10 +108,12 @@ export default function DiscountProgressBar({ discountRules, currentQuantity, cu
             再 <span className="font-bold text-purple-600">${remaining.toLocaleString()}</span> 達 {nextTier.discount_type === 'percent' ? `${nextTier.discount_percent}% off` : `-$${nextTier.discount_amount}`}
           </span>
         </div>
-        <Progress value={Math.min(progress, 100)} className="h-2" />
+        <div className="relative">
+          <Progress value={Math.min(progress, 100)} className="h-2" />
+        </div>
         <div className="flex justify-between text-xs text-slate-500">
           <span>${prevThreshold.toLocaleString()}</span>
-          <span className="font-semibold">${currentAmount.toLocaleString()}</span>
+          <span className="font-semibold">${Math.round(currentAmount).toLocaleString()}</span>
           <span>${nextThreshold.toLocaleString()}</span>
         </div>
       </div>
