@@ -764,9 +764,12 @@ export default function MemberDetail() {
                           };
 
                           // Calculate balance after this transaction: cumulative from oldest to this transaction
+                          // Must apply same filters as memberTransactions for consistency
                           const isCurrentWalletType = (t) => t.wallet_type === transaction.wallet_type;
+                          const isMatchingTransactionType = (t) => transactionTypeFilter === 'all' || t.type === transactionTypeFilter;
                           const allTransactionsOfWalletType = allMemberTransactions
                             .filter(isCurrentWalletType)
+                            .filter(isMatchingTransactionType)
                             .sort((a, b) => new Date(a.created_date) - new Date(b.created_date)); // ASC order
 
                           let cumulativeBalance = 0;
