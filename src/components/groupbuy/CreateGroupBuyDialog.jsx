@@ -280,23 +280,24 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
           <DialogTitle>開始新團購</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Template Selection */}
           {templates.length > 0 && (
-            <div>
-              <Label>從範本快速建立</Label>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <Label className="text-blue-900 font-semibold flex items-center gap-2 mb-2">
+                <FileText className="w-4 h-4" />
+                從範本快速建立（選填）
+              </Label>
+              <p className="text-xs text-blue-700 mb-2">使用之前儲存的範本，快速填入團購資訊</p>
               <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇範本（選填）" />
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="選擇範本..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={null}>不使用範本</SelectItem>
                   {templates.map(template => (
                     <SelectItem key={template.id} value={template.id}>
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        {template.template_name}
-                      </div>
+                      {template.template_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -304,43 +305,49 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             </div>
           )}
 
-          {/* Title */}
-          <div>
-            <Label>團購標題 *</Label>
-            <Input
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="例：日本零食團購、韓國美妝團..." />
+          {/* Basic Info Section */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-slate-800 text-sm border-b pb-2">📝 基本資訊</h3>
+            
+            {/* Title */}
+            <div>
+              <Label className="text-slate-700">團購標題 <span className="text-red-500">*</span></Label>
+              <p className="text-xs text-slate-500 mb-1.5">設定一個吸引人的標題，讓大家知道這是什麼團購</p>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="例：日本零食團購、韓國美妝團..." />
+            </div>
 
-          </div>
+            {/* Description */}
+            <div>
+              <Label className="text-slate-700">團購說明（選填）</Label>
+              <p className="text-xs text-slate-500 mb-1.5">詳細說明團購內容、注意事項、運費規則等</p>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="例：日本零食，運費平分，預計到貨時間..."
+                rows={3} />
+            </div>
 
-          {/* Description */}
-          <div>
-            <Label>團購說明</Label>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="說明團購內容、注意事項等..."
-              rows={3} />
-
-          </div>
-
-          {/* Deadline */}
-          <div>
-            <Label>截止日期</Label>
-            <Input
-              type="date"
-              value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
-
+            {/* Deadline */}
+            <div>
+              <Label className="text-slate-700">截止日期（選填）</Label>
+              <p className="text-xs text-slate-500 mb-1.5">設定團購截止時間</p>
+              <Input
+                type="date"
+                value={formData.deadline}
+                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
+            </div>
           </div>
 
           {/* AI Analysis Section */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1">
               <Sparkles className="w-5 h-5 text-purple-600" />
-              <h3 className="font-semibold text-purple-900">AI 快速辨識商品</h3>
+              <h3 className="font-semibold text-purple-900">🤖 AI 快速辨識商品</h3>
             </div>
+            <p className="text-xs text-purple-700 mb-3">上傳商品圖片，AI 會自動識別商品名稱和價格</p>
             
             {/* Image Upload */}
             <div>
@@ -398,22 +405,30 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
           {/* Product Link */}
           <div>
-            <Label>商品連結（選填）</Label>
+            <Label className="text-slate-700">商品連結（選填）</Label>
+            <p className="text-xs text-slate-500 mb-1.5">可貼上購物網站連結，方便參與者查看商品詳情</p>
             <Input
               value={formData.product_link}
               onChange={(e) => setFormData({ ...formData, product_link: e.target.value })}
               placeholder="https://..."
               type="url" />
-
           </div>
 
           {/* Discount Rules */}
-          <div>
-            <Label className="mb-2 block">數量折扣規則（選填）</Label>
-            <p className="text-xs text-slate-500 mb-3">設定達到特定數量或金額時的折扣優惠</p>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-semibold text-slate-800 text-sm border-b pb-2 mb-3">💰 團購優惠規則（選填）</h3>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  <span className="font-semibold">設定折扣規則範例：</span><br/>
+                  • 按數量：滿 10 件打 9 折、滿 20 件全團折 $500<br/>
+                  • 按金額：滿 $5,000 打 9 折、滿 $10,000 全團折 $1,000
+                </p>
+              </div>
+            </div>
             
             {/* Global Type Selectors */}
-            <div className="flex gap-4 mb-3 p-3 bg-slate-50 rounded-lg border">
+            <div className="flex gap-4 p-3 bg-slate-50 rounded-lg border">
               <div className="flex items-center gap-2">
                 <Label className="text-sm whitespace-nowrap">折扣類型：</Label>
                 <Select value={discountRuleType} onValueChange={setDiscountRuleType}>
@@ -570,9 +585,15 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
           </div>
 
           {/* Products */}
-          <div>
-            <Label className="mb-2 block">預設商品列表（選填）</Label>
-            <p className="text-xs text-slate-500 mb-3">新增商品讓參與者更方便選購，也可以稍後再新增</p>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-semibold text-slate-800 text-sm border-b pb-2 mb-3">🛍️ 商品列表（選填）</h3>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                <p className="text-xs text-green-800 leading-relaxed">
+                  <span className="font-semibold">提示：</span>先新增商品列表，參與者就能快速點選訂購。也可以建立團購後再慢慢新增商品。
+                </p>
+              </div>
+            </div>
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full table-auto">
                 <thead className="bg-slate-50 border-b">
