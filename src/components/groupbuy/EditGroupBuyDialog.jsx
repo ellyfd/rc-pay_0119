@@ -34,6 +34,8 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
   const [uploading, setUploading] = useState(false);
   const [products, setProducts] = useState([]);
   const [discountRules, setDiscountRules] = useState([]);
+  const [discountRuleType, setDiscountRuleType] = useState('quantity');
+  const [discountType, setDiscountType] = useState('percent');
   const [showImageModal, setShowImageModal] = useState(false);
   const queryClient = useQueryClient();
 
@@ -279,15 +281,46 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
           <div>
             <Label className="mb-2 block">折扣規則（選填）</Label>
             <p className="text-xs text-slate-500 mb-3">設定達到特定數量或金額時的折扣優惠</p>
+            
+            {/* Global Type Selectors */}
+            <div className="flex gap-4 mb-3 p-3 bg-slate-50 rounded-lg border">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">折扣類型：</Label>
+                <Select value={discountRuleType} onValueChange={setDiscountRuleType}>
+                  <SelectTrigger className="h-9 w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quantity">數量</SelectItem>
+                    <SelectItem value="amount">金額</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">優惠方式：</Label>
+                <Select value={discountType} onValueChange={setDiscountType}>
+                  <SelectTrigger className="h-9 w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">百分比</SelectItem>
+                    <SelectItem value="fixed">固定金額</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {discountRules.length > 0 && (
               <div className="border rounded-lg overflow-hidden mb-2">
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b">
                     <tr>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[100px]">類型</th>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">達標條件</th>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[100px]">優惠方式</th>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">折扣</th>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">
+                        達標條件 ({discountRuleType === 'quantity' ? '數量' : '金額'})
+                      </th>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">
+                        折扣 ({discountType === 'percent' ? '百分比' : '固定金額'})
+                      </th>
                       <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
                     </tr>
                   </thead>
@@ -295,30 +328,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                     {discountRules.map((rule, index) => (
                       <tr key={index}>
                         <td className="px-3 py-2">
-                          <Select
-                            value={rule.type || 'quantity'}
-                            onValueChange={(value) => {
-                              const newRules = [...discountRules];
-                              newRules[index].type = value;
-                              if (value === 'quantity') {
-                                delete newRules[index].min_amount;
-                              } else {
-                                delete newRules[index].min_quantity;
-                              }
-                              setDiscountRules(newRules);
-                            }}
-                          >
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="quantity">數量</SelectItem>
-                              <SelectItem value="amount">金額</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2">
-                          {rule.type === 'amount' ? (
+                          {discountRuleType === 'amount' ? (
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-slate-600">$</span>
                               <Input
@@ -350,30 +360,7 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <Select
-                            value={rule.discount_type || 'percent'}
-                            onValueChange={(value) => {
-                              const newRules = [...discountRules];
-                              newRules[index].discount_type = value;
-                              if (value === 'percent') {
-                                delete newRules[index].discount_amount;
-                              } else {
-                                delete newRules[index].discount_percent;
-                              }
-                              setDiscountRules(newRules);
-                            }}
-                          >
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="percent">百分比</SelectItem>
-                              <SelectItem value="fixed">固定金額</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2">
-                          {rule.discount_type === 'fixed' ? (
+                          {discountType === 'fixed' ? (
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-slate-600">-$</span>
                               <Input
@@ -427,7 +414,23 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
             )}
             <Button
               type="button"
-              onClick={() => setDiscountRules([...discountRules, { type: 'quantity', min_quantity: 0, discount_type: 'percent', discount_percent: 0 }])}
+              onClick={() => {
+                const newRule = {
+                  type: discountRuleType,
+                  discount_type: discountType
+                };
+                if (discountRuleType === 'quantity') {
+                  newRule.min_quantity = 0;
+                } else {
+                  newRule.min_amount = 0;
+                }
+                if (discountType === 'percent') {
+                  newRule.discount_percent = 0;
+                } else {
+                  newRule.discount_amount = 0;
+                }
+                setDiscountRules([...discountRules, newRule]);
+              }}
               variant="outline"
               className="w-full"
             >
