@@ -760,25 +760,21 @@ export default function MemberDetail() {
                             return '';
                           };
 
-                          // Calculate running balance (from oldest to newest, using ALL transactions)
+                          // Calculate balance after this transaction (cumulative from all earlier transactions)
                           const isCurrentWalletType = (t) => t.wallet_type === transaction.wallet_type;
                           const allTransactionsOfWalletType = allMemberTransactions
                             .filter(isCurrentWalletType)
                             .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
-                          let runningBalance = 0;
+                          let cumulativeBalance = 0;
                           for (const t of allTransactionsOfWalletType) {
-                            if (t.id === transaction.id) break;
                             const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId)) 
                               ? t.amount 
                               : -t.amount;
-                            runningBalance += change;
+                            cumulativeBalance += change;
+                            if (t.id === transaction.id) break;
                           }
-
-                          const transactionChange = (transaction.type === 'deposit' || (transaction.type === 'transfer' && transaction.to_member_id === memberId)) 
-                            ? transaction.amount 
-                            : -transaction.amount;
-                          const balanceAfterTransaction = runningBalance + transactionChange;
+                          const balanceAfterTransaction = cumulativeBalance;
 
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
