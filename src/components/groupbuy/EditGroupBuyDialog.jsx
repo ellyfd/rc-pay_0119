@@ -356,15 +356,15 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
             {discountRules.length > 0 && (
               <div className="border rounded-lg overflow-hidden mb-2">
                 <table className="w-full">
-                  <thead className="bg-slate-50 border-b">
+                  <thead className="bg-slate-100 border-b">
                     <tr>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">
-                        達標條件 ({discountRuleType === 'quantity' ? '數量' : '金額'})
+                      <th className="text-left px-3 py-2 text-xs font-semibold text-slate-700">
+                        {discountRuleType === 'quantity' ? '達標數量' : '達標金額'}
                       </th>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">
-                        折扣 ({discountType === 'percent' ? '百分比' : '固定金額'})
+                      <th className="text-left px-3 py-2 text-xs font-semibold text-slate-700">
+                        {discountType === 'percent' ? '折扣百分比' : '折扣金額'}
                       </th>
-                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
+                      <th className="text-center px-3 py-2 text-xs font-semibold text-slate-700 w-12"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
