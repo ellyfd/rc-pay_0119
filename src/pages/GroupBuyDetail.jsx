@@ -1061,7 +1061,9 @@ export default function GroupBuyDetail() {
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
                             {getApplicableDiscount && (
                               <span className="text-base sm:text-lg font-bold text-orange-600">
-                                -{getApplicableDiscount.discount_percent}%
+                                {getApplicableDiscount.discount_type === 'percent' 
+                                  ? `-${getApplicableDiscount.discount_percent}%`
+                                  : `-$${getApplicableDiscount.discount_amount}`}
                               </span>
                             )}
                           </td>
