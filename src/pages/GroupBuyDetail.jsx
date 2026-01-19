@@ -925,31 +925,31 @@ export default function GroupBuyDetail() {
               <Card>
                 <div className="overflow-x-auto -mx-4 sm:mx-0">
                    <table className="w-full min-w-[800px]">
-                    <thead className="bg-slate-50 border-b">
-                      <tr>
-                        <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">成員</th>
-                        <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">產品</th>
-                        <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">數量</th>
-                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
-                        {groupBuy.discount_rules?.length > 0 && (
-                          <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
-                        )}
-                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">小計</th>
-                        <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
-                        {hasDiscountDecimals && isOrganizer && isClosed && (
-                          <th className="text-right px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
-                        )}
-                        {isOrganizer && isClosed && !isFullyPaid && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">支付</th>
-                        )}
-                        {isOrganizer && isClosed && !isFullyPaid && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">收款</th>
-                        )}
-                        {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
-                          <th className="text-center px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold text-slate-700">操作</th>
-                        )}
-                      </tr>
-                    </thead>
+                    <thead className="bg-slate-50 border-b sticky top-0">
+                       <tr>
+                         <th className="text-left px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">成員</th>
+                         <th className="text-left px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">產品</th>
+                         <th className="text-center px-2 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">數量</th>
+                         <th className="text-right px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">{groupBuy.discount_rules?.length > 0 ? '原價' : '單價'}</th>
+                         {groupBuy.discount_rules?.length > 0 && (
+                           <th className="text-right px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">折扣價</th>
+                         )}
+                         <th className="text-right px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">小計</th>
+                         <th className="text-right px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">個人加總</th>
+                         {hasDiscountDecimals && isOrganizer && isClosed && (
+                           <th className="text-right px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">實際支付</th>
+                         )}
+                         {isOrganizer && isClosed && !isFullyPaid && (
+                           <th className="text-center px-2 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">支付</th>
+                         )}
+                         {isOrganizer && isClosed && !isFullyPaid && (
+                           <th className="text-center px-2 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">收款</th>
+                         )}
+                         {((isOrganizer || items.some(i => i.created_by === currentUser?.email)) && isOpen) && (
+                           <th className="text-center px-2 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">操作</th>
+                         )}
+                       </tr>
+                     </thead>
                     <tbody className="divide-y">
                       {memberSummary.map((summary, summaryIdx) => (
                         summary.items.map((item, itemIdx) => (
