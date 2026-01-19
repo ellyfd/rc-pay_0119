@@ -868,7 +868,7 @@ export default function MemberDetail() {
                 </div>
               )}
             </section>
-            )}
+            }
             </TabsContent>
 
             {/* Group Buy Tab */}
