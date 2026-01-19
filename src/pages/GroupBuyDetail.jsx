@@ -985,9 +985,9 @@ export default function GroupBuyDetail() {
                                 return item.quantity;
                               })()}
                             </td>
-                            <td className="px-2 sm:px-3 py-2 text-right text-slate-700 text-xs sm:text-sm whitespace-nowrap">${item.price.toLocaleString()}</td>
+                            <td className="px-3 py-2 text-right text-slate-700 text-xs whitespace-nowrap">${item.price.toLocaleString()}</td>
                             {groupBuy.discount_rules?.length > 0 && (
-                              <td className="px-2 sm:px-3 py-2 text-right font-medium text-slate-700 text-xs sm:text-sm whitespace-nowrap">
+                              <td className="px-3 py-2 text-right font-medium text-slate-700 text-xs whitespace-nowrap">
                                 {(() => {
                                   const discountedPrice = getDiscountedPrice(item.price, item.member_id);
                                   const hasDiscount = discountedPrice !== item.price;
