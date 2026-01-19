@@ -245,10 +245,13 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
     await onCreate({
       ...formData,
       products: validProducts,
-      discount_rules: discountRules.filter(r => 
-        (r.type === 'quantity' && r.min_quantity > 0) || 
-        (r.type === 'amount' && r.min_amount > 0)
-      )
+      discount_rules: discountRules.filter(r => {
+        const hasCondition = (r.type === 'quantity' && r.min_quantity > 0) || 
+                            (r.type === 'amount' && r.min_amount > 0);
+        const hasDiscount = (r.discount_type === 'percent' && r.discount_percent > 0) || 
+                           (r.discount_type === 'fixed' && r.discount_amount > 0);
+        return hasCondition && hasDiscount;
+      })
     });
 
     setFormData({
@@ -413,6 +416,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                     <tr>
                       <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[100px]">類型</th>
                       <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">達標條件</th>
+                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[100px]">優惠方式</th>
                       <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">折扣</th>
                       <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
                     </tr>
@@ -476,22 +480,63 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                           )}
                         </td>
                         <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={rule.discount_percent}
-                              onChange={(e) => {
-                                const newRules = [...discountRules];
-                                newRules[index].discount_percent = parseFloat(e.target.value) || 0;
-                                setDiscountRules(newRules);
-                              }}
-                              placeholder="10"
-                              className="h-9"
-                            />
-                            <span className="text-sm text-slate-600">% off</span>
-                          </div>
+                          <Select
+                            value={rule.discount_type || 'percent'}
+                            onValueChange={(value) => {
+                              const newRules = [...discountRules];
+                              newRules[index].discount_type = value;
+                              if (value === 'percent') {
+                                delete newRules[index].discount_amount;
+                              } else {
+                                delete newRules[index].discount_percent;
+                              }
+                              setDiscountRules(newRules);
+                            }}
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="percent">百分比</SelectItem>
+                              <SelectItem value="fixed">固定金額</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-2">
+                          {rule.discount_type === 'fixed' ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-600">-$</span>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={rule.discount_amount || 0}
+                                onChange={(e) => {
+                                  const newRules = [...discountRules];
+                                  newRules[index].discount_amount = parseFloat(e.target.value) || 0;
+                                  setDiscountRules(newRules);
+                                }}
+                                placeholder="100"
+                                className="h-9"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={rule.discount_percent || 0}
+                                onChange={(e) => {
+                                  const newRules = [...discountRules];
+                                  newRules[index].discount_percent = parseFloat(e.target.value) || 0;
+                                  setDiscountRules(newRules);
+                                }}
+                                placeholder="10"
+                                className="h-9"
+                              />
+                              <span className="text-sm text-slate-600">% off</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-center">
                           <Button
@@ -512,7 +557,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
             )}
             <Button
               type="button"
-              onClick={() => setDiscountRules([...discountRules, { type: 'quantity', min_quantity: 0, discount_percent: 0 }])}
+              onClick={() => setDiscountRules([...discountRules, { type: 'quantity', min_quantity: 0, discount_type: 'percent', discount_percent: 0 }])}
               variant="outline"
               className="w-full"
             >
