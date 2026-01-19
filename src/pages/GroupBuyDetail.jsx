@@ -1168,8 +1168,8 @@ export default function GroupBuyDetail() {
                           <td colSpan={4}></td>
                           {groupBuy.discount_rules?.length > 0 && (
                             <td className="px-2 sm:px-3 text-center text-red-500 text-[10px] sm:text-xs whitespace-nowrap align-middle">
-                              ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分費' : 
-                                groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分費' : '按人數分費'})
+                              ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' : 
+                                groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' : '按人數分攤'})
                             </td>
                           )}
                           <td colSpan={10}></td>
