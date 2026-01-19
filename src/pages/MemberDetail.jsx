@@ -837,9 +837,9 @@ export default function MemberDetail() {
                                 </td>
                               )}
                               </tr>
-                            );
-                          })}
-                        </tbody>
+                              );
+                              })}
+                              </tbody>
                     </table>
                   </div>
                 </Card>
