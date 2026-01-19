@@ -760,21 +760,26 @@ export default function MemberDetail() {
                             return '';
                           };
 
-                          // Calculate balance after this transaction (cumulative from all earlier transactions)
+                          // Calculate balance after this transaction: current balance - all later transactions
                           const isCurrentWalletType = (t) => t.wallet_type === transaction.wallet_type;
                           const allTransactionsOfWalletType = allMemberTransactions
                             .filter(isCurrentWalletType)
-                            .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+                            .sort((a, b) => new Date(b.created_date) - new Date(a.created_date)); // DESC order
 
-                          let cumulativeBalance = 0;
+                          let laterTransactionsNet = 0;
+                          let foundCurrent = false;
                           for (const t of allTransactionsOfWalletType) {
+                            if (t.id === transaction.id) {
+                              foundCurrent = true;
+                              break;
+                            }
                             const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId)) 
                               ? t.amount 
                               : -t.amount;
-                            cumulativeBalance += change;
-                            if (t.id === transaction.id) break;
+                            laterTransactionsNet += change;
                           }
-                          const balanceAfterTransaction = cumulativeBalance;
+                          const currentBalance = transaction.wallet_type === 'balance' ? member.balance : member.cash_balance;
+                          const balanceAfterTransaction = currentBalance - laterTransactionsNet;
 
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
