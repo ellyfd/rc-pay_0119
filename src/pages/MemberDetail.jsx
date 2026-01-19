@@ -760,6 +760,13 @@ export default function MemberDetail() {
                             return '';
                           };
 
+                          // Calculate running balance (after this transaction)
+                          const balanceBeforeTransaction = transaction.wallet_type === 'cash' ? member.cash_balance : member.balance;
+                          const transactionAmount = transaction.type === 'deposit' || (transaction.type === 'transfer' && transaction.to_member_id === memberId) 
+                            ? transaction.amount 
+                            : -transaction.amount;
+                          const balanceAfterTransaction = (balanceBeforeTransaction || 0) - transactionAmount;
+
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
                               <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
@@ -795,6 +802,11 @@ export default function MemberDetail() {
                               </td>
                               <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
                                 {getAmountPrefix()}${transaction.amount?.toLocaleString()}
+                              </td>
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap text-[11px] sm:text-sm">
+                                <span className={`font-semibold ${balanceAfterTransaction >= 0 ? (transaction.wallet_type === 'cash' ? 'text-amber-600' : 'text-blue-600') : 'text-red-600'}`}>
+                                  ${balanceAfterTransaction.toLocaleString()}
+                                </span>
                               </td>
                               {currentUser?.role === 'admin' && (
                                 <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
