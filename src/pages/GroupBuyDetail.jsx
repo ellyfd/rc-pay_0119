@@ -924,7 +924,7 @@ export default function GroupBuyDetail() {
             ) : (
               <Card>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[700px]">
+                  <table className="w-full">
                     <thead className="bg-slate-50 border-b">
                       <tr>
                         <th className="text-left px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700">成員</th>
