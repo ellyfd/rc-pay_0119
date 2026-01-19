@@ -1118,8 +1118,8 @@ export default function GroupBuyDetail() {
                         ))
                       ))}
                       <tr className="bg-slate-50 font-semibold">
-                        <td colSpan={2} className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-700 text-xs sm:text-sm">總計</td>
-                        <td className="px-1 sm:px-2 py-2 sm:py-3 text-center text-slate-800 text-xs sm:text-sm">
+                        <td colSpan={2} className="px-3 py-2 text-right text-slate-700 text-xs">總計</td>
+                        <td className="px-2 py-2 text-center text-slate-800 text-xs whitespace-nowrap">
                           {items.reduce((sum, item) => {
                             const isSplitItem = item.note && item.note.includes('平分');
                             const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
@@ -1127,7 +1127,7 @@ export default function GroupBuyDetail() {
                             return sum + item.quantity;
                           }, 0)}
                         </td>
-                        <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-800 text-xs sm:text-sm whitespace-nowrap">
+                        <td className="px-3 py-2 text-right text-slate-800 text-xs whitespace-nowrap">
                           ${items.reduce((sum, item) => {
                             const isSplitItem = item.note && item.note.includes('平分');
                             const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
@@ -1136,7 +1136,7 @@ export default function GroupBuyDetail() {
                           }, 0).toLocaleString()}
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
-                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">
+                          <td className="px-3 py-2 text-right text-orange-600 text-xs whitespace-nowrap">
                             {getTotalDiscountAmount > 0 && (
                               <span className="font-bold">
                                 -${Math.round(getTotalDiscountAmount).toLocaleString()}
@@ -1144,12 +1144,12 @@ export default function GroupBuyDetail() {
                             )}
                           </td>
                         )}
-                        <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-medium text-slate-800 text-xs sm:text-sm whitespace-nowrap"></td>
-                        <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-purple-600 whitespace-nowrap">
+                        <td className="px-3 py-2 text-right font-medium text-slate-800 text-xs whitespace-nowrap"></td>
+                        <td className="px-3 py-2 text-right text-base text-purple-600 whitespace-nowrap">
                           ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
                         {hasDiscountDecimals && isOrganizer && isClosed && (
-                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-orange-600 whitespace-nowrap">
+                          <td className="px-3 py-2 text-right text-base text-orange-600 whitespace-nowrap">
                             ${memberSummary.reduce((sum, m) => {
                               const actualCharge = actualCharges[m.member_id] ?? Math.round(m.total);
                               return sum + actualCharge;
