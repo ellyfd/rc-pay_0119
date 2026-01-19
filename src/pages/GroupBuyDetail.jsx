@@ -296,18 +296,59 @@ export default function GroupBuyDetail() {
     }, 0);
   }, [items]);
 
-  // Calculate applicable discount based on total group buy quantity
+  // Calculate total amount across all items
+  const getTotalAmount = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const isSplitItem = item.note && item.note.includes('平分');
+      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
+        return sum;
+      }
+      return sum + (item.price * item.quantity);
+    }, 0);
+  }, [items]);
+
+  // Calculate applicable discount based on total group buy quantity or amount
   const getApplicableDiscount = useMemo(() => {
     if (!groupBuy?.discount_rules || groupBuy.discount_rules.length === 0) {
       return null;
     }
 
-    // Find applicable discount rule (highest min_quantity that is met)
-    const sortedRules = [...groupBuy.discount_rules].sort((a, b) => b.min_quantity - a.min_quantity);
-    const applicableRule = sortedRules.find(rule => getTotalQuantity >= rule.min_quantity);
+    // Separate rules by type
+    const quantityRules = groupBuy.discount_rules.filter(r => r.type === 'quantity');
+    const amountRules = groupBuy.discount_rules.filter(r => r.type === 'amount');
 
-    return applicableRule;
-  }, [groupBuy?.discount_rules, getTotalQuantity]);
+    let bestRule = null;
+
+    // Check quantity rules
+    if (quantityRules.length > 0) {
+      const sortedRules = [...quantityRules].sort((a, b) => b.min_quantity - a.min_quantity);
+      const applicable = sortedRules.find(rule => getTotalQuantity >= rule.min_quantity);
+      if (applicable) bestRule = applicable;
+    }
+
+    // Check amount rules
+    if (amountRules.length > 0) {
+      const sortedRules = [...amountRules].sort((a, b) => b.min_amount - a.min_amount);
+      const applicable = sortedRules.find(rule => getTotalAmount >= rule.min_amount);
+      if (applicable) {
+        // If both types have applicable rules, choose the better discount
+        if (bestRule) {
+          const bestDiscount = bestRule.discount_type === 'percent' ? bestRule.discount_percent : bestRule.discount_amount;
+          const thisDiscount = applicable.discount_type === 'percent' ? applicable.discount_percent : applicable.discount_amount;
+          // For simplicity, prefer percentage discounts or higher values
+          if (applicable.discount_type === 'percent' && bestRule.discount_type === 'percent') {
+            if (thisDiscount > bestDiscount) bestRule = applicable;
+          } else if (applicable.discount_type === bestRule.discount_type) {
+            if (thisDiscount > bestDiscount) bestRule = applicable;
+          }
+        } else {
+          bestRule = applicable;
+        }
+      }
+    }
+
+    return bestRule;
+  }, [groupBuy?.discount_rules, getTotalQuantity, getTotalAmount]);
 
   // Calculate discounted price
   const getDiscountedPrice = useMemo(() => (originalPrice) => {
@@ -591,21 +632,31 @@ export default function GroupBuyDetail() {
                   )}
                   {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-                      <p className="text-xs font-semibold text-amber-800 mb-1">📊 數量折扣規則</p>
+                      <p className="text-xs font-semibold text-amber-800 mb-1">📊 折扣規則</p>
                       {groupBuy.discount_rules
-                        .sort((a, b) => a.min_quantity - b.min_quantity)
+                        .sort((a, b) => {
+                          if (a.type === 'quantity' && b.type === 'quantity') {
+                            return a.min_quantity - b.min_quantity;
+                          } else if (a.type === 'amount' && b.type === 'amount') {
+                            return a.min_amount - b.min_amount;
+                          }
+                          return a.type === 'quantity' ? -1 : 1;
+                        })
                         .map((rule, idx) => (
                           <p key={idx} className="text-xs text-amber-700">
-                            • 滿 {rule.min_quantity} 件：{rule.discount_percent}% off
+                            • {rule.type === 'quantity' ? `滿 ${rule.min_quantity} 件` : `滿 $${rule.min_amount}`}：
+                            {rule.discount_type === 'percent' ? `${rule.discount_percent}% off` : `-$${rule.discount_amount}`}
                           </p>
                         ))}
                       <div className="mt-2 pt-2 border-t border-amber-200">
                         <p className="text-xs font-semibold text-amber-800">
-                          🎉 目前全團總數量：{getTotalQuantity} 件
+                          🎉 目前全團：{getTotalQuantity} 件 / ${getTotalAmount.toLocaleString()}
                         </p>
                         {getApplicableDiscount && (
                           <p className="text-xs font-bold text-green-700 mt-1">
-                            ✨ 已達標！全團享 {getApplicableDiscount.discount_percent}% off
+                            ✨ 已達標！全團享 {getApplicableDiscount.discount_type === 'percent' 
+                              ? `${getApplicableDiscount.discount_percent}% off` 
+                              : `-$${getApplicableDiscount.discount_amount}`}
                           </p>
                         )}
                       </div>
@@ -619,6 +670,7 @@ export default function GroupBuyDetail() {
                     <DiscountProgressBar 
                       discountRules={groupBuy.discount_rules}
                       currentQuantity={getTotalQuantity}
+                      currentAmount={getTotalAmount}
                     />
                   </div>
                 )}
