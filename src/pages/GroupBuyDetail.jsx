@@ -679,18 +679,7 @@ export default function GroupBuyDetail() {
                             {rule.discount_type === 'percent' ? `${rule.discount_percent}% off` : `-$${rule.discount_amount}`}
                           </p>
                         ))}
-                      <div className="mt-2 pt-2 border-t border-amber-200">
-                        <p className="text-xs font-semibold text-amber-800">
-                          🎉 目前全團：{getTotalQuantity} 件 / ${getTotalAmount.toLocaleString()}
-                        </p>
-                        {getApplicableDiscount && (
-                          <p className="text-xs font-bold text-green-700 mt-1">
-                            ✨ 已達標！全團享 {getApplicableDiscount.discount_type === 'percent' 
-                              ? `${getApplicableDiscount.discount_percent}% off` 
-                              : `-$${getApplicableDiscount.discount_amount}`}
-                          </p>
-                        )}
-                      </div>
+
                     </div>
                   )}
                 </div>
