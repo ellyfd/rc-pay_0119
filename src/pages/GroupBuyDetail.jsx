@@ -969,13 +969,13 @@ export default function GroupBuyDetail() {
                                     </td>
                               </>
                             )}
-                            <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">
+                            <td className="px-3 py-2 text-xs">
                               <div className="text-slate-700">{item.product_name}</div>
                               {item.note && item.note.includes('平分') && (
-                                <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">{item.note}</div>
+                                <div className="text-[10px] text-slate-500 mt-0.5">{item.note}</div>
                               )}
                             </td>
-                            <td className="px-1 sm:px-2 py-2 text-center text-slate-700 text-xs sm:text-sm">
+                            <td className="px-2 py-2 text-center text-slate-700 text-xs whitespace-nowrap">
                               {(() => {
                                 const isSplitItem = item.note && item.note.includes('平分');
                                 const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
