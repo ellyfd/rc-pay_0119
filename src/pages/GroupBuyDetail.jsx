@@ -1033,7 +1033,7 @@ export default function GroupBuyDetail() {
                               </td>
                             )}
                             {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
-                              <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
+                              <td className="px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
                                 <select
                                   value={item.payment_method || ''}
                                   onChange={(e) => {
@@ -1045,7 +1045,7 @@ export default function GroupBuyDetail() {
                                       });
                                     });
                                   }}
-                                  className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 w-full max-w-[80px]"
+                                  className="text-xs px-1 py-1 rounded border border-slate-300 bg-white text-slate-700 w-full max-w-[70px]"
                                 >
                                   <option value="">請選擇</option>
                                   {(() => {
