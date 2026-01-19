@@ -1017,7 +1017,7 @@ export default function GroupBuyDetail() {
                             ) : null}
                             {itemIdx === 0 && hasDiscountDecimals && isOrganizer && isClosed && (
                               <td 
-                                className="px-2 sm:px-3 py-2 text-right align-top"
+                                className="px-3 py-2 text-right align-top"
                                 rowSpan={summary.items.length}
                               >
                                 <input
@@ -1027,7 +1027,7 @@ export default function GroupBuyDetail() {
                                     const newCharges = { ...actualCharges, [summary.member_id]: parseFloat(e.target.value) || 0 };
                                     setActualCharges(newCharges);
                                   }}
-                                  className="w-16 sm:w-20 px-1 sm:px-2 py-1 text-xs sm:text-sm text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className="w-16 px-1 py-1 text-xs text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                   disabled={isFullyPaid}
                                 />
                               </td>
