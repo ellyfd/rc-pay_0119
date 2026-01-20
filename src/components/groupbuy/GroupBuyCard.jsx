@@ -104,8 +104,8 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
           )}
         </div>
 
-        {/* Discount Progress */}
-        {groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
+        {/* Discount Progress (進行中) or Payment Progress (待收款) */}
+        {isOpen && groupBuy.discount_rules && groupBuy.discount_rules.length > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <DiscountProgressBar 
               discountRules={groupBuy.discount_rules}
@@ -114,6 +114,30 @@ export default function GroupBuyCard({ groupBuy, currentUser, members, items = [
             />
           </div>
         )}
+        
+        {isClosed && !isFullyPaid && (() => {
+          const groupItems = items.filter(item => item.group_buy_id === groupBuy.id);
+          const paidCount = groupItems.filter(item => item.paid).length;
+          const totalCount = groupItems.length;
+          const paidPercentage = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
+          
+          return (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-slate-600">收款進度</span>
+                <span className="font-semibold text-green-600">
+                  已收 {paidCount} / {totalCount} 筆
+                </span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-green-500 h-full transition-all duration-300"
+                  style={{ width: `${paidPercentage}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Actions */}
         <div className="pt-2">
