@@ -563,8 +563,6 @@ export default function DrinkOrder() {
             {orders.map(order => {
               const isPaid = allPaid(order);
               const isCompleted = order.status === 'completed';
-              const orderSelectedMembers = selectedMembers[order.id] || [];
-              const isExpanded = expandedOrders[order.id];
               
               const memberGroups = {};
               order.items?.forEach(item => {
