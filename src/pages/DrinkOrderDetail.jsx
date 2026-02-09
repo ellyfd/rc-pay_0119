@@ -32,6 +32,25 @@ export default function DrinkOrderDetail() {
     setOrderId(params.get('id'));
   }, []);
 
+  const { data: members = [] } = useQuery({
+    queryKey: ['members'],
+    queryFn: () => base44.entities.Member.list('name')
+  });
+
+  // 建立成員 Map 以提高查找效率
+  const memberMap = useMemo(() => {
+    return new Map(members.map(m => [m.id, m]));
+  }, [members]);
+
+  const { data: order } = useQuery({
+    queryKey: ['drinkOrder', orderId],
+    queryFn: async () => {
+      const allOrders = await base44.entities.DrinkOrder.list();
+      return allOrders.find(o => o.id === orderId);
+    },
+    enabled: !!orderId
+  });
+
   // 自動均分運費到每個成員
   useEffect(() => {
     if (!order || !order.items) return;
@@ -57,25 +76,6 @@ export default function DrinkOrderDetail() {
       return updated;
     });
   }, [order?.shipping_fee, order?.items?.length]);
-
-  const { data: members = [] } = useQuery({
-    queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('name')
-  });
-
-  // 建立成員 Map 以提高查找效率
-  const memberMap = useMemo(() => {
-    return new Map(members.map(m => [m.id, m]));
-  }, [members]);
-
-  const { data: order } = useQuery({
-    queryKey: ['drinkOrder', orderId],
-    queryFn: async () => {
-      const allOrders = await base44.entities.DrinkOrder.list();
-      return allOrders.find(o => o.id === orderId);
-    },
-    enabled: !!orderId
-  });
 
   const updateOrder = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DrinkOrder.update(id, data),
