@@ -535,10 +535,14 @@ export default function DrinkOrderDetail() {
             </div>
           </div>
 
-          {selectedMembers.length > 0 && !isCompleted && (
+          {!isCompleted && (
             <div className="p-3 bg-blue-50 border-b">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-700">已選取 {selectedMembers.length} 位成員</span>
+                <span className="text-sm text-slate-700">
+                  {selectedMembers.length > 0 
+                    ? `已選取 ${selectedMembers.length} 位成員` 
+                    : '勾選成員後可批量設定支付方式'}
+                </span>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-600">批量設定支付方式：</label>
                   <select
@@ -549,19 +553,22 @@ export default function DrinkOrderDetail() {
                     }}
                     defaultValue=""
                     className="px-2 py-1 border rounded text-sm"
+                    disabled={selectedMembers.length === 0}
                   >
                     <option value="">選擇方式</option>
                     <option value="cash">現金</option>
                     <option value="balance">餘額</option>
                   </select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedMembers([])}
-                    className="text-xs h-7"
-                  >
-                    取消選取
-                  </Button>
+                  {selectedMembers.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedMembers([])}
+                      className="text-xs h-7"
+                    >
+                      取消選取
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -572,7 +579,7 @@ export default function DrinkOrderDetail() {
               <thead className="bg-slate-50">
                 <tr>
                   {!isCompleted && (
-                    <th className="text-center px-2 py-2 text-slate-700 w-[40px]">
+                    <th className="text-center px-2 py-2 text-slate-700 w-[4%]">
                       <input
                         type="checkbox"
                         checked={(() => {
@@ -591,15 +598,15 @@ export default function DrinkOrderDetail() {
                       />
                     </th>
                   )}
-                  <th className="text-left px-3 py-2 text-slate-700 w-[120px]">成員</th>
+                  <th className="text-left px-3 py-2 text-slate-700 w-[10%]">成員</th>
                   <th className="text-left px-3 py-2 text-slate-700">項目</th>
-                  <th className="text-right px-3 py-2 text-slate-700 w-[70px]">金額</th>
-                  <th className="text-right px-3 py-2 text-slate-700 w-[70px]">小計</th>
-                  <th className="text-right px-3 py-2 text-slate-700 w-[70px]">運費</th>
-                  <th className="text-right px-3 py-2 text-slate-700 w-[90px]">應付</th>
-                  <th className="text-right px-3 py-2 text-slate-700 w-[80px]">實收</th>
-                  {!isCompleted && <th className="text-center px-3 py-2 text-slate-700 w-[80px]">支付方式</th>}
-                  <th className="text-center px-3 py-2 text-slate-700 w-[70px]">已支付</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[8%]">金額</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[8%]">小計</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[8%]">運費</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[10%]">應付</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[9%]">實收</th>
+                  {!isCompleted && <th className="text-center px-3 py-2 text-slate-700 w-[9%]">支付方式</th>}
+                  <th className="text-center px-3 py-2 text-slate-700 w-[7%]">已支付</th>
                 </tr>
               </thead>
               <tbody>
