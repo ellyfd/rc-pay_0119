@@ -24,7 +24,6 @@ export default function DrinkOrderDetail() {
   const [splitItemIndex, setSplitItemIndex] = useState(null);
   const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
   const [confirmPayment, setConfirmPayment] = useState(null);
-  const [shippingMode, setShippingMode] = useState('split');
   const [manualShipping, setManualShipping] = useState({});
   const queryClient = useQueryClient();
 
@@ -32,6 +31,32 @@ export default function DrinkOrderDetail() {
     const params = new URLSearchParams(window.location.search);
     setOrderId(params.get('id'));
   }, []);
+
+  // 自動均分運費到每個成員
+  useEffect(() => {
+    if (!order || !order.items) return;
+    const groups = {};
+    order.items.forEach(item => {
+      const key = item.member_id || item.member_name;
+      if (!groups[key]) groups[key] = true;
+    });
+    const memberIds = Object.keys(groups);
+    const count = memberIds.length;
+    if (count === 0) return;
+
+    const perMember = Math.round((order.shipping_fee || 0) / count);
+    
+    // 只填入還沒有手動值的成員
+    setManualShipping(prev => {
+      const updated = { ...prev };
+      memberIds.forEach(id => {
+        if (updated[id] === undefined) {
+          updated[id] = perMember;
+        }
+      });
+      return updated;
+    });
+  }, [order?.shipping_fee, order?.items?.length]);
 
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
@@ -197,9 +222,8 @@ export default function DrinkOrderDetail() {
         const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
         const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
         const totalMembers = allMemberIds.length;
-        const memberShipping = shippingMode === 'split'
-          ? (totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0)
-          : (manualShipping[memberId] ?? 0);
+        const memberShipping = manualShipping[memberId] 
+          ?? (totalMembers > 0 ? Math.round((order.shipping_fee || 0) / totalMembers) : 0);
 
         const chargeKey = `${orderId}_${memberId}`;
         const calculatedAmount = Math.round(itemTotal + memberShipping);
@@ -377,13 +401,10 @@ export default function DrinkOrderDetail() {
   });
 
   const totalMembers = Object.keys(memberGroups).length;
-  const shippingPerMember = shippingMode === 'split' && totalMembers > 0 
-    ? (order.shipping_fee || 0) / totalMembers 
-    : 0;
 
   const getMemberShipping = (memberId) => {
-    if (shippingMode === 'split') return shippingPerMember;
-    return manualShipping[memberId] ?? 0;
+    if (manualShipping[memberId] !== undefined) return manualShipping[memberId];
+    return totalMembers > 0 ? Math.round((order.shipping_fee || 0) / totalMembers) : 0;
   };
 
   return (
@@ -637,18 +658,17 @@ export default function DrinkOrderDetail() {
                                 ${memberTotal}
                               </td>
                               <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                {shippingMode === 'split' ? (
-                                  <span>${shippingPerMember.toFixed(0)}</span>
+                                {isCompleted ? (
+                                  <span>${getMemberShipping(memberId)}</span>
                                 ) : (
                                   <input
                                     type="number"
-                                    value={manualShipping[memberId] ?? 0}
+                                    value={manualShipping[memberId] ?? getMemberShipping(memberId)}
                                     onChange={(e) => setManualShipping(prev => ({
                                       ...prev,
                                       [memberId]: parseFloat(e.target.value) || 0
                                     }))}
                                     className="w-16 px-1 py-1 text-right border rounded text-sm"
-                                    disabled={isCompleted}
                                   />
                                 )}
                               </td>
@@ -772,38 +792,41 @@ export default function DrinkOrderDetail() {
                         type="number"
                         value={order.shipping_fee || 0}
                         onChange={(e) => {
+                          const newFee = parseFloat(e.target.value) || 0;
                           updateOrder.mutateAsync({
                             id: orderId,
-                            data: { shipping_fee: parseFloat(e.target.value) || 0 }
+                            data: { shipping_fee: newFee }
                           });
+                          // 重新均分
+                          const count = Object.keys(memberGroups).length;
+                          if (count > 0) {
+                            const perMember = Math.round(newFee / count);
+                            const updated = {};
+                            Object.keys(memberGroups).forEach(id => { updated[id] = perMember; });
+                            setManualShipping(updated);
+                          }
                         }}
                         className="w-20 text-sm text-right"
                       />
                     </td>
                     <td colSpan={2} className="px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant={shippingMode === 'split' ? 'default' : 'outline'}
-                            onClick={() => setShippingMode('split')}
-                            className={`text-xs ${shippingMode === 'split' ? 'bg-orange-600' : ''}`}
-                          >
-                            均分
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={shippingMode === 'manual' ? 'default' : 'outline'}
-                            onClick={() => setShippingMode('manual')}
-                            className={`text-xs ${shippingMode === 'manual' ? 'bg-orange-600' : ''}`}
-                          >
-                            手動
-                          </Button>
-                        </div>
-                        {shippingMode === 'split' && (
-                          <span className="text-xs text-slate-500">每人 ${shippingPerMember.toFixed(0)}</span>
-                        )}
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const count = Object.keys(memberGroups).length;
+                          if (count > 0) {
+                            const perMember = Math.round((order.shipping_fee || 0) / count);
+                            const updated = {};
+                            Object.keys(memberGroups).forEach(id => { updated[id] = perMember; });
+                            setManualShipping(updated);
+                            toast.success(`已均分運費，每人 $${perMember}`);
+                          }
+                        }}
+                        className="text-xs"
+                      >
+                        重新均分
+                      </Button>
                     </td>
                     <td colSpan={2}></td>
                   </tr>
@@ -817,7 +840,7 @@ export default function DrinkOrderDetail() {
                       ${order.shipping_fee || 0}
                     </td>
                     <td colSpan={2} className="px-3 py-3 text-xs text-slate-500">
-                      均分每人 ${shippingPerMember.toFixed(0)}
+                      {totalMembers > 0 && `均分每人 $${Math.round((order.shipping_fee || 0) / totalMembers)}`}
                     </td>
                     <td></td>
                   </tr>
