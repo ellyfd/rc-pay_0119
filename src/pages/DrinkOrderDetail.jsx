@@ -568,11 +568,11 @@ export default function DrinkOrderDetail() {
           )}
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[1000px] text-sm table-fixed">
               <thead className="bg-slate-50">
                 <tr>
                   {!isCompleted && (
-                    <th className="text-center px-2 py-2 text-slate-700 w-12">
+                    <th className="text-center px-2 py-2 text-slate-700 w-[40px]">
                       <input
                         type="checkbox"
                         checked={(() => {
@@ -591,15 +591,15 @@ export default function DrinkOrderDetail() {
                       />
                     </th>
                   )}
-                  <th className="text-left px-3 py-2 text-slate-700">成員</th>
+                  <th className="text-left px-3 py-2 text-slate-700 w-[120px]">成員</th>
                   <th className="text-left px-3 py-2 text-slate-700">項目</th>
-                  <th className="text-right px-3 py-2 text-slate-700">金額</th>
-                  <th className="text-right px-3 py-2 text-slate-700">小計</th>
-                  <th className="text-right px-3 py-2 text-slate-700">運費</th>
-                  <th className="text-right px-3 py-2 text-slate-700">應付</th>
-                  <th className="text-right px-3 py-2 text-slate-700">實收</th>
-                  {!isCompleted && <th className="text-left px-3 py-2 text-slate-700">支付方式</th>}
-                  <th className="text-center px-3 py-2 text-slate-700">已支付</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[70px]">金額</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[70px]">小計</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[70px]">運費</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[90px]">應付</th>
+                  <th className="text-right px-3 py-2 text-slate-700 w-[80px]">實收</th>
+                  {!isCompleted && <th className="text-center px-3 py-2 text-slate-700 w-[80px]">支付方式</th>}
+                  <th className="text-center px-3 py-2 text-slate-700 w-[70px]">已支付</th>
                 </tr>
               </thead>
               <tbody>
@@ -668,7 +668,7 @@ export default function DrinkOrderDetail() {
                                       ...prev,
                                       [memberId]: parseFloat(e.target.value) || 0
                                     }))}
-                                    className="w-16 px-1 py-1 text-right border rounded text-sm"
+                                    className="w-full px-2 py-1 text-right border rounded text-sm"
                                   />
                                 )}
                               </td>
@@ -685,7 +685,7 @@ export default function DrinkOrderDetail() {
                                     onChange={(e) => {
                                       setActualCharges({ ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 });
                                     }}
-                                    className="w-16 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none"
+                                    className="w-full px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none"
                                   />
                                 )}
                               </td>
@@ -763,12 +763,13 @@ export default function DrinkOrderDetail() {
                   );
                 })}
                 <tr className="bg-orange-50 font-bold border-t-2">
-                  <td colSpan={isCompleted ? 2 : 3} className="px-3 py-3 text-right">總計</td>
+                  <td colSpan={isCompleted ? 3 : 4} className="px-3 py-3 text-right">總計</td>
                   <td className="px-3 py-3 text-right text-slate-700">
                     ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
                   </td>
-                  <td className="px-3 py-3 text-right">-</td>
-                  <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee || 0}</td>
+                  <td className="px-3 py-3 text-right text-slate-600">
+                    ${Object.keys(memberGroups).reduce((sum, id) => sum + (manualShipping[id] ?? getMemberShipping(id)), 0)}
+                  </td>
                   <td className="px-3 py-3 text-right">-</td>
                   <td className="px-3 py-3 text-right text-orange-600 text-base">
                     ${Object.keys(memberGroups).reduce((sum, memberId) => {
