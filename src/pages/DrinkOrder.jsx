@@ -15,17 +15,15 @@ export default function DrinkOrder() {
   const [dateRange, setDateRange] = useState('today');
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [storeName, setStoreName] = useState('');
+  const [orderName, setOrderName] = useState('');
+  const [payerId, setPayerId] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState({});
   const [manualAdjustment, setManualAdjustment] = useState(0);
-  const [shouldSplitFees, setShouldSplitFees] = useState(true);
-  const [actualCharges, setActualCharges] = useState({});
-  const [expandedOrders, setExpandedOrders] = useState({});
   const [feeDetails, setFeeDetails] = useState({
     delivery_fee: 0,
     service_fee: 0,
@@ -123,128 +121,6 @@ export default function DrinkOrder() {
       toast.success('訂單及相關交易已刪除！');
     }
   });
-
-  const createTransaction = useMutation({
-    mutationFn: async (data) => base44.entities.Transaction.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
-  });
-
-  const updateMember = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] })
-  });
-
-  const updateOrderPayer = async (orderId, payerId) => {
-    const payer = members.find(m => m.id === payerId);
-    if (!payer) return;
-
-    await updateOrder.mutateAsync({
-      id: orderId,
-      data: { 
-        payer_id: payerId,
-        payer_name: payer.name
-      }
-    });
-  };
-
-  const batchUpdatePaymentMethod = async (orderId, memberIds, paymentMethod) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const updatedItems = order.items.map(item => {
-      if (memberIds.includes(item.member_id)) {
-        return { ...item, payment_method: paymentMethod };
-      }
-      return item;
-    });
-
-    await updateOrder.mutateAsync({
-      id: orderId,
-      data: { items: updatedItems }
-    });
-
-    setSelectedMembers(prev => ({ ...prev, [orderId]: [] }));
-    toast.success(`已為 ${memberIds.length} 位成員設定支付方式`);
-  };
-
-  const updateMemberPayment = async (orderId, memberId, field, value) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const updatedItems = order.items.map(item => {
-      if (item.member_id === memberId) {
-        return { ...item, [field]: value };
-      }
-      return item;
-    });
-
-    await updateOrder.mutateAsync({
-      id: orderId,
-      data: { items: updatedItems }
-    });
-
-    // 檢查是否所有人都已付款，如果是就自動結案
-    const allPaidNow = updatedItems.filter(item => item.member_id !== order.payer_id).every(item => item.paid);
-    if (allPaidNow && order.status !== 'completed') {
-      await handleCompleteOrder(orderId);
-    }
-
-    // 如果是勾選已支付，且支付方式為餘額，需要建立轉帳交易
-    if (field === 'paid' && value === true) {
-      const memberItems = updatedItems.filter(item => item.member_id === memberId);
-      const paymentMethod = memberItems[0]?.payment_method || 'cash';
-      
-      if (paymentMethod === 'balance') {
-        if (!memberId || !order.payer_id) {
-          toast.warning('請先選擇訂單支付人和成員！');
-          return;
-        }
-        
-        const fromMember = members.find(m => m.id === memberId);
-        const toMember = members.find(m => m.id === order.payer_id);
-        
-        if (!fromMember || !toMember) return;
-
-        const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
-        
-        // 計算該成員需分攤的運費
-        const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
-        const totalMembers = allMemberIds.length;
-        const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
-        const totalAmount = Math.round(itemTotal + shippingPerMember);
-
-        // 檢查餘額是否足夠
-        if ((fromMember.balance || 0) < totalAmount) {
-          toast.warning(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}，建議充值`);
-        }
-
-        // 建立轉帳交易
-        await createTransaction.mutateAsync({
-          type: 'transfer',
-          amount: totalAmount,
-          wallet_type: 'balance',
-          from_member_id: fromMember.id,
-          to_member_id: toMember.id,
-          from_member_name: fromMember.name,
-          to_member_name: toMember.name,
-          note: `${format(new Date(order.order_date), 'yyyy/MM/dd')} 飲料`
-        });
-
-        // 更新成員餘額
-        await updateMember.mutateAsync({
-          id: fromMember.id,
-          data: { balance: (fromMember.balance || 0) - totalAmount }
-        });
-
-        await updateMember.mutateAsync({
-          id: toMember.id,
-          data: { balance: (toMember.balance || 0) + totalAmount }
-        });
-
-        toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
-      }
-    }
-  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -459,6 +335,7 @@ export default function DrinkOrder() {
               _suggested_payer_id: payerMember.id,
               _suggested_payer_name: payerMember.name
             })));
+            setPayerId(payerMember.id);
           }
         }
         
@@ -490,25 +367,32 @@ export default function DrinkOrder() {
     // 清理items，移除臨時欄位
     const cleanedItems = orderItems.map(({ _suggested_payer_id, _suggested_payer_name, ...item }) => item);
 
-    const shippingFee = shouldSplitFees ? feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment : 0;
+    const shippingFee = feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment;
+    
+    const finalPayerId = payerId || suggestedPayerId || undefined;
+    const finalPayerName = payerId 
+      ? members.find(m => m.id === payerId)?.name 
+      : suggestedPayerName || undefined;
 
     await createOrder.mutateAsync({
       order_date: orderDate,
+      order_name: orderName || undefined,
       store_name: storeName || '飲料店',
       image_url: uploadedImageUrl,
       items: cleanedItems,
       total_amount: totalAmount,
       shipping_fee: shippingFee,
-      payer_id: suggestedPayerId || undefined,
-      payer_name: suggestedPayerName || undefined,
+      payer_id: finalPayerId,
+      payer_name: finalPayerName,
       status: 'pending'
     });
 
     setOrderItems([]);
+    setOrderName('');
+    setPayerId('');
     setStoreName('');
     setUploadedImageUrl('');
     setManualAdjustment(0);
-    setShouldSplitFees(true);
     setFeeDetails({
       delivery_fee: 0,
       service_fee: 0,
@@ -729,7 +613,10 @@ export default function DrinkOrder() {
                           size="icon"
                           onClick={(e) => {
                             e.preventDefault();
-                            deleteOrder.mutate(order.id);
+                            e.stopPropagation();
+                            if (window.confirm('確定要刪除此訂單？相關交易紀錄也會一併刪除。')) {
+                              deleteOrder.mutate(order.id);
+                            }
                           }}
                           className="text-red-500 hover:text-red-700 h-8 w-8"
                         >
@@ -758,10 +645,11 @@ export default function DrinkOrder() {
                   onClick={() => {
                     setShowCreateDialog(false);
                     setOrderItems([]);
+                    setOrderName('');
+                    setPayerId('');
                     setStoreName('');
                     setUploadedImageUrl('');
                     setManualAdjustment(0);
-                    setShouldSplitFees(true);
                     setFeeDetails({ delivery_fee: 0, service_fee: 0, delivery_discount: 0, member_rewards: 0 });
                     if (fileInputRef.current) fileInputRef.current.value = '';
                   }}
@@ -779,6 +667,29 @@ export default function DrinkOrder() {
                     onChange={(e) => setOrderDate(e.target.value)}
                     className="w-48"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂單名稱</label>
+                  <Input
+                    value={orderName}
+                    onChange={(e) => setOrderName(e.target.value)}
+                    placeholder="例如：下午茶、週五團購"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂單支付人</label>
+                  <select
+                    value={payerId}
+                    onChange={(e) => setPayerId(e.target.value)}
+                    className="w-full px-3 py-2 border rounded"
+                  >
+                    <option value="">選擇支付人</option>
+                    {members.map(m => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -989,30 +900,10 @@ export default function DrinkOrder() {
                           className="w-32 text-sm"
                         />
                       </div>
-                      <div className="flex items-center gap-3 pt-2 border-t">
-                        <span className="text-sm font-semibold text-slate-700">其它費用：</span>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant={shouldSplitFees ? 'default' : 'outline'}
-                            onClick={() => setShouldSplitFees(true)}
-                            size="sm"
-                            className={`text-xs ${shouldSplitFees ? 'bg-orange-600' : ''}`}
-                          >
-                            均分
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={!shouldSplitFees ? 'default' : 'outline'}
-                            onClick={() => setShouldSplitFees(false)}
-                            size="sm"
-                            className={`text-xs ${!shouldSplitFees ? 'bg-slate-600' : ''}`}
-                          >
-                            不用支付
-                          </Button>
-                        </div>
-                        <span className="text-sm font-bold text-orange-600 ml-auto">
-                          ${shouldSplitFees ? feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment : 0}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <span className="text-sm font-semibold text-slate-700">運費/服務費總計：</span>
+                        <span className="text-sm font-bold text-orange-600">
+                          ${feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment}
                         </span>
                       </div>
                     </div>

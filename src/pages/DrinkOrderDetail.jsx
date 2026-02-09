@@ -23,6 +23,7 @@ export default function DrinkOrderDetail() {
   const [showSplitDialog, setShowSplitDialog] = useState(false);
   const [splitItemIndex, setSplitItemIndex] = useState(null);
   const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
+  const [confirmPayment, setConfirmPayment] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -202,15 +203,6 @@ export default function DrinkOrderDetail() {
 
         if ((fromMember.balance || 0) < totalAmount) {
           toast.error(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}`);
-          return;
-        }
-
-        try {
-          await processBalanceTransfer(fromMember, toMember, totalAmount, order.order_date);
-          toast.success(`${fromMember.name} 已轉帳 $${totalAmount} 給 ${toMember.name}`);
-        } catch (error) {
-          console.error('轉帳失敗:', error);
-          toast.error(`轉帳失敗：${error.message}`);
           await updateOrder.mutateAsync({
             id: orderId,
             data: { 
@@ -221,6 +213,17 @@ export default function DrinkOrderDetail() {
           });
           return;
         }
+
+        setConfirmPayment({
+          memberId,
+          fromName: fromMember.name,
+          toName: toMember.name,
+          amount: totalAmount,
+          fromMember,
+          toMember,
+          orderDate: order.order_date
+        });
+        return;
       }
     }
   };
@@ -469,6 +472,24 @@ export default function DrinkOrderDetail() {
                 </select>
               </div>
               <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-600 whitespace-nowrap">運費/服務費：</label>
+                <Input
+                  type="number"
+                  value={order.shipping_fee || 0}
+                  onChange={(e) => {
+                    updateOrder.mutateAsync({
+                      id: orderId,
+                      data: { shipping_fee: parseFloat(e.target.value) || 0 }
+                    });
+                  }}
+                  className="w-24 text-sm"
+                  disabled={isCompleted}
+                />
+                <span className="text-xs text-slate-500">
+                  （均分每人 ${shippingPerMember.toFixed(0)}）
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
                 {!isCompleted && (
                   <>
                     <Button
@@ -483,7 +504,11 @@ export default function DrinkOrderDetail() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deleteOrder.mutate(orderId)}
+                      onClick={() => {
+                        if (window.confirm('確定要刪除此訂單？相關交易紀錄也會一併刪除。')) {
+                          deleteOrder.mutate(orderId);
+                        }
+                      }}
                       className="text-red-500 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4 md:mr-2" />
@@ -953,6 +978,55 @@ export default function DrinkOrderDetail() {
                   確認平分
                 </Button>
               </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* 餘額支付確認對話框 */}
+      {confirmPayment && (
+        <div className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+          <Card className="w-full max-w-sm p-6 space-y-4">
+            <h3 className="font-bold text-lg">確認餘額支付</h3>
+            <p className="text-sm text-slate-700">
+              確定要從 <b>{confirmPayment.fromName}</b> 轉帳 
+              <b className="text-orange-600"> ${confirmPayment.amount}</b> 給 
+              <b>{confirmPayment.toName}</b> 嗎？
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" 
+                onClick={() => {
+                  setConfirmPayment(null);
+                  updateOrder.mutateAsync({
+                    id: orderId,
+                    data: { 
+                      items: order.items.map(item => 
+                        item.member_id === confirmPayment.memberId ? { ...item, paid: false } : item
+                      )
+                    }
+                  });
+                }}>
+                取消
+              </Button>
+              <Button className="flex-1 bg-blue-600 text-white hover:bg-blue-700" 
+                onClick={async () => {
+                  const { fromMember, toMember, amount, memberId, orderDate } = confirmPayment;
+                  try {
+                    await processBalanceTransfer(fromMember, toMember, amount, orderDate);
+                    toast.success(`${fromMember.name} 已轉帳 $${amount} 給 ${toMember.name}`);
+                  } catch (error) {
+                    toast.error(`轉帳失敗：${error.message}`);
+                    await updateOrder.mutateAsync({
+                      id: orderId,
+                      data: { items: order.items.map(item => 
+                        item.member_id === memberId ? { ...item, paid: false } : item
+                      )}
+                    });
+                  }
+                  setConfirmPayment(null);
+                }}>
+                確認轉帳
+              </Button>
             </div>
           </Card>
         </div>
