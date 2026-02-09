@@ -746,25 +746,84 @@ export default function DrinkOrderDetail() {
                     </React.Fragment>
                   );
                 })}
-                {order.shipping_fee > 0 && (
-                  <tr className="bg-orange-50 font-bold border-t-2">
-                    <td colSpan={isCompleted ? 2 : 3} className="px-3 py-3 text-right">總計</td>
-                    <td className="px-3 py-3 text-right text-slate-700">
-                      ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
+                <tr className="bg-orange-50 font-bold border-t-2">
+                  <td colSpan={isCompleted ? 2 : 3} className="px-3 py-3 text-right">總計</td>
+                  <td className="px-3 py-3 text-right text-slate-700">
+                    ${order.items?.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-3 text-right">-</td>
+                  <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee || 0}</td>
+                  <td className="px-3 py-3 text-right">-</td>
+                  <td className="px-3 py-3 text-right text-orange-600 text-base">
+                    ${Object.keys(memberGroups).reduce((sum, memberId) => {
+                      const chargeKey = `${orderId}_${memberId}`;
+                      const items = memberGroups[memberId];
+                      const memberTotal = items.reduce((s, i) => s + i.price, 0);
+                      const memberShipping = getMemberShipping(memberId);
+                      const defaultCharge = Math.round(memberTotal + memberShipping);
+                      return sum + (actualCharges[chargeKey] ?? defaultCharge);
+                    }, 0).toLocaleString()}
+                  </td>
+                  <td colSpan={isCompleted ? 1 : 2}></td>
+                </tr>
+                {!isCompleted && (
+                  <tr className="bg-slate-50 border-t">
+                    <td colSpan={isCompleted ? 4 : 5} className="px-3 py-3 text-right text-sm text-slate-600">
+                      運費/服務費總額：
                     </td>
-                    <td className="px-3 py-3 text-right">-</td>
-                    <td className="px-3 py-3 text-right text-slate-700">${order.shipping_fee}</td>
-                    <td className="px-3 py-3 text-right">-</td>
-                    <td className="px-3 py-3 text-right text-orange-600 text-base">
-                      ${Object.keys(memberGroups).reduce((sum, memberId) => {
-                        const chargeKey = `${orderId}_${memberId}`;
-                        const items = memberGroups[memberId];
-                        const memberTotal = items.reduce((s, i) => s + i.price, 0);
-                        const defaultCharge = Math.round(memberTotal + shippingPerMember);
-                        return sum + (actualCharges[chargeKey] ?? defaultCharge);
-                      }, 0).toLocaleString()}
+                    <td className="px-3 py-3">
+                      <Input
+                        type="number"
+                        value={order.shipping_fee || 0}
+                        onChange={(e) => {
+                          updateOrder.mutateAsync({
+                            id: orderId,
+                            data: { shipping_fee: parseFloat(e.target.value) || 0 }
+                          });
+                        }}
+                        className="w-20 text-sm text-right"
+                      />
                     </td>
-                    <td colSpan={isCompleted ? 1 : 2}></td>
+                    <td colSpan={2} className="px-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant={shippingMode === 'split' ? 'default' : 'outline'}
+                            onClick={() => setShippingMode('split')}
+                            className={`text-xs ${shippingMode === 'split' ? 'bg-orange-600' : ''}`}
+                          >
+                            均分
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={shippingMode === 'manual' ? 'default' : 'outline'}
+                            onClick={() => setShippingMode('manual')}
+                            className={`text-xs ${shippingMode === 'manual' ? 'bg-orange-600' : ''}`}
+                          >
+                            手動
+                          </Button>
+                        </div>
+                        {shippingMode === 'split' && (
+                          <span className="text-xs text-slate-500">每人 ${shippingPerMember.toFixed(0)}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td colSpan={2}></td>
+                  </tr>
+                )}
+                {isCompleted && (
+                  <tr className="bg-slate-50 border-t">
+                    <td colSpan={4} className="px-3 py-3 text-right text-sm text-slate-600">
+                      運費/服務費總額：
+                    </td>
+                    <td className="px-3 py-3 text-right text-sm font-semibold">
+                      ${order.shipping_fee || 0}
+                    </td>
+                    <td colSpan={2} className="px-3 py-3 text-xs text-slate-500">
+                      均分每人 ${shippingPerMember.toFixed(0)}
+                    </td>
+                    <td></td>
                   </tr>
                 )}
               </tbody>
