@@ -290,6 +290,10 @@ export default function DrinkOrder() {
         if (result.store_name) {
           setStoreName(result.store_name);
         }
+        
+        // 自動生成訂單名稱
+        const autoName = `${format(new Date(orderDate), 'MM/dd')} ${result.store_name || '飲料'}`;
+        setOrderName(autoName);
 
         // 處理費用資料
         const delivery = result.delivery_fee || 0;
@@ -668,15 +672,6 @@ export default function DrinkOrder() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">訂單名稱</label>
-                  <Input
-                    value={orderName}
-                    onChange={(e) => setOrderName(e.target.value)}
-                    placeholder="例如：下午茶、週五團購"
-                  />
-                </div>
-
-                <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">訂單支付人</label>
                   <select
                     value={payerId}
@@ -743,15 +738,24 @@ export default function DrinkOrder() {
                     </div>
 
                     {orderItems.length > 0 && (
-                    <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">店家名稱</label>
-                    <Input
-                      type="text"
-                      value={storeName}
-                      onChange={(e) => setStoreName(e.target.value)}
-                      placeholder="例如：50嵐、清心福全、coco都可"
-                      className="w-full"
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">訂單名稱</label>
+                        <Input
+                          value={orderName}
+                          onChange={(e) => setOrderName(e.target.value)}
+                          placeholder="例如：02/09 50嵐"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">店家名稱</label>
+                        <Input
+                          type="text"
+                          value={storeName}
+                          onChange={(e) => setStoreName(e.target.value)}
+                          placeholder="例如：50嵐、清心福全"
+                        />
+                      </div>
                     </div>
                     )}
 
@@ -772,6 +776,9 @@ export default function DrinkOrder() {
                               <option key={m.id} value={m.id}>{m.name}</option>
                             ))}
                           </select>
+                          <Button variant="outline" size="sm" onClick={addEmptyItem} className="text-sm">
+                            + 新增項目
+                          </Button>
                         </div>
                       </div>
                       <div className="overflow-x-auto border rounded-lg">
@@ -871,21 +878,41 @@ export default function DrinkOrder() {
                     <div className="bg-slate-50 rounded-lg p-4 space-y-3">
                       <div className="text-sm font-semibold text-slate-700 mb-2">費用明細</div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex justify-between">
+                        <div className="flex items-center justify-between">
                           <span className="text-slate-600">外送費：</span>
-                          <span className="font-medium">${feeDetails.delivery_fee}</span>
+                          <Input
+                            type="number"
+                            value={feeDetails.delivery_fee}
+                            onChange={(e) => setFeeDetails(prev => ({ ...prev, delivery_fee: parseFloat(e.target.value) || 0 }))}
+                            className="w-20 text-sm text-right"
+                          />
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex items-center justify-between">
                           <span className="text-slate-600">服務費：</span>
-                          <span className="font-medium">${feeDetails.service_fee}</span>
+                          <Input
+                            type="number"
+                            value={feeDetails.service_fee}
+                            onChange={(e) => setFeeDetails(prev => ({ ...prev, service_fee: parseFloat(e.target.value) || 0 }))}
+                            className="w-20 text-sm text-right"
+                          />
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex items-center justify-between">
                           <span className="text-slate-600">外送費優惠：</span>
-                          <span className="font-medium text-green-600">-${feeDetails.delivery_discount}</span>
+                          <Input
+                            type="number"
+                            value={feeDetails.delivery_discount}
+                            onChange={(e) => setFeeDetails(prev => ({ ...prev, delivery_discount: parseFloat(e.target.value) || 0 }))}
+                            className="w-20 text-sm text-right"
+                          />
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex items-center justify-between">
                           <span className="text-slate-600">會員獎勵：</span>
-                          <span className="font-medium text-green-600">-${feeDetails.member_rewards}</span>
+                          <Input
+                            type="number"
+                            value={feeDetails.member_rewards}
+                            onChange={(e) => setFeeDetails(prev => ({ ...prev, member_rewards: parseFloat(e.target.value) || 0 }))}
+                            className="w-20 text-sm text-right"
+                          />
                         </div>
                       </div>
                       <div className="flex items-center gap-3 pt-2">
@@ -906,13 +933,7 @@ export default function DrinkOrder() {
                       </div>
                     </div>
 
-                    <div className="flex justify-between">
-                      <Button
-                        variant="outline"
-                        onClick={addEmptyItem}
-                      >
-                        + 新增項目
-                      </Button>
+                    <div className="flex justify-end">
                       <Button
                         onClick={handleSaveOrder}
                         className="bg-orange-600 hover:bg-orange-700 text-white"

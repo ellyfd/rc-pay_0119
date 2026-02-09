@@ -24,6 +24,8 @@ export default function DrinkOrderDetail() {
   const [splitItemIndex, setSplitItemIndex] = useState(null);
   const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
   const [confirmPayment, setConfirmPayment] = useState(null);
+  const [shippingMode, setShippingMode] = useState('split');
+  const [manualShipping, setManualShipping] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -195,10 +197,12 @@ export default function DrinkOrderDetail() {
         const itemTotal = memberItems.reduce((sum, item) => sum + item.price, 0);
         const allMemberIds = [...new Set(order.items.map(i => i.member_id))];
         const totalMembers = allMemberIds.length;
-        const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+        const memberShipping = shippingMode === 'split'
+          ? (totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0)
+          : (manualShipping[memberId] ?? 0);
 
         const chargeKey = `${orderId}_${memberId}`;
-        const calculatedAmount = Math.round(itemTotal + shippingPerMember);
+        const calculatedAmount = Math.round(itemTotal + memberShipping);
         const totalAmount = actualCharges[chargeKey] ?? calculatedAmount;
 
         if ((fromMember.balance || 0) < totalAmount) {
@@ -373,7 +377,14 @@ export default function DrinkOrderDetail() {
   });
 
   const totalMembers = Object.keys(memberGroups).length;
-  const shippingPerMember = totalMembers > 0 ? (order.shipping_fee || 0) / totalMembers : 0;
+  const shippingPerMember = shippingMode === 'split' && totalMembers > 0 
+    ? (order.shipping_fee || 0) / totalMembers 
+    : 0;
+
+  const getMemberShipping = (memberId) => {
+    if (shippingMode === 'split') return shippingPerMember;
+    return manualShipping[memberId] ?? 0;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
@@ -471,7 +482,7 @@ export default function DrinkOrderDetail() {
                   ))}
                 </select>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <label className="text-sm text-slate-600 whitespace-nowrap">運費/服務費：</label>
                 <Input
                   type="number"
@@ -485,9 +496,29 @@ export default function DrinkOrderDetail() {
                   className="w-24 text-sm"
                   disabled={isCompleted}
                 />
-                <span className="text-xs text-slate-500">
-                  （均分每人 ${shippingPerMember.toFixed(0)}）
-                </span>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={shippingMode === 'split' ? 'default' : 'outline'}
+                    onClick={() => setShippingMode('split')}
+                    className={`text-xs ${shippingMode === 'split' ? 'bg-orange-600' : ''}`}
+                    disabled={isCompleted}
+                  >
+                    均分
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={shippingMode === 'manual' ? 'default' : 'outline'}
+                    onClick={() => setShippingMode('manual')}
+                    className={`text-xs ${shippingMode === 'manual' ? 'bg-orange-600' : ''}`}
+                    disabled={isCompleted}
+                  >
+                    手動
+                  </Button>
+                </div>
+                {shippingMode === 'split' && (
+                  <span className="text-xs text-slate-500">（每人 ${shippingPerMember.toFixed(0)}）</span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {!isCompleted && (
@@ -594,7 +625,8 @@ export default function DrinkOrderDetail() {
               <tbody>
                 {Object.entries(memberGroups).map(([memberId, items], groupIdx) => {
                   const memberTotal = items.reduce((sum, i) => sum + i.price, 0);
-                  const memberPaymentAmount = memberTotal + shippingPerMember;
+                  const memberShipping = getMemberShipping(memberId);
+                  const memberPaymentAmount = memberTotal + memberShipping;
                   const chargeKey = `${orderId}_${memberId}`;
                   const actualCharge = actualCharges[chargeKey] ?? Math.round(memberPaymentAmount);
                   const firstItem = items[0];
@@ -648,7 +680,20 @@ export default function DrinkOrderDetail() {
                               {order.shipping_fee > 0 && (
                                 <>
                                   <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                    ${shippingPerMember.toFixed(2)}
+                                    {shippingMode === 'split' ? (
+                                      <span>${shippingPerMember.toFixed(0)}</span>
+                                    ) : (
+                                      <input
+                                        type="number"
+                                        value={manualShipping[memberId] ?? 0}
+                                        onChange={(e) => setManualShipping(prev => ({
+                                          ...prev,
+                                          [memberId]: parseFloat(e.target.value) || 0
+                                        }))}
+                                        className="w-16 px-1 py-1 text-right border rounded text-sm"
+                                        disabled={isCompleted}
+                                      />
+                                    )}
                                   </td>
                                   <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                     ${memberPaymentAmount.toFixed(2)}
