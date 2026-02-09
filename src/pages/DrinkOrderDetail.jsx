@@ -636,43 +636,39 @@ export default function DrinkOrderDetail() {
                               <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
                                 ${memberTotal}
                               </td>
-                              {order.shipping_fee > 0 && (
-                                <>
-                                  <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
-                                    {shippingMode === 'split' ? (
-                                      <span>${shippingPerMember.toFixed(0)}</span>
-                                    ) : (
-                                      <input
-                                        type="number"
-                                        value={manualShipping[memberId] ?? 0}
-                                        onChange={(e) => setManualShipping(prev => ({
-                                          ...prev,
-                                          [memberId]: parseFloat(e.target.value) || 0
-                                        }))}
-                                        className="w-16 px-1 py-1 text-right border rounded text-sm"
-                                        disabled={isCompleted}
-                                      />
-                                    )}
-                                  </td>
-                                  <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
-                                    ${memberPaymentAmount.toFixed(2)}
-                                  </td>
-                                  <td className="px-3 py-2 text-right" rowSpan={items.length}>
-                                    {isCompleted ? (
-                                      <span className="font-bold text-orange-600">${actualCharge}</span>
-                                    ) : (
-                                      <input
-                                        type="number"
-                                        value={actualCharge}
-                                        onChange={(e) => {
-                                          setActualCharges({ ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 });
-                                        }}
-                                        className="w-16 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none"
-                                      />
-                                    )}
-                                  </td>
-                                </>
-                              )}
+                              <td className="px-3 py-2 text-right text-slate-600" rowSpan={items.length}>
+                                {shippingMode === 'split' ? (
+                                  <span>${shippingPerMember.toFixed(0)}</span>
+                                ) : (
+                                  <input
+                                    type="number"
+                                    value={manualShipping[memberId] ?? 0}
+                                    onChange={(e) => setManualShipping(prev => ({
+                                      ...prev,
+                                      [memberId]: parseFloat(e.target.value) || 0
+                                    }))}
+                                    className="w-16 px-1 py-1 text-right border rounded text-sm"
+                                    disabled={isCompleted}
+                                  />
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-right font-semibold text-slate-700" rowSpan={items.length}>
+                                ${memberPaymentAmount.toFixed(2)}
+                              </td>
+                              <td className="px-3 py-2 text-right" rowSpan={items.length}>
+                                {isCompleted ? (
+                                  <span className="font-bold text-orange-600">${actualCharge}</span>
+                                ) : (
+                                  <input
+                                    type="number"
+                                    value={actualCharge}
+                                    onChange={(e) => {
+                                      setActualCharges({ ...actualCharges, [chargeKey]: parseFloat(e.target.value) || 0 });
+                                    }}
+                                    className="w-16 px-2 py-1 text-right font-bold text-orange-600 border border-orange-300 rounded focus:border-orange-500 focus:outline-none"
+                                  />
+                                )}
+                              </td>
                               {item.member_id === order.payer_id ? (
                                 <>
                                   {!isCompleted && (
