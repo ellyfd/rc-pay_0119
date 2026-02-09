@@ -77,9 +77,11 @@ export default function DrinkOrder() {
 
   const createOrder = useMutation({
     mutationFn: (data) => base44.entities.DrinkOrder.create(data),
-    onSuccess: () => {
+    onSuccess: (newOrder) => {
       queryClient.invalidateQueries({ queryKey: ['drinkOrders'] });
       toast.success('飲料訂單已儲存！');
+      // 跳轉到編輯頁
+      window.location.href = createPageUrl('DrinkOrderDetail') + '?id=' + newOrder.id;
     }
   });
 

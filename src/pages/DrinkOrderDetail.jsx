@@ -482,44 +482,7 @@ export default function DrinkOrderDetail() {
                   ))}
                 </select>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="text-sm text-slate-600 whitespace-nowrap">運費/服務費：</label>
-                <Input
-                  type="number"
-                  value={order.shipping_fee || 0}
-                  onChange={(e) => {
-                    updateOrder.mutateAsync({
-                      id: orderId,
-                      data: { shipping_fee: parseFloat(e.target.value) || 0 }
-                    });
-                  }}
-                  className="w-24 text-sm"
-                  disabled={isCompleted}
-                />
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant={shippingMode === 'split' ? 'default' : 'outline'}
-                    onClick={() => setShippingMode('split')}
-                    className={`text-xs ${shippingMode === 'split' ? 'bg-orange-600' : ''}`}
-                    disabled={isCompleted}
-                  >
-                    均分
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={shippingMode === 'manual' ? 'default' : 'outline'}
-                    onClick={() => setShippingMode('manual')}
-                    className={`text-xs ${shippingMode === 'manual' ? 'bg-orange-600' : ''}`}
-                    disabled={isCompleted}
-                  >
-                    手動
-                  </Button>
-                </div>
-                {shippingMode === 'split' && (
-                  <span className="text-xs text-slate-500">（每人 ${shippingPerMember.toFixed(0)}）</span>
-                )}
-              </div>
+
               <div className="flex items-center gap-2">
                 {!isCompleted && (
                   <>
@@ -584,7 +547,7 @@ export default function DrinkOrderDetail() {
           )}
 
           <div className="overflow-x-auto">
-            <table className={`w-full ${order.shipping_fee > 0 ? 'min-w-[900px]' : 'min-w-[800px]'} text-sm`}>
+            <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-slate-50">
                 <tr>
                   {!isCompleted && (
@@ -611,13 +574,9 @@ export default function DrinkOrderDetail() {
                   <th className="text-left px-3 py-2 text-slate-700">項目</th>
                   <th className="text-right px-3 py-2 text-slate-700">金額</th>
                   <th className="text-right px-3 py-2 text-slate-700">小計</th>
-                  {order.shipping_fee > 0 && (
-                    <>
-                      <th className="text-right px-3 py-2 text-slate-700">運費</th>
-                      <th className="text-right px-3 py-2 text-slate-700">小結</th>
-                      <th className="text-right px-3 py-2 text-slate-700">實際收費</th>
-                    </>
-                  )}
+                  <th className="text-right px-3 py-2 text-slate-700">運費</th>
+                  <th className="text-right px-3 py-2 text-slate-700">應付</th>
+                  <th className="text-right px-3 py-2 text-slate-700">實收</th>
                   {!isCompleted && <th className="text-left px-3 py-2 text-slate-700">支付方式</th>}
                   <th className="text-center px-3 py-2 text-slate-700">已支付</th>
                 </tr>
