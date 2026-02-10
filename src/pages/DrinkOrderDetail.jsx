@@ -25,6 +25,8 @@ export default function DrinkOrderDetail() {
   const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
   const [confirmPayment, setConfirmPayment] = useState(null);
   const [manualShipping, setManualShipping] = useState({});
+  const [splitQuantities, setSplitQuantities] = useState({});
+  const [originalQuantity, setOriginalQuantity] = useState(1);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -337,6 +339,8 @@ export default function DrinkOrderDetail() {
   const handleSplitItem = (index) => {
     setSplitItemIndex(index);
     setSelectedSplitMembers([]);
+    setSplitQuantities({});
+    setOriginalQuantity(1);
     setShowSplitDialog(true);
   };
 
@@ -347,35 +351,50 @@ export default function DrinkOrderDetail() {
     }
 
     const item = editItems[splitItemIndex];
-    const pricePerPerson = item.price / (selectedSplitMembers.length + 1); // +1 包含原成員
+    
+    // 計算總數量
+    const totalQuantity = originalQuantity + selectedSplitMembers.reduce(
+      (sum, memberId) => sum + (splitQuantities[memberId] || 1), 0
+    );
+    
+    const pricePerUnit = item.price / totalQuantity;
 
     // 移除原項目
     const newItems = editItems.filter((_, i) => i !== splitItemIndex);
 
-    // 為每個選中的成員添加項目
+    // 為每個選中的成員添加項目（依數量計算金額）
     const splitItems = selectedSplitMembers.map(memberId => {
       const member = memberMap.get(memberId);
+      const qty = splitQuantities[memberId] || 1;
       return {
         member_id: memberId,
         member_name: member?.name || '',
-        item_name: item.item_name,
-        price: Math.round(pricePerPerson),
+        item_name: `${item.item_name} x${qty}`,
+        price: Math.round(pricePerUnit * qty),
         payment_method: 'cash',
         paid: false
       };
     });
 
-    // 更新原成員的價格
+    // 更新原成員的價格（依數量計算）
     const updatedOriginalItem = {
       ...item,
-      price: Math.round(pricePerPerson)
+      item_name: `${item.item_name} x${originalQuantity}`,
+      price: Math.round(pricePerUnit * originalQuantity)
     };
 
-    setEditItems([...newItems.slice(0, splitItemIndex), updatedOriginalItem, ...newItems.slice(splitItemIndex), ...splitItems]);
+    setEditItems([
+      ...newItems.slice(0, splitItemIndex),
+      updatedOriginalItem,
+      ...newItems.slice(splitItemIndex),
+      ...splitItems
+    ]);
     setShowSplitDialog(false);
     setSplitItemIndex(null);
     setSelectedSplitMembers([]);
-    toast.success(`已將項目平分給 ${selectedSplitMembers.length + 1} 位成員`);
+    setSplitQuantities({});
+    setOriginalQuantity(1);
+    toast.success(`已依數量分攤給 ${selectedSplitMembers.length + 1} 位成員，共 ${totalQuantity} 份`);
   };
 
   if (!order) {
@@ -992,12 +1011,12 @@ export default function DrinkOrderDetail() {
         </div>
       )}
 
-      {/* 平分項目對話框 */}
+      {/* 分攤項目對話框 */}
       {showSplitDialog && splitItemIndex !== null && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-slate-800">選擇平分成員</h3>
+              <h3 className="font-bold text-slate-800">依數量分攤</h3>
               <Button
                 variant="ghost"
                 size="icon"
@@ -1005,6 +1024,8 @@ export default function DrinkOrderDetail() {
                   setShowSplitDialog(false);
                   setSplitItemIndex(null);
                   setSelectedSplitMembers([]);
+                  setSplitQuantities({});
+                  setOriginalQuantity(1);
                 }}
               >
                 <X className="w-5 h-5" />
@@ -1014,40 +1035,129 @@ export default function DrinkOrderDetail() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="text-sm text-slate-700">
                   <div className="font-semibold mb-1">項目：{editItems[splitItemIndex]?.item_name}</div>
-                  <div>原價：${editItems[splitItemIndex]?.price}</div>
-                  <div className="mt-2 text-xs text-slate-600">
-                    選擇要一起平分的成員（含目前成員共 {selectedSplitMembers.length + 1} 人）
-                  </div>
-                  {selectedSplitMembers.length > 0 && (
-                    <div className="mt-1 font-semibold text-orange-600">
-                      每人：${Math.round(editItems[splitItemIndex]?.price / (selectedSplitMembers.length + 1))}
-                    </div>
-                  )}
+                  <div>總金額：${editItems[splitItemIndex]?.price}</div>
+                  {(() => {
+                    const totalQty = originalQuantity + selectedSplitMembers.reduce(
+                      (sum, id) => sum + (splitQuantities[id] || 1), 0
+                    );
+                    const unitPrice = totalQty > 0 
+                      ? Math.round(editItems[splitItemIndex]?.price / totalQty) 
+                      : 0;
+                    return (
+                      <div className="mt-2 text-xs text-slate-600">
+                        總數量：{totalQty} 份 · 每份約 ${unitPrice}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {members.filter(m => m.id !== editItems[0]?.member_id).map(member => (
-                  <label
-                    key={member.id}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-slate-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedSplitMembers.includes(member.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedSplitMembers([...selectedSplitMembers, member.id]);
-                        } else {
-                          setSelectedSplitMembers(selectedSplitMembers.filter(id => id !== member.id));
-                        }
-                      }}
-                      className="w-4 h-4"
+              {/* 原成員數量 */}
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-700">
+                    {editItems[splitItemIndex]?.member_name || '原成員'}（本人）
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-slate-500">數量：</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={originalQuantity}
+                      onChange={(e) => setOriginalQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-16 text-sm text-center h-8"
                     />
-                    <span className="text-sm font-medium text-slate-700">{member.name}</span>
-                  </label>
-                ))}
+                  </div>
+                </div>
               </div>
+
+              {/* 其他成員選擇 */}
+              <div className="text-xs text-slate-500 font-medium">選擇其他分攤成員並設定數量：</div>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {members.filter(m => m.id !== editItems[0]?.member_id).map(member => {
+                  const isSelected = selectedSplitMembers.includes(member.id);
+                  return (
+                    <div
+                      key={member.id}
+                      className={`flex items-center justify-between p-2 rounded ${
+                        isSelected ? 'bg-blue-50 border border-blue-200' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <label className="flex items-center gap-3 cursor-pointer flex-1">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSplitMembers([...selectedSplitMembers, member.id]);
+                              setSplitQuantities(prev => ({ ...prev, [member.id]: 1 }));
+                            } else {
+                              setSelectedSplitMembers(selectedSplitMembers.filter(id => id !== member.id));
+                              setSplitQuantities(prev => {
+                                const updated = { ...prev };
+                                delete updated[member.id];
+                                return updated;
+                              });
+                            }
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm font-medium text-slate-700">{member.name}</span>
+                      </label>
+                      {isSelected && (
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-slate-500">數量：</label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={splitQuantities[member.id] || 1}
+                            onChange={(e) => setSplitQuantities(prev => ({
+                              ...prev,
+                              [member.id]: Math.max(1, parseInt(e.target.value) || 1)
+                            }))}
+                            className="w-16 text-sm text-center h-8"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 分攤預覽 */}
+              {selectedSplitMembers.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="text-xs font-semibold text-green-800 mb-2">分攤預覽：</div>
+                  {(() => {
+                    const totalQty = originalQuantity + selectedSplitMembers.reduce(
+                      (sum, id) => sum + (splitQuantities[id] || 1), 0
+                    );
+                    const unitPrice = editItems[splitItemIndex]?.price / totalQty;
+                    return (
+                      <div className="space-y-1 text-xs text-green-700">
+                        <div className="flex justify-between">
+                          <span>{editItems[splitItemIndex]?.member_name} × {originalQuantity}</span>
+                          <span className="font-semibold">${Math.round(unitPrice * originalQuantity)}</span>
+                        </div>
+                        {selectedSplitMembers.map(id => {
+                          const member = members.find(m => m.id === id);
+                          const qty = splitQuantities[id] || 1;
+                          return (
+                            <div key={id} className="flex justify-between">
+                              <span>{member?.name} × {qty}</span>
+                              <span className="font-semibold">${Math.round(unitPrice * qty)}</span>
+                            </div>
+                          );
+                        })}
+                        <div className="flex justify-between pt-1 border-t border-green-300 font-bold">
+                          <span>合計</span>
+                          <span>${editItems[splitItemIndex]?.price}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
 
               <div className="flex gap-2 pt-3">
                 <Button
@@ -1056,6 +1166,8 @@ export default function DrinkOrderDetail() {
                     setShowSplitDialog(false);
                     setSplitItemIndex(null);
                     setSelectedSplitMembers([]);
+                    setSplitQuantities({});
+                    setOriginalQuantity(1);
                   }}
                   className="flex-1"
                 >
@@ -1065,7 +1177,7 @@ export default function DrinkOrderDetail() {
                   onClick={confirmSplit}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  確認平分
+                  確認分攤
                 </Button>
               </div>
             </div>
