@@ -11,6 +11,7 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Input } from "@/components/ui/input";
+import { parseOrderItems } from "@/components/utils/orderItemUtils";
 
 export default function OrderHistoryByDate() {
   const [startDate, setStartDate] = useState('');
