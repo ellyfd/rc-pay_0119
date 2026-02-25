@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Input } from "@/components/ui/input";
 import EditOrderDialog from "@/components/food/EditOrderDialog";
+import OrderTableRow from "@/components/food/OrderTableRow";
 import {
   AlertDialog,
   AlertDialogAction,
