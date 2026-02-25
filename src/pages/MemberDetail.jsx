@@ -255,16 +255,7 @@ export default function MemberDetail() {
                           pendingParticipantGroupBuys.length > 0 || 
                           pendingDrinkOrders.length > 0;
 
-  const colorMap = {
-    blue: "bg-blue-500",
-    green: "bg-emerald-500",
-    purple: "bg-purple-500",
-    orange: "bg-orange-500",
-    pink: "bg-pink-500",
-    cyan: "bg-cyan-500",
-  };
-
-  const bgColor = member ? (colorMap[member.avatar_color] || "bg-slate-500") : "bg-slate-500";
+  const bgColor = member ? getAvatarColorStyle(member.avatar_color) : "bg-slate-500";
 
   const handleCancelTransaction = async (transaction) => {
     if (currentUser?.role !== 'admin') {
