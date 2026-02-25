@@ -146,13 +146,7 @@ export default function ProductManagement() {
             <Badge variant="outline">{mealBoxes.length}</Badge>
           </h2>
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2].map(i => (
-                <Card key={i} className="p-4 animate-pulse">
-                  <div className="h-20 bg-slate-200 rounded" />
-                </Card>
-              ))}
-            </div>
+            <LoadingSpinner message="載入產品中..." />
           ) : mealBoxes.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <p className="text-slate-500">尚無餐盒產品</p>
@@ -221,13 +215,7 @@ export default function ProductManagement() {
             <Badge variant="outline">{sideDishes.length}</Badge>
           </h2>
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
-                <Card key={i} className="p-4 animate-pulse">
-                  <div className="h-16 bg-slate-200 rounded" />
-                </Card>
-              ))}
-            </div>
+            <LoadingSpinner message="載入產品中..." />
           ) : sideDishes.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <p className="text-slate-500">尚無單點產品</p>
