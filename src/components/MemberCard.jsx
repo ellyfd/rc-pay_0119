@@ -3,18 +3,10 @@ import { Card } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-
-const colorMap = {
-  blue: "bg-blue-500",
-  green: "bg-emerald-500",
-  purple: "bg-purple-500",
-  orange: "bg-orange-500",
-  pink: "bg-pink-500",
-  cyan: "bg-cyan-500",
-};
+import { getAvatarColorStyle } from "@/components/utils/colorMap";
 
 export default function MemberCard({ member, onClick, selected }) {
-  const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
+  const bgColor = getAvatarColorStyle(member.avatar_color);
   
   const CardContent = () => (
       <div className="flex flex-col gap-2">
