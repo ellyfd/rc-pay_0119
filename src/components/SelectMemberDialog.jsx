@@ -34,7 +34,7 @@ export default function SelectMemberDialog({ open, members, currentUserEmail, on
 
         <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto py-2">
           {members.map(member => {
-            const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
+            const bgColor = getAvatarColorStyle(member.avatar_color);
             const isSelected = selectedMemberId === member.id;
             
             return (
