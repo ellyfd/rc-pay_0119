@@ -9,15 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { User } from "lucide-react";
-
-const colorMap = {
-  blue: "bg-blue-500",
-  green: "bg-emerald-500",
-  purple: "bg-purple-500",
-  orange: "bg-orange-500",
-  pink: "bg-pink-500",
-  cyan: "bg-cyan-500",
-};
+import { getAvatarColorStyle } from "@/components/utils/colorMap";
 
 export default function SelectMemberDialog({ open, members, currentUserEmail, onSelect }) {
   const [selectedMemberId, setSelectedMemberId] = useState(null);
