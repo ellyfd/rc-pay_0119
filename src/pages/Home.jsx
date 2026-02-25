@@ -20,6 +20,7 @@ import AddMemberDialog from "@/components/AddMemberDialog";
 import TransactionDialog from "@/components/TransactionDialog";
 import BatchTransactionDialog from "@/components/BatchTransactionDialog";
 import SelectMemberDialog from "@/components/SelectMemberDialog";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
@@ -321,19 +322,7 @@ export default function Home() {
           </div>
           
           {membersLoading ?
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[1, 2, 3].map((i) =>
-            <Card key={i} className="p-4 animate-pulse">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-200" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-slate-200 rounded w-24 mb-2" />
-                      <div className="h-5 bg-slate-200 rounded w-16" />
-                    </div>
-                  </div>
-                </Card>
-            )}
-            </div> :
+          <LoadingSpinner message="載入成員中..." /> :
           members.length === 0 ?
           <Card className="p-8 text-center border-dashed">
               <UserPlus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -381,20 +370,7 @@ export default function Home() {
           </div>
           
           {transactionsLoading ?
-          <div className="space-y-3">
-              {[1, 2, 3].map((i) =>
-            <Card key={i} className="p-4 animate-pulse">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-200" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
-                      <div className="h-3 bg-slate-200 rounded w-20" />
-                    </div>
-                    <div className="h-6 bg-slate-200 rounded w-16" />
-                  </div>
-                </Card>
-            )}
-            </div> :
+          <LoadingSpinner message="載入交易中..." /> :
           transactions.length === 0 ?
           <Card className="p-8 text-center border-dashed">
               <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
