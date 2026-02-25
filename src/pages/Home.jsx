@@ -129,25 +129,33 @@ export default function Home() {
         data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
       });
     } else if (type === 'transfer' && fromMember && toMember) {
+      // P0-7: 先扣款，若失敗則回滾（不能先加值，這樣若失敗 fromMember 已被扣）
       const fromOriginal = fromMember[balanceField] || 0;
+      const toOriginal = toMember[balanceField] || 0;
       
-      await updateMember.mutateAsync({
-        id: from_member_id,
-        data: { [balanceField]: fromOriginal - amount }
-      });
-
       try {
+        // 步驟 1：先扣款
+        await updateMember.mutateAsync({
+          id: from_member_id,
+          data: { [balanceField]: fromOriginal - amount }
+        });
+
+        // 步驟 2：再加值（若失敗則回滾）
         await updateMember.mutateAsync({
           id: to_member_id,
-          data: { [balanceField]: (toMember[balanceField] || 0) + amount }
+          data: { [balanceField]: toOriginal + amount }
         });
       } catch (error) {
         // 回滾扣款
-        console.error('轉帳加值失敗，回滾扣款:', error);
-        await updateMember.mutateAsync({
-          id: from_member_id,
-          data: { [balanceField]: fromOriginal }
-        });
+        console.error('轉帳失敗，回滾扣款:', error);
+        try {
+          await updateMember.mutateAsync({
+            id: from_member_id,
+            data: { [balanceField]: fromOriginal }
+          });
+        } catch (rollbackError) {
+          console.error('回滾失敗，請手動檢查:', rollbackError);
+        }
         throw new Error(`轉帳失敗，已還原 ${fromMember.name} 的餘額`);
       }
     }
