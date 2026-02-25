@@ -28,8 +28,14 @@ export default function OrderHistoryByDate() {
     enabled: false
   });
 
+  // P1-7: 稳定化 queryKey，避免 orders 引用变化导致重新查询
+  const orderIds = useMemo(
+    () => orders.map(o => o.id).sort().join(','),
+    [orders]
+  );
+
   const { data: orderItems = [] } = useQuery({
-    queryKey: ['orderItemsByDate', orders.map(o => o.id)],
+    queryKey: ['orderItemsByDate', orderIds],
     queryFn: async () => {
       if (orders.length === 0) return [];
       const allItems = await base44.entities.OrderItem.list();

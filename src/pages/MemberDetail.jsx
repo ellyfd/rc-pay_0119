@@ -58,9 +58,11 @@ export default function MemberDetail() {
     enabled: !!memberId,
   });
 
+  // P1-5: 延迟加载 + staleTime，避免一次拉 6 张表全量数据
   const { data: allTransactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-created_date'),
+    staleTime: 30 * 1000,
   });
 
   const { data: groupBuyItems = [], isLoading: groupBuyItemsLoading } = useQuery({
@@ -69,22 +71,29 @@ export default function MemberDetail() {
       const allItems = await base44.entities.GroupBuyItem.list('-created_date');
       return allItems.filter(item => item.member_id === memberId);
     },
-    enabled: !!memberId,
+    enabled: !!memberId && activeTab === 'groupbuy' || activeTab === 'pending',
+    staleTime: 30 * 1000,
   });
 
   const { data: allGroupBuys = [] } = useQuery({
     queryKey: ['groupBuys'],
     queryFn: () => base44.entities.GroupBuy.list('-created_date'),
+    enabled: activeTab === 'groupbuy' || activeTab === 'pending',
+    staleTime: 60 * 1000,
   });
 
   const { data: allGroupBuyItems = [] } = useQuery({
     queryKey: ['allGroupBuyItems'],
     queryFn: () => base44.entities.GroupBuyItem.list('-created_date'),
+    enabled: activeTab === 'groupbuy' || activeTab === 'pending',
+    staleTime: 30 * 1000,
   });
 
   const { data: allDrinkOrders = [], isLoading: drinkOrdersLoading } = useQuery({
     queryKey: ['drinkOrders'],
     queryFn: () => base44.entities.DrinkOrder.list('-created_date'),
+    enabled: activeTab === 'drink' || activeTab === 'pending',
+    staleTime: 30 * 1000,
   });
 
   // Get all transactions related to this member (for statistics)

@@ -40,17 +40,21 @@ export default function Home() {
     loadUser();
   }, []);
 
-  const { data: allMembers = [], isLoading: membersLoading } = useQuery({
+  // P1-8: queryFn 只取数据，排序交给 useMemo（不同页面有不同排序而不影响缓存）
+  const { data: rawMembers = [], isLoading: membersLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: async () => {
-      const memberList = await base44.entities.Member.list('-created_date');
-      return memberList.sort((a, b) => {
-        const totalA = (a.balance || 0) + (a.cash_balance || 0);
-        const totalB = (b.balance || 0) + (b.cash_balance || 0);
-        return totalB - totalA;
-      });
-    }
+    queryFn: () => base44.entities.Member.list('-created_date'),
+    staleTime: 30 * 1000,
   });
+
+  const allMembers = useMemo(() =>
+    [...rawMembers].sort((a, b) => {
+      const totalA = (a.balance || 0) + (a.cash_balance || 0);
+      const totalB = (b.balance || 0) + (b.cash_balance || 0);
+      return totalB - totalA;
+    }),
+    [rawMembers]
+  );
 
   // Check if current user is linked to any member
   useEffect(() => {
