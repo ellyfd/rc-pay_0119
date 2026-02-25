@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,19 +28,8 @@ export default function FoodOrder() {
   const [paymentMethod, setPaymentMethod] = useState('balance');
   const [note, setNote] = useState('');
   const [payerId, setPayerId] = useState('');
+  const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
