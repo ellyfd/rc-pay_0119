@@ -270,10 +270,10 @@ export default function MemberDetail() {
       const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
       const field = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
-      // P0-8: 步驟 1——先重新讀取最新成員資料（交易紀錄還在，失敗可重試）
+      // P0-8: 步驟 1——先重新讀取最新成員資料
       const freshMembers = await base44.entities.Member.list();
 
-      // P0-8: 步驟 2——還原餘額
+      // P0-8: 步驟 2——還原餘額（交易紀錄還在，失敗可重試）
       if (type === 'deposit' && to_member_id) {
         const m = freshMembers.find(m => m.id === to_member_id);
         if (m) await base44.entities.Member.update(to_member_id, {
