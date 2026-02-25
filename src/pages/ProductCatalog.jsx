@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import AdminGuard from '@/components/AdminGuard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -32,22 +33,10 @@ export default function ProductCatalog() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deletingProduct, setDeletingProduct] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { user: currentUser, isLoading: userLoading } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['productCatalog'],
@@ -98,7 +87,7 @@ export default function ProductCatalog() {
     });
   };
 
-  if (!currentUser) {
+  if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
