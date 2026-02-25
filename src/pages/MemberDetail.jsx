@@ -36,7 +36,7 @@ export default function MemberDetail() {
   const [transactionToCancel, setTransactionToCancel] = useState(null);
   const [transactionPage, setTransactionPage] = useState(1);
   const pageSize = 20;
-  const { user: currentUser } = useCurrentUser();
+  const { user: currentUser, isLoading: currentUserLoading } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: member, isLoading: memberLoading } = useQuery({
