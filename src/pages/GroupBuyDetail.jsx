@@ -4,7 +4,8 @@ import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Wallet, Copy, Users as UsersIcon } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Copy, Users as UsersIcon } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import DiscountProgressBar from "@/components/groupbuy/DiscountProgressBar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -63,9 +64,11 @@ export default function GroupBuyDetail() {
     enabled: !!groupBuyId
   });
 
+  // P1-5: 延迟加载 + staleTime，避免一次拉 6 张表全量数据
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('name')
+    queryFn: () => base44.entities.Member.list('name'),
+    staleTime: 30 * 1000,
   });
 
   const { data: products = [] } = useQuery({
@@ -74,7 +77,8 @@ export default function GroupBuyDetail() {
       const allProducts = await base44.entities.GroupBuyProduct.list('-created_date');
       return allProducts.filter(p => p.group_buy_id === groupBuyId);
     },
-    enabled: !!groupBuyId
+    enabled: !!groupBuyId,
+    staleTime: 30 * 1000,
   });
 
   const memberMap = useMemo(() => 
@@ -576,14 +580,11 @@ export default function GroupBuyDetail() {
     [items]
   );
 
-  // Show loading state
+  // P2-11 + P1-5: 使用 LoadingSpinner 统一加载UI
   if (!currentUser || groupBuyLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
+        <LoadingSpinner message="載入團購資訊中..." />
       </div>
     );
   }
