@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, TrendingDown, Wallet, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -230,53 +230,41 @@ export default function MemberDetail() {
       return;
     }
 
-    setTransactionToCancel(null);
     toast.loading('正在撤銷交易...', { id: 'cancel-transaction' });
 
     try {
       const { type, amount, wallet_type, from_member_id, to_member_id } = transaction;
-      
-      // 先刪除交易記錄
-      await base44.entities.Transaction.delete(transaction.id);
+      const field = wallet_type === 'cash' ? 'cash_balance' : 'balance';
 
-      // 還原餘額變動
-      const allMembers = await base44.entities.Member.list();
-      
+      // P0-8: 步驟 1——先重新讀取最新成員資料（交易紀錄還在，失敗可重試）
+      const freshMembers = await base44.entities.Member.list();
+
+      // P0-8: 步驟 2——還原餘額
       if (type === 'deposit' && to_member_id) {
-        const member = allMembers.find(m => m.id === to_member_id);
-        if (member) {
-          const newBalance = wallet_type === 'cash' 
-            ? { balance: member.balance || 0, cash_balance: (member.cash_balance || 0) - amount }
-            : { balance: (member.balance || 0) - amount, cash_balance: member.cash_balance || 0 };
-          await base44.entities.Member.update(to_member_id, newBalance);
-        }
+        const m = freshMembers.find(m => m.id === to_member_id);
+        if (m) await base44.entities.Member.update(to_member_id, {
+          [field]: (m[field] || 0) - amount
+        });
       } else if (type === 'withdraw' && from_member_id) {
-        const member = allMembers.find(m => m.id === from_member_id);
-        if (member) {
-          const newBalance = wallet_type === 'cash'
-            ? { balance: member.balance || 0, cash_balance: (member.cash_balance || 0) + amount }
-            : { balance: (member.balance || 0) + amount, cash_balance: member.cash_balance || 0 };
-          await base44.entities.Member.update(from_member_id, newBalance);
-        }
-      } else if (type === 'transfer' && from_member_id && to_member_id) {
-        const fromMember = allMembers.find(m => m.id === from_member_id);
-        const toMember = allMembers.find(m => m.id === to_member_id);
-
-        if (fromMember) {
-          const newBalance = wallet_type === 'cash'
-            ? { balance: fromMember.balance || 0, cash_balance: (fromMember.cash_balance || 0) + amount }
-            : { balance: (fromMember.balance || 0) + amount, cash_balance: fromMember.cash_balance || 0 };
-          await base44.entities.Member.update(from_member_id, newBalance);
-        }
-
-        if (toMember) {
-          const newBalance = wallet_type === 'cash'
-            ? { balance: toMember.balance || 0, cash_balance: (toMember.cash_balance || 0) - amount }
-            : { balance: (toMember.balance || 0) - amount, cash_balance: toMember.cash_balance || 0 };
-          await base44.entities.Member.update(to_member_id, newBalance);
-        }
+        const m = freshMembers.find(m => m.id === from_member_id);
+        if (m) await base44.entities.Member.update(from_member_id, {
+          [field]: (m[field] || 0) + amount
+        });
+      } else if (type === 'transfer') {
+        const fromM = freshMembers.find(m => m.id === from_member_id);
+        const toM = freshMembers.find(m => m.id === to_member_id);
+        if (fromM) await base44.entities.Member.update(from_member_id, {
+          [field]: (fromM[field] || 0) + amount
+        });
+        if (toM) await base44.entities.Member.update(to_member_id, {
+          [field]: (toM[field] || 0) - amount
+        });
       }
 
+      // P0-8: 步驟 3——最後才刪除交易紀錄
+      await base44.entities.Transaction.delete(transaction.id);
+
+      setTransactionToCancel(null);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['member'] });
@@ -889,65 +877,63 @@ export default function MemberDetail() {
             <span className="text-sm text-slate-500">共 {organizedGroupBuys.length} 個團購</span>
           </div>
 
-          {organizedGroupBuys.length > 0 && (
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs sm:text-sm">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
-                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">開團狀態</th>
-                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">人數</th>
-                      <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">總額</th>
-                      <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">收款</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {organizedGroupBuys.map((gb) => (
-                      <tr key={gb.id} className="hover:bg-slate-50">
-                        <td className="px-1.5 sm:px-4 py-2 sm:py-3">
-                          <a 
-                            href={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                            className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
-                          >
-                            {gb.title}
-                          </a>
-                        </td>
-                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs sm:text-sm">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="text-left px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">團購名稱</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">開團狀態</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700 hidden sm:table-cell">人數</th>
+                    <th className="text-right px-1.5 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">總額</th>
+                    <th className="text-center px-1 sm:px-4 py-2 sm:py-3 font-semibold text-slate-700">收款</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {organizedGroupBuys.map((gb) => (
+                    <tr key={gb.id} className="hover:bg-slate-50">
+                      <td className="px-1.5 sm:px-4 py-2 sm:py-3">
+                        <a 
+                          href={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
+                          className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
+                        >
+                          {gb.title}
+                        </a>
+                      </td>
+                      <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                        <Badge 
+                          className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                            gb.status === 'open' ? 'bg-green-500' :
+                            gb.status === 'closed' && !gb.is_fully_paid ? 'bg-amber-500' :
+                            'bg-blue-500'
+                          }`}
+                        >
+                          {gb.status === 'open' ? '進行中' :
+                           gb.status === 'closed' && !gb.is_fully_paid ? '待收款' :
+                           '已完成'}
+                        </Badge>
+                      </td>
+                      <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
+                      <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-purple-600 whitespace-nowrap text-[11px] sm:text-sm">
+                        ${gb.totalAmount.toLocaleString()}
+                      </td>
+                      <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
+                        {gb.status === 'open' ? (
+                          <span className="text-slate-400 text-[10px] sm:text-xs">-</span>
+                        ) : (
                           <Badge 
-                            className={`text-[10px] sm:text-xs whitespace-nowrap ${
-                              gb.status === 'open' ? 'bg-green-500' :
-                              gb.status === 'closed' && !gb.is_fully_paid ? 'bg-amber-500' :
-                              'bg-blue-500'
-                            }`}
+                            className={`text-[10px] sm:text-xs ${gb.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}
                           >
-                            {gb.status === 'open' ? '進行中' :
-                             gb.status === 'closed' && !gb.is_fully_paid ? '待收款' :
-                             '已完成'}
+                            {gb.allPaid ? '完成' : '未完'}
                           </Badge>
-                        </td>
-                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
-                        <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-purple-600 whitespace-nowrap text-[11px] sm:text-sm">
-                          ${gb.totalAmount.toLocaleString()}
-                        </td>
-                        <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
-                          {gb.status === 'open' ? (
-                            <span className="text-slate-400 text-[10px] sm:text-xs">-</span>
-                          ) : (
-                            <Badge 
-                              className={`text-[10px] sm:text-xs ${gb.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}
-                            >
-                              {gb.allPaid ? '完成' : '未完'}
-                            </Badge>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         </section>
         )}
 
@@ -960,7 +946,6 @@ export default function MemberDetail() {
             <span className="text-sm text-slate-500">共 {groupBuysByMember.length} 個團購</span>
           </div>
 
-          {groupBuysByMember.length > 0 && (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs sm:text-sm">
@@ -1039,7 +1024,6 @@ export default function MemberDetail() {
                 </table>
               </div>
             </Card>
-          )}
         </section>
         )}
           </TabsContent>

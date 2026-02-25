@@ -186,83 +186,80 @@ export default function OrderHistoryByDate() {
                             </thead>
                             <tbody>
                               {dateOrders.map(order => {
-                                const items = getOrderItems(order.id);
-                                const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
-                                const mealBox = items.find(item => {
-                                  const product = mealBoxes.find(p => p.id === item.product_id);
-                                  return product && product.category === 'meal_box';
-                                });
-                                const sideItems = items.filter(item => {
-                                  const product = sideDishProducts.find(p => p.id === item.product_id);
-                                  return product && product.category === 'side_dish';
-                                });
+                                 const items = getOrderItems(order.id);
+                                 const mealBox = items.find(item => {
+                                   const product = mealBoxes.find(p => p.id === item.product_id);
+                                   return product && product.category === 'meal_box';
+                                 });
+                                 const sideItems = items.filter(item => {
+                                   const product = sideDishProducts.find(p => p.id === item.product_id);
+                                   return product && product.category === 'side_dish';
+                                 });
 
-                                return (
-                                  <tr key={order.id} className="border-b hover:bg-slate-50">
-                                    <td className="px-2 sm:px-3 py-2 sm:py-3">
-                                      <div className="font-medium text-slate-800 leading-tight">{order.member_name}</div>
-                                      <div className="text-[10px] sm:text-xs text-slate-500">
-                                        {formatTaiwanTime(order.created_date, 'HH:mm')}
-                                      </div>
-                                    </td>
-                                    <td className="px-2 sm:px-3 py-2 sm:py-3">
-                                      {mealBox ? (
-                                        <div className="text-slate-700 leading-tight">
-                                          <div className="break-words line-clamp-2">{mealBox.product_name}</div>
-                                          <div className="text-[10px] sm:text-xs text-slate-500">${mealBox.price}</div>
-                                        </div>
-                                      ) : (
-                                        <span className="text-slate-400">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-2 sm:px-3 py-2 sm:py-3">
-                                      {mealBox && mealBoxItem ? (
-                                        <span className="text-slate-700 whitespace-nowrap">
-                                          {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
-                                           mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
-                                        </span>
-                                      ) : mealBox ? (
-                                        <span className="text-slate-700">正常</span>
-                                      ) : (
-                                        <span className="text-slate-400">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-2 sm:px-3 py-2 sm:py-3">
-                                      {sideItems.length > 0 ? (
-                                        <div className="space-y-0.5">
-                                          {sideItems.map(item => (
-                                            <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
-                                              {item.product_name}
-                                              <span className="text-[10px] sm:text-xs text-slate-500 ml-1">${item.price}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      ) : (
-                                        <span className="text-slate-400">-</span>
-                                      )}
-                                    </td>
-                                    <td className="px-3 py-3 text-center">
-                                      <Badge className={`text-[10px] sm:text-xs ${
-                                        order.payment_method === 'cash' ? 'bg-amber-500' : 
-                                        order.payment_method === 'payer' ? 'bg-purple-500' :
-                                        'bg-blue-500'
-                                      }`}>
-                                        {order.payment_method === 'cash' ? '現金' : 
-                                         order.payment_method === 'payer' ? '支付人' :
-                                         '餘額'}
-                                      </Badge>
-                                    </td>
-                                    <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
-                                      <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}`}>
-                                        {order.status === 'completed' ? '已完成' : '待處理'}
-                                      </Badge>
-                                    </td>
-                                    <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-emerald-600 whitespace-nowrap">
-                                      ${order.total_amount.toLocaleString()}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
+                                 return (
+                                   <tr key={order.id} className="border-b hover:bg-slate-50">
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3">
+                                       <div className="font-medium text-slate-800 leading-tight">{order.member_name}</div>
+                                       <div className="text-[10px] sm:text-xs text-slate-500">
+                                         {formatTaiwanTime(order.created_date, 'HH:mm')}
+                                       </div>
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3">
+                                       {mealBox ? (
+                                         <div className="text-slate-700 leading-tight">
+                                           <div className="break-words line-clamp-2">{mealBox.product_name}</div>
+                                           <div className="text-[10px] sm:text-xs text-slate-500">${mealBox.price}</div>
+                                         </div>
+                                       ) : (
+                                         <span className="text-slate-400">-</span>
+                                       )}
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3">
+                                       {mealBox ? (
+                                         <span className="text-slate-700 whitespace-nowrap">
+                                           {mealBox.rice_option === 'less_rice' ? '飯少' : 
+                                            mealBox.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
+                                         </span>
+                                       ) : (
+                                         <span className="text-slate-400">-</span>
+                                       )}
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3">
+                                       {sideItems.length > 0 ? (
+                                         <div className="space-y-0.5">
+                                           {sideItems.map(item => (
+                                             <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
+                                               {item.product_name}
+                                               <span className="text-[10px] sm:text-xs text-slate-500 ml-1">${item.price}</span>
+                                             </div>
+                                           ))}
+                                         </div>
+                                       ) : (
+                                         <span className="text-slate-400">-</span>
+                                       )}
+                                     </td>
+                                     <td className="px-3 py-3 text-center">
+                                       <Badge className={`text-[10px] sm:text-xs ${
+                                         order.payment_method === 'cash' ? 'bg-amber-500' : 
+                                         order.payment_method === 'payer' ? 'bg-purple-500' :
+                                         'bg-blue-500'
+                                       }`}>
+                                         {order.payment_method === 'cash' ? '現金' : 
+                                          order.payment_method === 'payer' ? '支付人' :
+                                          '餘額'}
+                                       </Badge>
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
+                                       <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}`}>
+                                         {order.status === 'completed' ? '已完成' : '待處理'}
+                                       </Badge>
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-emerald-600 whitespace-nowrap">
+                                       ${order.total_amount.toLocaleString()}
+                                     </td>
+                                   </tr>
+                                 );
+                               })}
                             </tbody>
                           </table>
                         </div>

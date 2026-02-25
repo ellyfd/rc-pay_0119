@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, MoreVertical, LogOut } from "lucide-react";
+import { UserPlus, Plus, Wallet, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -134,49 +134,75 @@ export default function Home() {
         data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
       });
     } else if (type === 'transfer' && fromMember && toMember) {
+      // P0-7: 轉帳失敗回滾——先扣款，失敗時還原
+      const fromOriginal = fromMember[balanceField] || 0;
+      
       await updateMember.mutateAsync({
         id: from_member_id,
-        data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
+        data: { [balanceField]: fromOriginal - amount }
       });
-      await updateMember.mutateAsync({
-        id: to_member_id,
-        data: { [balanceField]: (toMember[balanceField] || 0) + amount }
-      });
+
+      try {
+        await updateMember.mutateAsync({
+          id: to_member_id,
+          data: { [balanceField]: (toMember[balanceField] || 0) + amount }
+        });
+      } catch (error) {
+        // 回滾扣款
+        console.error('轉帳加值失敗，回滾扣款:', error);
+        await updateMember.mutateAsync({
+          id: from_member_id,
+          data: { [balanceField]: fromOriginal }
+        });
+        throw new Error(`轉帳失敗，已還原 ${fromMember.name} 的餘額`);
+      }
     }
   };
 
   const handleBatchTransaction = async (transactions) => {
-    // Process all transactions
+    // P0-6: 追蹤本輪批次中已更新的餘額，避免覆蓋
+    const updatedBalances = new Map();
+
+    const getLatestBalance = (memberId, field) => {
+      const key = `${memberId}_${field}`;
+      if (updatedBalances.has(key)) return updatedBalances.get(key);
+      const member = memberMap.get(memberId);
+      return member ? (member[field] || 0) : 0;
+    };
+
     for (const item of transactions) {
       const member = memberMap.get(item.member_id);
       if (!member) continue;
 
       const isDeposit = item.type === 'deposit';
       const balanceField = item.wallet_type === 'cash' ? 'cash_balance' : 'balance';
-
       const amount = item.amount || 0;
 
-       // Create transaction record
-       await createTransaction.mutateAsync({
-         type: item.type,
-         amount: amount,
-         wallet_type: item.wallet_type,
-         from_member_id: isDeposit ? null : item.member_id,
-         to_member_id: isDeposit ? item.member_id : null,
-         from_member_name: isDeposit ? '' : member.name,
-         to_member_name: isDeposit ? member.name : '',
-         note: item.note
-       });
+      // Create transaction record
+      await createTransaction.mutateAsync({
+        type: item.type,
+        amount: amount,
+        wallet_type: item.wallet_type,
+        from_member_id: isDeposit ? null : item.member_id,
+        to_member_id: isDeposit ? item.member_id : null,
+        from_member_name: isDeposit ? '' : member.name,
+        to_member_name: isDeposit ? member.name : '',
+        note: item.note
+      });
 
-       // Update balance
-       const newBalance = isDeposit 
-         ? (member[balanceField] || 0) + amount
-         : (member[balanceField] || 0) - amount;
-      
+      // ✅ 用追蹤的最新餘額計算
+      const currentBalance = getLatestBalance(item.member_id, balanceField);
+      const newBalance = isDeposit
+        ? currentBalance + amount
+        : currentBalance - amount;
+
       await updateMember.mutateAsync({
         id: item.member_id,
         data: { [balanceField]: newBalance }
       });
+
+      // ✅ 更新追蹤值
+      updatedBalances.set(`${item.member_id}_${balanceField}`, newBalance);
     }
   };
 
@@ -192,10 +218,7 @@ export default function Home() {
     setShowSelectMember(false);
   };
 
-  const totalBalance = useMemo(() => 
-    allMembers.reduce((sum, m) => sum + (m.balance || 0) + (m.cash_balance || 0), 0),
-    [allMembers]
-  );
+
 
   // Find current user's member
   const currentMember = useMemo(() => 
