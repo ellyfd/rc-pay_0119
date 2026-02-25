@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getAvatarColorStyle } from '@/components/utils/colorMap';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
