@@ -30,6 +30,7 @@ export default function AdminOrders() {
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
+  // P1-2：整理 useEffect — 取得當前登入用戶
   useEffect(() => {
     const loadUser = async () => {
       try {
