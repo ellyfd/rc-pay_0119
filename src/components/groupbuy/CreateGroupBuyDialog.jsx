@@ -65,7 +65,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
   const handleTemplateSelect = (templateId) => {
     setSelectedTemplate(templateId);
-    if (!templateId) return;
+    if (templateId === '__none__') return;
 
     const template = templates.find(t => t.id === templateId);
     if (template) {
@@ -91,19 +91,16 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) {
-      console.log('No files selected');
       return;
     }
 
-    console.log(`開始上傳 ${files.length} 個檔案`);
     setUploading(true);
-    
+
     try {
       const uploadedUrls = [];
-      
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        console.log(`上傳檔案 ${i + 1}:`, file.name, file.type, file.size);
         
         if (!file.type.startsWith('image/')) {
           toast.warning(`${file.name} 不是圖片檔案`);
@@ -112,7 +109,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
         
         try {
           const result = await base44.integrations.Core.UploadFile({ file: file });
-          console.log('上傳成功:', result.file_url);
           uploadedUrls.push(result.file_url);
           toast.success(`已上傳 ${file.name}`);
         } catch (uploadError) {
@@ -124,7 +120,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       if (uploadedUrls.length > 0) {
         const newImageUrls = [...imageUrls, ...uploadedUrls];
         setImageUrls(newImageUrls);
-        console.log('所有圖片 URLs:', newImageUrls);
         
         if (!formData.image_url) {
           setFormData({ ...formData, image_url: uploadedUrls[0] });
@@ -164,9 +159,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
       return;
     }
 
-    console.log('開始 AI 分析，圖片 URLs:', imageUrls);
     setAnalyzing(true);
-    
+
     try {
       toast.info('AI 正在分析圖片...');
       
@@ -192,8 +186,6 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
           required: ["products"]
         }
       });
-
-      console.log('AI 分析結果:', result);
 
       if (result && result.products && result.products.length > 0) {
         setProducts(result.products);
@@ -296,8 +288,8 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
                   <SelectValue placeholder="選擇範本..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>不使用範本</SelectItem>
-                  {templates.map(template => (
+                   <SelectItem value="__none__">不使用範本</SelectItem>
+                   {templates.map(template => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.template_name}
                     </SelectItem>

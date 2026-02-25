@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Upload, Plus, Trash2, ZoomIn, X, ChevronDown } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Select,
   SelectContent,
@@ -113,10 +114,9 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
       }
       const result = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       setFormData({ ...formData, image_url: result.file_url });
-    } catch (error) {
-      const toast = await import('sonner');
-      toast.toast.error('上傳失敗：' + error.message);
-    } finally {
+      } catch (error) {
+       toast.error('上傳失敗：' + error.message);
+      } finally {
       setUploading(false);
     }
   };
@@ -141,56 +141,56 @@ export default function EditGroupBuyDialog({ open, onOpenChange, groupBuy, onSav
 
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
-      const toast = await import('sonner');
-      toast.toast.error('請輸入團購標題！');
+      toast.error('請輸入團購標題！');
       return;
     }
 
-    // Save group buy data
-    await onSave({
-      ...formData,
-      discount_rules: discountRules.filter(r => {
-        const hasCondition = (r.type === 'quantity' && r.min_quantity > 0) || 
-                            (r.type === 'amount' && r.min_amount > 0);
-        const hasDiscount = (r.discount_type === 'percent' && r.discount_percent > 0) || 
-                           (r.discount_type === 'fixed' && r.discount_amount > 0);
-        return hasCondition && hasDiscount;
-      }),
-      fixed_discount_allocation: fixedDiscountAllocation
-    });
+    try {
+      const validProducts = products.filter(p => p.product_name && p.price > 0);
 
-    // Handle products
-    const validProducts = products.filter(p => p.product_name && p.price > 0);
-    
-    // Delete removed products
-    for (const existingProduct of existingProducts) {
-      const stillExists = validProducts.find(p => p.id === existingProduct.id);
-      if (!stillExists) {
-        await base44.entities.GroupBuyProduct.delete(existingProduct.id);
-      }
+      // ✅ 先處理商品（失敗時 dialog 還在，可以重試）
+      // 並行刪除
+      await Promise.all(
+        existingProducts
+          .filter(ep => !validProducts.find(p => p.id === ep.id))
+          .map(ep => base44.entities.GroupBuyProduct.delete(ep.id))
+      );
+
+      // 並行更新/建立
+      await Promise.all(
+        validProducts.map(product =>
+          product.id
+            ? base44.entities.GroupBuyProduct.update(product.id, {
+                product_name: product.product_name,
+                price: product.price,
+                description: product.description
+              })
+            : base44.entities.GroupBuyProduct.create({
+                group_buy_id: groupBuy.id,
+                product_name: product.product_name,
+                price: product.price,
+                description: product.description
+              })
+        )
+      );
+
+      // ✅ 商品都處理完才更新主資料
+      await onSave({
+        ...formData,
+        discount_rules: discountRules.filter(r => {
+          const hasCondition = (r.type === 'quantity' && r.min_quantity > 0) || 
+                              (r.type === 'amount' && r.min_amount > 0);
+          const hasDiscount = (r.discount_type === 'percent' && r.discount_percent > 0) || 
+                             (r.discount_type === 'fixed' && r.discount_amount > 0);
+          return hasCondition && hasDiscount;
+        }),
+        fixed_discount_allocation: fixedDiscountAllocation
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['groupBuyProducts'] });
+    } catch (error) {
+      toast.error('儲存失敗：' + error.message);
     }
-
-    // Update or create products
-    for (const product of validProducts) {
-      if (product.id) {
-        // Update existing
-        await base44.entities.GroupBuyProduct.update(product.id, {
-          product_name: product.product_name,
-          price: product.price,
-          description: product.description
-        });
-      } else {
-        // Create new
-        await base44.entities.GroupBuyProduct.create({
-          group_buy_id: groupBuy.id,
-          product_name: product.product_name,
-          price: product.price,
-          description: product.description
-        });
-      }
-    }
-
-    queryClient.invalidateQueries({ queryKey: ['groupBuyProducts'] });
   };
 
   return (

@@ -2,37 +2,30 @@ import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Users, Calendar, ExternalLink, Plus, Eye } from "lucide-react";
+import { Users, Calendar, ExternalLink, Plus, Eye } from "lucide-react";
 import DiscountProgressBar from "./DiscountProgressBar";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
+// P2-18: 平分判斷輔助函式
+const isOriginalOrder = (item) => {
+  const isSplitItem = item.note && item.note.includes('平分');
+  if (!isSplitItem) return true;
+  return item.note.includes(`${item.member_name}訂購`);
+};
+
 export default function GroupBuyCard({ groupBuy, currentUser, members, items = [] }) {
-  const isOrganizer = currentUser && groupBuy.created_by === currentUser.email;
-  const isOpen = groupBuy.status === 'open';
+   const isOpen = groupBuy.status === 'open';
 
-  // Calculate total quantity for this group buy
-  const totalQuantity = items
-    .filter(item => item.group_buy_id === groupBuy.id)
-    .reduce((sum, item) => {
-      const isSplitItem = item.note && item.note.includes('平分');
-      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-        return sum;
-      }
-      return sum + item.quantity;
-    }, 0);
+   // Calculate total quantity for this group buy
+   const relevantItems = items
+     .filter(item => item.group_buy_id === groupBuy.id && isOriginalOrder(item));
 
-  // Calculate total amount for this group buy
-  const totalAmount = items
-    .filter(item => item.group_buy_id === groupBuy.id)
-    .reduce((sum, item) => {
-      const isSplitItem = item.note && item.note.includes('平分');
-      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-        return sum;
-      }
-      return sum + (item.price * item.quantity);
-    }, 0);
+   const totalQuantity = relevantItems.reduce((sum, item) => sum + item.quantity, 0);
+
+   // Calculate total amount for this group buy
+   const totalAmount = relevantItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   // Status logic
   const isClosed = groupBuy.status === 'closed';

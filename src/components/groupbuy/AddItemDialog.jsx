@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Users, Wallet } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
