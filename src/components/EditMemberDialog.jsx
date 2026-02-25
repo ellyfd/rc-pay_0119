@@ -175,13 +175,13 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave, o
           <div>
             <Label className="mb-2 block">頭像顏色</Label>
             <div className="flex gap-2">
-              {colors.map((color) => (
+              {['blue', 'green', 'purple', 'orange', 'pink', 'cyan'].map((colorName) => (
                 <button
-                  key={color.name}
+                  key={colorName}
                   type="button"
-                  onClick={() => setFormData({ ...formData, avatar_color: color.name })}
-                  className={`w-10 h-10 rounded-full ${color.bg} ${
-                    formData.avatar_color === color.name
+                  onClick={() => setFormData({ ...formData, avatar_color: colorName })}
+                  className={`w-10 h-10 rounded-full ${getAvatarColorStyle(colorName)} ${
+                    formData.avatar_color === colorName
                       ? 'ring-2 ring-slate-800 ring-offset-2'
                       : 'hover:ring-2 hover:ring-slate-400 hover:ring-offset-2'
                   } transition-all`}
