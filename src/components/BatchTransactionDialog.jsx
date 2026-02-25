@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
+import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import {
   Dialog,
   DialogContent,
@@ -27,19 +27,7 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
   const [items, setItems] = useState([{ member_id: '', amount: '' }]);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
+  const { user: currentUser } = useCurrentUser();
 
   const resetForm = () => {
     setType('withdraw');
