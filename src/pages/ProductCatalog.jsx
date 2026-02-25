@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ProductCatalogFormDialog from "@/components/catalog/ProductCatalogFormDialog";
 import {
   AlertDialog,
