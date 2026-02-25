@@ -10,7 +10,8 @@ import { Card } from "@/components/ui/card";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const riceOptionLabels = {
+// P2-12: 改用共用常數
+const RICE_OPTION_LABELS = {
   normal: '正常飯量',
   less_rice: '飯少',
   rice_to_veg: '飯換菜'
@@ -43,7 +44,7 @@ export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onR
                       <h4 className="font-semibold text-slate-800">{item.product_name}</h4>
                       {item.category === 'meal_box' && item.rice_option !== 'normal' && (
                         <Badge variant="outline" className="mt-1">
-                          {riceOptionLabels[item.rice_option]}
+                          {RICE_OPTION_LABELS[item.rice_option]}
                         </Badge>
                       )}
                       <p className="text-sm text-slate-500 mt-1">NT${item.price}</p>

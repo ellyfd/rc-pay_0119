@@ -23,7 +23,8 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { format } from "date-fns";
 
-const riceOptionLabels = {
+// P2-12: 改用共用常數
+const RICE_OPTION_LABELS = {
   normal: '正常飯量',
   less_rice: '飯少',
   rice_to_veg: '飯換菜'
@@ -62,54 +63,75 @@ export default function CheckoutDialog({ open, onOpenChange, cart, members, tota
     if (!memberId) return;
 
     setLoading(true);
-
-    const selectedMember = members.find(m => m.id === memberId);
     
-    // Create order
-    const order = await createOrder.mutateAsync({
-      member_id: memberId,
-      member_name: selectedMember.name,
-      total_amount: totalAmount,
-      payment_method: paymentMethod,
-      status: 'completed',
-      order_date: format(new Date(), 'yyyy-MM-dd'),
-      note
-    });
+    try {
+      // P0-10: 扣款前重新讀取最新餘額，避免競態條件
+      const freshMembers = await base44.entities.Member.list('name');
+      const freshMember = freshMembers.find(m => m.id === memberId);
+      
+      if (!freshMember) {
+        throw new Error('找不到成員');
+      }
 
-    // Create order items
-    for (const item of cart) {
-      await createOrderItem.mutateAsync({
-        order_id: order.id,
-        product_id: item.product_id,
-        product_name: item.product_name,
-        price: item.price,
-        quantity: item.quantity,
-        rice_option: item.rice_option,
-        note: ''
+      // 檢查餘額（扣款前）
+      if (paymentMethod === 'balance' && freshMember.balance < totalAmount) {
+        throw new Error(`${freshMember.name} 餘額不足！目前：$${freshMember.balance}`);
+      }
+
+      // Create order
+      const order = await createOrder.mutateAsync({
+        member_id: memberId,
+        member_name: freshMember.name,
+        total_amount: totalAmount,
+        payment_method: paymentMethod,
+        status: 'completed',
+        order_date: format(new Date(), 'yyyy-MM-dd'),
+        note
       });
+
+      // Create order items (P0-13: 包裹在 try-catch 中)
+      for (const item of cart) {
+        await createOrderItem.mutateAsync({
+          order_id: order.id,
+          product_id: item.product_id,
+          product_name: item.product_name,
+          price: item.price,
+          quantity: item.quantity,
+          rice_option: item.rice_option,
+          note: ''
+        });
+      }
+
+      // If payment method is balance, deduct from member balance and create transaction
+      if (paymentMethod === 'balance') {
+        // P0-11: 補上 wallet_type 欄位
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: totalAmount,
+          wallet_type: 'balance',
+          from_member_id: memberId,
+          from_member_name: freshMember.name,
+          note: `七分飽訂餐 - ${note || '午餐'}`
+        });
+
+        // P0-10: 用最新餘額計算
+        await updateMember.mutateAsync({
+          id: memberId,
+          data: { balance: freshMember.balance - totalAmount }
+        });
+      }
+
+      setMemberId('');
+      setPaymentMethod('balance');
+      setNote('');
+      onComplete();
+    } catch (error) {
+      console.error('訂單建立失敗:', error);
+      // toast.error 由父元件處理
+      throw error;
+    } finally {
+      setLoading(false);
     }
-
-    // If payment method is balance, deduct from member balance and create transaction
-    if (paymentMethod === 'balance') {
-      await createTransaction.mutateAsync({
-        type: 'withdraw',
-        amount: totalAmount,
-        from_member_id: memberId,
-        from_member_name: selectedMember.name,
-        note: `七分飽訂餐 - ${note || '午餐'}`
-      });
-
-      await updateMember.mutateAsync({
-        id: memberId,
-        data: { balance: (selectedMember.balance || 0) - totalAmount }
-      });
-    }
-
-    setLoading(false);
-    setMemberId('');
-    setPaymentMethod('balance');
-    setNote('');
-    onComplete();
   };
 
   const selectedMember = members.find(m => m.id === memberId);
@@ -136,7 +158,7 @@ export default function CheckoutDialog({ open, onOpenChange, cart, members, tota
                       <span className="text-slate-800">{item.product_name}</span>
                       {item.category === 'meal_box' && item.rice_option !== 'normal' && (
                         <Badge variant="outline" className="ml-2 text-xs">
-                          {riceOptionLabels[item.rice_option]}
+                          {RICE_OPTION_LABELS[item.rice_option]}
                         </Badge>
                       )}
                       <span className="text-slate-500 ml-2">x{item.quantity}</span>

@@ -60,7 +60,14 @@ export default function ProductCard({ product, onAddToCart }) {
         </div>
       </Card>
 
-      <Dialog open={showOptions} onOpenChange={setShowOptions}>
+      <Dialog 
+        open={showOptions} 
+        onOpenChange={(open) => {
+          setShowOptions(open);
+          // P3-13: 對話框關閉時重置飯量選擇
+          if (!open) setRiceOption('normal');
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>選擇飯量選項</DialogTitle>

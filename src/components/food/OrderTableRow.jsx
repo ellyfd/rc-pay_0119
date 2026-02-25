@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
+import { parseOrderItems } from "@/components/utils/orderItemUtils";
 
 // P3-3：提取表格行為獨立元件
 export default function OrderTableRow({
@@ -15,15 +16,8 @@ export default function OrderTableRow({
   onEdit,
   onDelete
 }) {
-  const mealBox = items.find(item => {
-    const product = mealBoxes.find(p => p.id === item.product_id);
-    return product && product.category === 'meal_box';
-  });
-
-  const sideItems = items.filter(item => {
-    const product = sideDishProducts.find(p => p.id === item.product_id);
-    return product && product.category === 'side_dish';
-  });
+  // P2-13: 使用共用工具函式
+  const { mealBox, sideItems } = parseOrderItems(items, mealBoxes, sideDishProducts);
 
   return (
     <tr className="border-b hover:bg-slate-50">
@@ -46,8 +40,7 @@ export default function OrderTableRow({
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         {mealBox ? (
           <span className="text-slate-700 whitespace-nowrap">
-            {mealBox.rice_option === 'less_rice' ? '飯少' : 
-             mealBox.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
+            {parseOrderItems(items, mealBoxes, sideDishProducts).riceLabel}
           </span>
         ) : (
           <span className="text-slate-400">-</span>

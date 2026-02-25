@@ -12,10 +12,6 @@ export default function ConfirmPaymentDialog({
 }) {
   if (!confirmPayment) return null;
 
-  const handleCancel = () => {
-    onCancel();
-  };
-
   const handleConfirm = async () => {
     try {
       await onConfirm();
@@ -37,7 +33,7 @@ export default function ConfirmPaymentDialog({
           <Button 
             variant="outline" 
             className="flex-1"
-            onClick={handleCancel}
+            onClick={onCancel}
             disabled={isLoading}
           >
             取消

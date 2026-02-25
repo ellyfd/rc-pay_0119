@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save } from "lucide-react";
+import { parseOrderItems } from "@/components/utils/orderItemUtils";
 
-export default function EditOrderDialog({ open, onOpenChange, order, orderItems, products, members, onSave }) {
+export default function EditOrderDialog({ open, onOpenChange, order, orderItems, products, onSave }) {
+  // P3-12: 移除未使用的 members prop
   const [paymentMethod, setPaymentMethod] = useState('balance');
   const [note, setNote] = useState('');
   const [mealBoxId, setMealBoxId] = useState('');
@@ -20,23 +22,17 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
       setPaymentMethod(order.payment_method || 'balance');
       setNote(order.note || '');
 
-      const mealBoxItem = orderItems.find(item => {
-        const product = mealBoxes.find(p => p.id === item.product_id);
-        return product && product.category === 'meal_box';
-      });
+      // P2-14: 使用共用工具函式
+      const { mealBox, riceOption: mealBoxRiceOption, sideItems } = parseOrderItems(orderItems, mealBoxes, sideDishProducts);
 
-      if (mealBoxItem) {
-        setMealBoxId(mealBoxItem.product_id);
-        setRiceOption(mealBoxItem.rice_option || 'normal');
+      if (mealBox) {
+        setMealBoxId(mealBox.product_id);
+        setRiceOption(mealBoxRiceOption);
       } else {
         setMealBoxId('');
         setRiceOption('normal');
       }
 
-      const sideItems = orderItems.filter(item => {
-        const product = sideDishProducts.find(p => p.id === item.product_id);
-        return product && product.category === 'side_dish';
-      });
       setSideDishes(sideItems.map(item => item.product_id));
     }
   }, [order, orderItems]);
@@ -55,15 +51,18 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
   };
 
   const handleSave = () => {
-    if (!mealBoxId && sideDishes.length === 0) {
+    // P0-12: 處理 '__none__' 值
+    const effectiveMealBoxId = mealBoxId === '__none__' ? '' : mealBoxId;
+    
+    if (!effectiveMealBoxId && sideDishes.length === 0) {
       alert('請至少選擇一個餐盒或單點！');
       return;
     }
 
     const items = [];
     
-    if (mealBoxId) {
-      const mealBox = mealBoxes.find(p => p.id === mealBoxId);
+    if (effectiveMealBoxId) {
+      const mealBox = mealBoxes.find(p => p.id === effectiveMealBoxId);
       if (mealBox) {
         items.push({
           product_id: mealBox.id,
@@ -112,7 +111,7 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
                 <SelectValue placeholder="選擇餐盒（可不選）" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>不選</SelectItem>
+                <SelectItem value="__none__">不選</SelectItem>
                 {mealBoxes.map((box) => (
                   <SelectItem key={box.id} value={box.id}>
                     {box.name} - ${box.price}
