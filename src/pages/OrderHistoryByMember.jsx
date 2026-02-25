@@ -6,6 +6,7 @@ import { getAvatarColorStyle } from '@/components/utils/colorMap';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Package, Users } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";

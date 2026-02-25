@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Package, Calendar } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -142,11 +143,12 @@ export default function OrderHistoryByDate() {
                 <p className="text-slate-500">載入中...</p>
               </Card>
             ) : orders.length === 0 ? (
-              <Card className="p-8 text-center border-dashed">
-                <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">此日期區間沒有訂單</p>
-              </Card>
-            ) : (
+               <Card className="p-8 text-center border-dashed">
+                 <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                 <p className="text-slate-500">此日期區間沒有訂單</p>
+               </Card>
+             ) : (
+               {/* P0-9: 使用 parseOrderItems 統一處理飯量 bug */}
               <>
                 <Card className="p-4 mb-6 bg-emerald-50">
                   <div className="flex items-center justify-between">
