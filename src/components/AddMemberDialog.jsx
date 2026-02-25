@@ -8,16 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const colors = ['blue', 'green', 'purple', 'orange', 'pink', 'cyan'];
-const colorMap = {
-  blue: "bg-blue-500",
-  green: "bg-emerald-500",
-  purple: "bg-purple-500",
-  orange: "bg-orange-500",
-  pink: "bg-pink-500",
-  cyan: "bg-cyan-500",
-};
+import { colors, getAvatarColorStyle } from "@/components/utils/colorMap";
 
 export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
   const [name, setName] = useState('');
