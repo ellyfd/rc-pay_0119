@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { AlertCircle } from 'lucide-react';
 
 // P2-8: 统一管理员权限检查（3个文件共用）
