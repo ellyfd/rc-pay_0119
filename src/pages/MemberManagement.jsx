@@ -84,7 +84,7 @@ export default function MemberManagement() {
     }
   };
 
-  if (!currentUser) {
+  if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -95,7 +95,7 @@ export default function MemberManagement() {
     );
   }
 
-  if (currentUser.role !== 'admin') {
+  if (!currentUser || currentUser.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
