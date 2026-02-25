@@ -177,7 +177,7 @@ export default function MemberManagement() {
                 </thead>
                 <tbody className="divide-y">
                   {members.map(member => {
-                    const bgColor = colorMap[member.avatar_color] || "bg-slate-500";
+                    const bgColor = getAvatarColorStyle(member.avatar_color);
                     const totalBalance = (member.balance || 0) + (member.cash_balance || 0);
                     
                     return (
