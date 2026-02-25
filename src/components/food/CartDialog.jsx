@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { RICE_OPTION_LABELS } from "@/utils/constants";
+import { RICE_OPTION_LABELS } from "@/components/utils/constants";
 
 export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onRemoveItem, onCheckout, totalAmount }) {
   return (

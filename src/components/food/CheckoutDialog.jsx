@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { format } from "date-fns";
-import { RICE_OPTION_LABELS } from "@/utils/constants";
+import { RICE_OPTION_LABELS } from "@/components/utils/constants";
 
 export default function CheckoutDialog({ open, onOpenChange, cart, members, totalAmount, onComplete }) {
   const [memberId, setMemberId] = useState('');
