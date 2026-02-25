@@ -204,36 +204,57 @@ export default function AdminOrders() {
       const amount = order.total_amount || 0;
 
       if (order.payment_method === 'payer') {
-        // Skip transaction for payer
-        continue;
+        // 建立紀錄但不扣款
+        await createTransaction.mutateAsync({
+          type: 'note',
+          amount: amount,
+          wallet_type: 'payer',
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: `${transactionNote}（由 ${order.payer_id ? memberMap.get(order.payer_id)?.name : '未知'} 代付）`
+        });
       } else if (order.payment_method === 'balance') {
-        await createTransaction.mutateAsync({
-          type: 'withdraw',
-          amount: amount,
-          wallet_type: 'balance',
-          from_member_id: member.id,
-          from_member_name: member.name,
-          note: transactionNote
-        });
+        // P0-1：重新讀取最新餘額以防競態
+        const freshMembers = await base44.entities.Member.list('name');
+        const freshMember = freshMembers.find(m => m.id === member.id);
+        if (freshMember && (freshMember.balance || 0) >= amount) {
+          await createTransaction.mutateAsync({
+            type: 'withdraw',
+            amount: amount,
+            wallet_type: 'balance',
+            from_member_id: member.id,
+            from_member_name: member.name,
+            note: transactionNote
+          });
 
-        await updateMember.mutateAsync({
-          id: member.id,
-          data: { balance: (member.balance || 0) - amount }
-        });
+          await updateMember.mutateAsync({
+            id: member.id,
+            data: { balance: (freshMember.balance || 0) - amount }
+          });
+        } else {
+          console.warn(`${member.name} 餘額不足，跳過此訂單`);
+        }
       } else if (order.payment_method === 'cash') {
-        await createTransaction.mutateAsync({
-          type: 'withdraw',
-          amount: amount,
-          wallet_type: 'cash',
-          from_member_id: member.id,
-          from_member_name: member.name,
-          note: transactionNote
-        });
+        // P0-1：重新讀取最新餘額以防競態
+        const freshMembers = await base44.entities.Member.list('name');
+        const freshMember = freshMembers.find(m => m.id === member.id);
+        if (freshMember && (freshMember.cash_balance || 0) >= amount) {
+          await createTransaction.mutateAsync({
+            type: 'withdraw',
+            amount: amount,
+            wallet_type: 'cash',
+            from_member_id: member.id,
+            from_member_name: member.name,
+            note: transactionNote
+          });
 
-        await updateMember.mutateAsync({
-          id: member.id,
-          data: { cash_balance: (member.cash_balance || 0) - amount }
-        });
+          await updateMember.mutateAsync({
+            id: member.id,
+            data: { cash_balance: (freshMember.cash_balance || 0) - amount }
+          });
+        } else {
+          console.warn(`${member.name} 現金餘額不足，跳過此訂單`);
+        }
       }
     }
 

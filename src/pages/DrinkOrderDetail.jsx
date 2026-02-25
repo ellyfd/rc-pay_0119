@@ -52,9 +52,22 @@ export default function DrinkOrderDetail() {
     enabled: !!orderId
   });
 
-  // 自動均分運費到每個成員
+  // 自動均分運費到每個成員，並從已保存的 shipping_allocation 還原
   useEffect(() => {
     if (!order || !order.items) return;
+
+    // 先從 shipping_allocation 還原（如果有的話）
+    if (order.shipping_allocation) {
+      try {
+        const saved = JSON.parse(order.shipping_allocation);
+        setManualShipping(saved);
+        return;
+      } catch (e) {
+        // fallback 到自動均分
+      }
+    }
+
+    // 自動均分
     const groups = {};
     order.items.forEach(item => {
       const key = item.member_id || item.member_name;
@@ -66,7 +79,6 @@ export default function DrinkOrderDetail() {
 
     const perMember = Math.round((order.shipping_fee || 0) / count);
     
-    // 只填入還沒有手動值的成員
     setManualShipping(prev => {
       const updated = { ...prev };
       memberIds.forEach(id => {
@@ -76,7 +88,7 @@ export default function DrinkOrderDetail() {
       });
       return updated;
     });
-  }, [order?.shipping_fee, order?.items?.length]);
+  }, [order?.shipping_fee, order?.shipping_allocation, order?.items?.length]);
 
   const updateOrder = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DrinkOrder.update(id, data),
@@ -662,10 +674,18 @@ export default function DrinkOrderDetail() {
                                   <input
                                     type="number"
                                     value={manualShipping[memberId] ?? getMemberShipping(memberId)}
-                                    onChange={(e) => setManualShipping(prev => ({
-                                      ...prev,
-                                      [memberId]: parseFloat(e.target.value) || 0
-                                    }))}
+                                    onChange={(e) => {
+                                      const newShipping = {
+                                        ...manualShipping,
+                                        [memberId]: parseFloat(e.target.value) || 0
+                                      };
+                                      setManualShipping(newShipping);
+                                      // P0-4：同步儲存到 order
+                                      updateOrder.mutateAsync({
+                                        id: orderId,
+                                        data: { shipping_allocation: JSON.stringify(newShipping) }
+                                      });
+                                    }}
                                     className="w-full px-2 py-1 text-right border rounded text-sm"
                                   />
                                 )}
@@ -794,7 +814,7 @@ export default function DrinkOrderDetail() {
                           const newFee = parseFloat(e.target.value) || 0;
                           updateOrder.mutateAsync({
                             id: orderId,
-                            data: { shipping_fee: newFee }
+                            data: { shipping_fee: newFee, shipping_allocation: JSON.stringify({}) }
                           });
                           // 重新均分
                           const count = Object.keys(memberGroups).length;
@@ -803,6 +823,11 @@ export default function DrinkOrderDetail() {
                             const updated = {};
                             Object.keys(memberGroups).forEach(id => { updated[id] = perMember; });
                             setManualShipping(updated);
+                            // P0-4：同步儲存
+                            updateOrder.mutateAsync({
+                              id: orderId,
+                              data: { shipping_allocation: JSON.stringify(updated) }
+                            });
                           }
                         }}
                         className="w-20 text-sm text-right"

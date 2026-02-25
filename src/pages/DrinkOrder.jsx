@@ -67,13 +67,7 @@ export default function DrinkOrder() {
     return nonPayerItems.every(item => item.paid);
   };
 
-  const handleCompleteOrder = async (orderId) => {
-    await updateOrder.mutateAsync({
-      id: orderId,
-      data: { status: 'completed' }
-    });
-    toast.success('訂單已結案！');
-  };
+
 
   const createOrder = useMutation({
     mutationFn: (data) => base44.entities.DrinkOrder.create(data),
