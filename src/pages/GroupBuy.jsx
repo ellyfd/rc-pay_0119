@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,22 +15,10 @@ import { toast } from "sonner";
 
 export default function GroupBuy() {
   const [showCreate, setShowCreate] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [filterType, setFilterType] = useState('all'); // all, my_organized, my_joined
   const [sortBy, setSortBy] = useState('latest'); // latest, deadline, participants
+  const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
@@ -156,17 +143,6 @@ export default function GroupBuy() {
     sortGroupBuys(filterGroupBuys(groupBuys.filter(gb => gb.status === 'closed' && gb.is_fully_paid))),
     [groupBuys, sortGroupBuys, filterGroupBuys]
   );
-
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
