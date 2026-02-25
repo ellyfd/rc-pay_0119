@@ -12,6 +12,7 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { parseOrderItems } from "@/components/utils/orderItemUtils";
 
 export default function OrderHistoryByMember() {
   const [selectedMemberId, setSelectedMemberId] = useState('');
