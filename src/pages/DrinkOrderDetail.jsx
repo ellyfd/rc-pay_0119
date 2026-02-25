@@ -38,7 +38,7 @@ export default function DrinkOrderDetail() {
     queryFn: () => base44.entities.Member.list('name')
   });
 
-  // 建立成員 Map 以提高查找效率
+  // P1-1：用 useMemo 建立成員 Map
   const memberMap = useMemo(() => {
     return new Map(members.map(m => [m.id, m]));
   }, [members]);
