@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, UserPlus, Edit, Eye, EyeOff, Users } from "lucide-react";
+// P3-10: 移除未使用的 Trash2 import
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -97,22 +98,9 @@ export default function MemberManagement() {
     );
   }
 
-  if (!currentUser || currentUser.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <Card className="p-8 text-center max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-red-600" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">無權限訪問</h2>
-          <p className="text-slate-500 mb-4">此頁面僅限管理員使用</p>
-          <Link to={createPageUrl('Home')}>
-            <Button className="w-full">返回首頁</Button>
-          </Link>
-        </Card>
-      </div>
-    );
-  }
+  // P2-8: 使用 AdminGuard 元件檢查權限
+  const guard = <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Users} />;
+  if (guard) return guard;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">

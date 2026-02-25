@@ -1,30 +1,36 @@
-import React from 'react';
-import { useCurrentUser } from '@/components/hooks/useCurrentUser';
-import { AlertCircle } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { Package } from "lucide-react";
 
-// P2-8: 统一管理员权限检查（3个文件共用）
-export default function AdminGuard({ children }) {
-  const { user, isLoading } = useCurrentUser();
-
+// P2-8: 統一的管理員權限檢查元件
+export default function AdminGuard({ currentUser, isLoading, icon: Icon = Package }) {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-slate-500">检查权限中...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <LoadingSpinner message="載入中..." />
       </div>
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!currentUser || currentUser.role !== 'admin') {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-3" />
-        <h2 className="text-lg font-semibold text-slate-800 mb-2">权限不足</h2>
-        <p className="text-sm text-slate-600 text-center">
-          仅管理员可访问此功能
-        </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-8 text-center max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">無權限訪問</h2>
+          <p className="text-slate-500 mb-4">此頁面僅限管理員使用</p>
+          <Link to={createPageUrl('Home')}>
+            <Button className="w-full">返回首頁</Button>
+          </Link>
+        </Card>
       </div>
     );
   }
 
-  return <>{children}</>;
+  return null;
 }
