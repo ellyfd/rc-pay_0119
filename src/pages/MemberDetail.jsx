@@ -6,6 +6,7 @@ import { getAvatarColorStyle } from '@/components/utils/colorMap';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
+// P3-8: 移除未使用的 Wallet import
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import {
   AlertDialog,

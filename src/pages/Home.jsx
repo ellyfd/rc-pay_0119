@@ -74,6 +74,8 @@ export default function Home() {
     [allMembers]
   );
 
+  // P3-6: 移除未使用的 totalBalance 计算
+
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-created_date', 5)
