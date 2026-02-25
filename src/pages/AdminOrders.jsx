@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
-import { formatTaiwanTime } from "@/components/utils/dateUtils";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Input } from "@/components/ui/input";
 import EditOrderDialog from "@/components/food/EditOrderDialog";
 import OrderTableRow from "@/components/food/OrderTableRow";
@@ -264,19 +264,29 @@ export default function AdminOrders() {
     [orders]
   );
   
-  const groupedOrders = useMemo(() => 
-    orders.reduce((acc, order) => {
-      if (!acc[order.member_name]) {
-        acc[order.member_name] = [];
+  const handleDeleteWithRollback = async () => {
+    if (!deletingOrder) return;
+
+    try {
+      // Delete all order items first
+      const items = getOrderItems(deletingOrder.id);
+      for (const item of items) {
+        try {
+          await deleteOrderItem.mutateAsync(item.id);
+        } catch (error) {
+          console.error('Error deleting item:', error);
+        }
       }
-      acc[order.member_name].push(order);
-      return acc;
-    }, {}),
-    [orders]
-  );
 
-
-
+      // Then delete the order
+      await deleteOrder.mutateAsync(deletingOrder.id);
+      setDeletingOrder(null);
+      alert('訂單已刪除');
+    } catch (error) {
+      alert('刪除失敗，請重試');
+      console.error('Delete error:', error);
+    }
+  };
 
 
   return (
@@ -358,11 +368,8 @@ export default function AdminOrders() {
         </Card>
 
         {ordersLoading || itemsLoading ? (
-          <Card className="p-8 text-center">
-            <div className="w-12 h-12 border-4 border-emerald-300 border-t-emerald-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-slate-500">載入中...</p>
-          </Card>
-        ) : orders.length === 0 ? (
+           <LoadingSpinner message="載入訂單中..." />
+         ) : orders.length === 0 ? (
           <Card className="p-8 text-center border-dashed">
             <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500">此日期沒有{orderStatus === 'pending' ? '待處理' : '已完成'}訂單</p>
@@ -432,7 +439,7 @@ export default function AdminOrders() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogAction onClick={handleDeleteWithRollback} className="bg-red-500 hover:bg-red-600">
               刪除
             </AlertDialogAction>
           </AlertDialogFooter>
