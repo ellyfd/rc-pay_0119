@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { isOriginalOrder } from '@/components/utils/groupBuyUtils';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Plus, Calendar, ExternalLink, CheckCircle, Edit, Trash2, X, Download, ZoomIn, Copy, Users as UsersIcon } from "lucide-react";
@@ -156,10 +157,7 @@ export default function GroupBuyDetail() {
     }
   });
 
-  const createTransaction = useMutation({
-    mutationFn: async (data) => base44.entities.Transaction.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
-  });
+
 
   const updateMember = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Member.update(id, data),
@@ -287,25 +285,16 @@ export default function GroupBuyDetail() {
 
   // Calculate total quantity across all items in the group buy (only count orderers, not split members)
   const getTotalQuantity = useMemo(() => {
-    return items.reduce((sum, item) => {
-      // If it's a split item and this member is not the orderer, don't count it
-      const isSplitItem = item.note && item.note.includes('平分');
-      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-        return sum;
-      }
-      return sum + item.quantity;
-    }, 0);
+    return items
+      .filter(isOriginalOrder)
+      .reduce((sum, item) => sum + item.quantity, 0);
   }, [items]);
 
   // Calculate total amount across all items
   const getTotalAmount = useMemo(() => {
-    return items.reduce((sum, item) => {
-      const isSplitItem = item.note && item.note.includes('平分');
-      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-        return sum;
-      }
-      return sum + (item.price * item.quantity);
-    }, 0);
+    return items
+      .filter(isOriginalOrder)
+      .reduce((sum, item) => sum + (item.price * item.quantity), 0);
   }, [items]);
 
   // Calculate applicable discount based on total group buy quantity or amount
@@ -355,13 +344,9 @@ export default function GroupBuyDetail() {
   const getTotalDiscountAmount = useMemo(() => {
     if (!getApplicableDiscount) return 0;
 
-    const totalBeforeDiscount = items.reduce((sum, item) => {
-      const isSplitItem = item.note && item.note.includes('平分');
-      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-        return sum;
-      }
-      return sum + (item.price * item.quantity);
-    }, 0);
+    const totalBeforeDiscount = items
+      .filter(isOriginalOrder)
+      .reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     if (getApplicableDiscount.discount_type === 'percent') {
       return totalBeforeDiscount * (getApplicableDiscount.discount_percent / 100);
@@ -376,13 +361,9 @@ export default function GroupBuyDetail() {
       return originalPrice;
     }
 
-    const totalBeforeDiscount = items.reduce((sum, item) => {
-      const isSplitItem = item.note && item.note.includes('平分');
-      if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-        return sum;
-      }
-      return sum + (item.price * item.quantity);
-    }, 0);
+    const totalBeforeDiscount = items
+      .filter(isOriginalOrder)
+      .reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     if (totalBeforeDiscount === 0) return originalPrice;
 
@@ -403,13 +384,9 @@ export default function GroupBuyDetail() {
       return Math.round(discountedPrice * 100) / 100;
     } else if (allocationMethod === 'per_item') {
       // 按項目分攤：每個商品品項平均分攤折扣
-      const totalItemCount = items.reduce((sum, item) => {
-        const isSplitItem = item.note && item.note.includes('平分');
-        if (isSplitItem && !item.note.includes(`${item.member_name}訂購`)) {
-          return sum;
-        }
-        return sum + item.quantity;
-      }, 0);
+      const totalItemCount = items
+        .filter(isOriginalOrder)
+        .reduce((sum, item) => sum + item.quantity, 0);
       
       if (totalItemCount === 0) return originalPrice;
       
@@ -1114,20 +1091,15 @@ export default function GroupBuyDetail() {
                       <tr className="bg-slate-50 font-semibold">
                         <td colSpan={2} className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-700 text-xs sm:text-sm">總計</td>
                         <td className="px-1 sm:px-2 py-2 sm:py-3 text-center text-slate-800 text-xs sm:text-sm">
-                          {items.reduce((sum, item) => {
-                            const isSplitItem = item.note && item.note.includes('平分');
-                            const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
-                            if (isSplitItem && !isOrderer) return sum;
-                            return sum + item.quantity;
-                          }, 0)}
+                          {items
+                                .filter(isOriginalOrder)
+                                .reduce((sum, item) => sum + item.quantity, 0)}
                         </td>
                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-slate-800 text-xs sm:text-sm whitespace-nowrap">
-                          ${items.reduce((sum, item) => {
-                            const isSplitItem = item.note && item.note.includes('平分');
-                            const isOrderer = item.note && item.note.includes(`${item.member_name}訂購`);
-                            if (isSplitItem && !isOrderer) return sum;
-                            return sum + (item.price * item.quantity);
-                          }, 0).toLocaleString()}
+                          ${items
+                            .filter(isOriginalOrder)
+                            .reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                            .toLocaleString()}
                         </td>
                         {groupBuy.discount_rules?.length > 0 && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-orange-600 text-xs sm:text-sm whitespace-nowrap">

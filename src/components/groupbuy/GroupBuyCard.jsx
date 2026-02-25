@@ -7,13 +7,7 @@ import DiscountProgressBar from "./DiscountProgressBar";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-
-// P2-18: 平分判斷輔助函式
-const isOriginalOrder = (item) => {
-  const isSplitItem = item.note && item.note.includes('平分');
-  if (!isSplitItem) return true;
-  return item.note.includes(`${item.member_name}訂購`);
-};
+import { isOriginalOrder } from "@/components/utils/groupBuyUtils";
 
 export default function GroupBuyCard({ groupBuy, currentUser, members, items = [] }) {
    const isOpen = groupBuy.status === 'open';
