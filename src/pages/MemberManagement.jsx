@@ -5,7 +5,7 @@ import AdminGuard from '@/components/AdminGuard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, UserPlus, Edit, Trash2, Eye, EyeOff, Users } from "lucide-react";
+import { ArrowLeft, UserPlus, Edit, Eye, EyeOff, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -31,17 +31,21 @@ export default function MemberManagement() {
   const { user: currentUser, isLoading: userLoading } = useCurrentUser();
   const queryClient = useQueryClient();
 
-  const { data: members = [], isLoading } = useQuery({
+  // P1-8: queryFn 只取数据，排序交给 useMemo
+  const { data: rawMembers = [], isLoading } = useQuery({
     queryKey: ['members'],
-    queryFn: async () => {
-      const memberList = await base44.entities.Member.list('-created_date');
-      return memberList.sort((a, b) => {
-        const totalA = (a.balance || 0) + (a.cash_balance || 0);
-        const totalB = (b.balance || 0) + (b.cash_balance || 0);
-        return totalB - totalA;
-      });
-    }
+    queryFn: () => base44.entities.Member.list('-created_date'),
+    staleTime: 30 * 1000,
   });
+
+  const members = useMemo(() =>
+    [...rawMembers].sort((a, b) => {
+      const totalA = (a.balance || 0) + (a.cash_balance || 0);
+      const totalB = (b.balance || 0) + (b.cash_balance || 0);
+      return totalB - totalA;
+    }),
+    [rawMembers]
+  );
 
   const createMember = useMutation({
     mutationFn: (data) => base44.entities.Member.create(data),
@@ -88,10 +92,7 @@ export default function MemberManagement() {
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
+        <LoadingSpinner message="載入中..." />
       </div>
     );
   }

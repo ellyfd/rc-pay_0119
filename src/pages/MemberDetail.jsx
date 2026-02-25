@@ -6,6 +6,7 @@ import { getAvatarColorStyle } from '@/components/utils/colorMap';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, ShoppingCart, Package, Coffee, AlertCircle, X } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -329,10 +330,7 @@ export default function MemberDetail() {
   if (memberLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
+        <LoadingSpinner message="載入成員資料中..." />
       </div>
     );
   }
@@ -432,6 +430,7 @@ export default function MemberDetail() {
                       <h2 className="text-lg font-semibold text-slate-800">我開的團購（未收齊款項）</h2>
                       <Badge className="bg-red-500">{pendingOrganizerGroupBuys.length}</Badge>
                     </div>
+                    {/* P3-9: 移除冗餘條件檢查（外層已確認有資料） */}
                     <Card>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -478,6 +477,7 @@ export default function MemberDetail() {
                       <h2 className="text-lg font-semibold text-slate-800">我參與的團購（未付款）</h2>
                       <Badge className="bg-red-500">{pendingParticipantGroupBuys.length}</Badge>
                     </div>
+                    {/* P3-9: 移除冗餘條件檢查（外層已確認有資料） */}
                     <Card>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -531,6 +531,7 @@ export default function MemberDetail() {
                       <h2 className="text-lg font-semibold text-slate-800">飲料訂單（未付款）</h2>
                       <Badge className="bg-red-500">{pendingDrinkOrders.length}</Badge>
                     </div>
+                    {/* P3-9: 移除冗餘條件檢查（外層已確認有資料） */}
                     <Card>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
