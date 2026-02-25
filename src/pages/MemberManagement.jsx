@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import AdminGuard from '@/components/AdminGuard';
@@ -9,6 +9,7 @@ import { ArrowLeft, UserPlus, Edit, Trash2, Eye, EyeOff, Users } from "lucide-re
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { getAvatarColorStyle } from "@/components/utils/colorMap";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import EditMemberDialog from "@/components/EditMemberDialog";
 import {
@@ -22,33 +23,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const colorMap = {
-  blue: "bg-blue-500",
-  green: "bg-emerald-500",
-  purple: "bg-purple-500",
-  orange: "bg-orange-500",
-  pink: "bg-pink-500",
-  cyan: "bg-cyan-500",
-};
-
 export default function MemberManagement() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [deletingMember, setDeletingMember] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser, isLoading: userLoading } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['members'],
