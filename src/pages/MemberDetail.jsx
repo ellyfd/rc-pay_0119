@@ -794,31 +794,8 @@ export default function MemberDetail() {
                             return '';
                           };
 
-                          // Calculate balance after this transaction: current balance - all later transactions
-                          const isCurrentWalletType = (t) => t.wallet_type === transaction.wallet_type;
-                          const allTransactionsOfWalletType = allMemberTransactions
-                            .filter(isCurrentWalletType)
-                            .sort((a, b) => {
-                              const timeB = new Date(b.created_date).getTime();
-                              const timeA = new Date(a.created_date).getTime();
-                              if (timeA !== timeB) return timeB - timeA;
-                              return b.id.localeCompare(a.id); // 同秒時按 ID 確保穩定排序
-                            });
-
-                          let laterTransactionsNet = 0;
-                          let foundCurrent = false;
-                          for (const t of allTransactionsOfWalletType) {
-                            if (t.id === transaction.id) {
-                              foundCurrent = true;
-                              break;
-                            }
-                            const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId)) 
-                              ? t.amount 
-                              : -t.amount;
-                            laterTransactionsNet += change;
-                          }
-                          const currentBalance = transaction.wallet_type === 'balance' ? member.balance : member.cash_balance;
-                          const balanceAfterTransaction = currentBalance - laterTransactionsNet;
+                          // P1-6: ✅ O(1) 查表替代 O(N) 计算
+                          const balanceAfterTransaction = transactionBalances.get(transaction.id) || 0;
 
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
