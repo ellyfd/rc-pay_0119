@@ -20,21 +20,23 @@ export default function GroupBuy() {
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
 
+  // P1-5: 延迟加载 + staleTime，避免一次拉 6 张表全量数据
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
-    queryFn: () => base44.entities.Member.list('name')
+    queryFn: () => base44.entities.Member.list('name'),
+    staleTime: 30 * 1000,
   });
 
   const { data: groupBuys = [], isLoading } = useQuery({
     queryKey: ['groupBuys'],
     queryFn: () => base44.entities.GroupBuy.list('-created_date'),
-    select: (data) => data // Can add transformation here if needed
+    staleTime: 30 * 1000,
   });
 
   const { data: allGroupBuyItems = [] } = useQuery({
     queryKey: ['allGroupBuyItems'],
     queryFn: () => base44.entities.GroupBuyItem.list(),
-    select: (items) => items // Fetch once and reuse
+    staleTime: 30 * 1000,
   });
 
   const createGroupBuy = useMutation({
