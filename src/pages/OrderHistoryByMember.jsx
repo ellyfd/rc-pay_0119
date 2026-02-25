@@ -229,8 +229,7 @@ export default function OrderHistoryByMember() {
                                <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                                  {mealBox ? (
                                    <span className="text-slate-700 whitespace-nowrap">
-                                     {mealBox.rice_option === 'less_rice' ? '飯少' : 
-                                      mealBox.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
+                                     {riceLabel}
                                    </span>
                                  ) : (
                                    <span className="text-slate-400">-</span>
