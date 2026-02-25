@@ -275,16 +275,7 @@ export default function AdminOrders() {
     [orders]
   );
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-300 border-t-emerald-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4">載入中...</p>
-        </div>
-      </div>
-    );
-  }
+
 
 
 
