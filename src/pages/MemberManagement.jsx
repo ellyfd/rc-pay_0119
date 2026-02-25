@@ -144,19 +144,7 @@ export default function MemberManagement() {
 
       <div className="max-w-6xl mx-auto px-4 py-6">
         {isLoading ? (
-          <Card className="p-4 animate-pulse">
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-200" />
-                  <div className="flex-1">
-                    <div className="h-4 bg-slate-200 rounded w-24 mb-2" />
-                    <div className="h-3 bg-slate-200 rounded w-32" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+          <LoadingSpinner message="載入成員中..." />
         ) : members.length === 0 ? (
           <Card className="p-8 text-center border-dashed">
             <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
