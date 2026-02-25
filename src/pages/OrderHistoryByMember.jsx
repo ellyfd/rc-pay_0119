@@ -83,15 +83,6 @@ export default function OrderHistoryByMember() {
   const mealBoxes = products.filter(p => p.category === 'meal_box');
   const sideDishProducts = products.filter(p => p.category === 'side_dish');
 
-  const colorMap = {
-    blue: "bg-blue-500",
-    green: "bg-emerald-500",
-    purple: "bg-purple-500",
-    orange: "bg-orange-500",
-    pink: "bg-pink-500",
-    cyan: "bg-cyan-500",
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <div className="bg-emerald-600 text-white">
