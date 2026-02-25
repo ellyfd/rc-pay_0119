@@ -13,9 +13,11 @@ export default function TransactionHistory() {
   const [page, setPage] = useState(1);
   const pageSize = 20; // Keep consistent with other pages
 
+  // P1-5: 延迟加载 + staleTime，避免一次拉 6 张表全量数据
   const { data: allTransactions = [], isLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date')
+    queryFn: () => base44.entities.Transaction.list('-created_date'),
+    staleTime: 30 * 1000,
   });
 
   const totalPages = useMemo(() => 
