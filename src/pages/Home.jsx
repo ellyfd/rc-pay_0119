@@ -128,7 +128,6 @@ export default function Home() {
         data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
       });
     } else if (type === 'transfer' && fromMember && toMember) {
-      // P0-7: 轉帳失敗回滾——先扣款，失敗時還原
       const fromOriginal = fromMember[balanceField] || 0;
       
       await updateMember.mutateAsync({
