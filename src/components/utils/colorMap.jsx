@@ -1,4 +1,15 @@
 // P2-9: 统一颜色映射（Member/GroupBuy/FoodOrder/DrinkOrder 共用）
+export const colors = ['blue', 'green', 'purple', 'orange', 'pink', 'cyan'];
+
+const colorClassMap = {
+  'blue': 'bg-blue-500',
+  'green': 'bg-emerald-500',
+  'purple': 'bg-purple-500',
+  'orange': 'bg-orange-500',
+  'pink': 'bg-pink-500',
+  'cyan': 'bg-cyan-500',
+};
+
 export const memberColorMap = {
   'red': '#ef4444',
   'blue': '#3b82f6',
@@ -19,8 +30,7 @@ export const memberColorMap = {
 };
 
 export const getAvatarColorStyle = (color) => {
-  const colorHex = memberColorMap[color] || memberColorMap['blue'];
-  return { backgroundColor: colorHex };
+  return colorClassMap[color] || 'bg-slate-500';
 };
 
 export const getInitials = (name) => {
