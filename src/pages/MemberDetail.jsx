@@ -33,23 +33,11 @@ export default function MemberDetail() {
   const [activeTab, setActiveTab] = useState('pending');
   const [walletTypeFilter, setWalletTypeFilter] = useState('all');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
-  const [currentUser, setCurrentUser] = useState(null);
   const [transactionToCancel, setTransactionToCancel] = useState(null);
   const [transactionPage, setTransactionPage] = useState(1);
   const pageSize = 20;
+  const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   const { data: member, isLoading: memberLoading } = useQuery({
     queryKey: ['member', memberId],
