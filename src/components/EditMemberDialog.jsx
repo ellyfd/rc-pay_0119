@@ -10,15 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
-
-const colors = [
-  { name: "blue", bg: "bg-blue-500" },
-  { name: "green", bg: "bg-emerald-500" },
-  { name: "purple", bg: "bg-purple-500" },
-  { name: "orange", bg: "bg-orange-500" },
-  { name: "pink", bg: "bg-pink-500" },
-  { name: "cyan", bg: "bg-cyan-500" },
-];
+import { getAvatarColorStyle } from "@/components/utils/colorMap";
 
 export default function EditMemberDialog({ open, onOpenChange, member, onSave, onDelete }) {
   const [formData, setFormData] = useState({
