@@ -205,15 +205,8 @@ export default function OrderHistoryByMember() {
                       </thead>
                       <tbody>
                         {orders.map(order => {
-                           const items = getOrderItems(order.id);
-                           const mealBox = items.find(item => {
-                             const product = mealBoxes.find(p => p.id === item.product_id);
-                             return product && product.category === 'meal_box';
-                           });
-                           const sideItems = items.filter(item => {
-                             const product = sideDishProducts.find(p => p.id === item.product_id);
-                             return product && product.category === 'side_dish';
-                           });
+                            const items = getOrderItems(order.id);
+                            const { mealBox, riceLabel, sideItems } = parseOrderItems(items, mealBoxes, sideDishProducts);
 
                            return (
                              <tr key={order.id} className="border-b hover:bg-slate-50">
