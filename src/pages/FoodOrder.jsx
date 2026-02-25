@@ -4,7 +4,8 @@ import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, UtensilsCrossed, Settings, Save, Trash2 } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { ArrowLeft, UtensilsCrossed, Settings, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -161,13 +162,18 @@ export default function FoodOrder() {
       await createOrderItem.mutateAsync(item);
     }
 
-    // Reset form
-    setMealBoxId('');
-    setRiceOption('normal');
-    setSideDishes([]);
-    setNote('');
-    setPayerId('');
-    alert('訂單已送出，等待管理員結帳！');
+    // Reset form & verify
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      setMealBoxId('');
+      setRiceOption('normal');
+      setSideDishes([]);
+      setNote('');
+      setPayerId('');
+      alert('訂單已送出，等待管理員結帳！');
+    } catch (error) {
+      alert('訂單已建立，但資料同步失敗，請稍後重試');
+    }
   };
 
   return (
@@ -212,10 +218,7 @@ export default function FoodOrder() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Order Form */}
         {membersLoading || productsLoading ? (
-          <Card className="p-8 text-center">
-            <div className="w-12 h-12 border-4 border-emerald-300 border-t-emerald-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-slate-500">載入中...</p>
-          </Card>
+          <LoadingSpinner message="載入訂餐資訊中..." />
         ) : allMembers.length === 0 ? (
           <Card className="p-8 text-center border-dashed">
             <p className="text-slate-500">尚未新增成員，請先到首頁新增成員</p>
