@@ -5,7 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Upload, Sparkles, Save, Trash2, Edit2, Coffee, Wallet, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { ArrowLeft, Upload, Sparkles, Save, Trash2, Coffee, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -364,49 +365,56 @@ export default function DrinkOrder() {
     }
 
     const totalAmount = orderItems.reduce((sum, item) => sum + (item.price || 0), 0);
-    
+
     // 檢查是否有AI建議的支付者
     const suggestedPayerId = orderItems[0]?._suggested_payer_id;
     const suggestedPayerName = orderItems[0]?._suggested_payer_name;
-    
+
     // 清理items，移除臨時欄位
     const cleanedItems = orderItems.map(({ _suggested_payer_id, _suggested_payer_name, ...item }) => item);
 
     const shippingFee = feeDetails.delivery_fee + feeDetails.service_fee - feeDetails.delivery_discount - feeDetails.member_rewards + manualAdjustment;
-    
+
     const finalPayerId = payerId || suggestedPayerId || undefined;
     const finalPayerName = payerId 
       ? members.find(m => m.id === payerId)?.name 
       : suggestedPayerName || undefined;
 
-    await createOrder.mutateAsync({
-      order_date: orderDate,
-      order_name: orderName || undefined,
-      store_name: storeName || '飲料店',
-      image_url: uploadedImageUrl,
-      items: cleanedItems,
-      total_amount: totalAmount,
-      shipping_fee: shippingFee,
-      payer_id: finalPayerId,
-      payer_name: finalPayerName,
-      status: 'pending'
-    });
+    try {
+      await createOrder.mutateAsync({
+        order_date: orderDate,
+        order_name: orderName || undefined,
+        store_name: storeName || '飲料店',
+        image_url: uploadedImageUrl,
+        items: cleanedItems,
+        total_amount: totalAmount,
+        shipping_fee: shippingFee,
+        payer_id: finalPayerId,
+        payer_name: finalPayerName,
+        status: 'pending'
+      });
 
-    setOrderItems([]);
-    setOrderName('');
-    setPayerId('');
-    setStoreName('');
-    setUploadedImageUrl('');
-    setManualAdjustment(0);
-    setFeeDetails({
-      delivery_fee: 0,
-      service_fee: 0,
-      delivery_discount: 0,
-      member_rewards: 0
-    });
-    setShowCreateDialog(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      await queryClient.invalidateQueries({ queryKey: ['drinkOrders'] });
+
+      setOrderItems([]);
+      setOrderName('');
+      setPayerId('');
+      setStoreName('');
+      setUploadedImageUrl('');
+      setManualAdjustment(0);
+      setFeeDetails({
+        delivery_fee: 0,
+        service_fee: 0,
+        delivery_discount: 0,
+        member_rewards: 0
+      });
+      setShowCreateDialog(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      toast.error('訂單儲存失敗，請重試');
+      console.error('Save order error:', error);
     }
   };
 
