@@ -33,22 +33,8 @@ export default function AdminOrders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   
-  // 登入狀態
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  // P1-2：整理 useEffect — 取得當前登入用戶
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['orders', selectedDate, orderStatus],
