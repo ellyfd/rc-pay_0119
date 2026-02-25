@@ -148,9 +148,8 @@ export default function OrderHistoryByDate() {
                  <p className="text-slate-500">此日期區間沒有訂單</p>
                </Card>
              ) : (
-               {/* P0-9: 使用 parseOrderItems 統一處理飯量 bug */}
-              <>
-                <Card className="p-4 mb-6 bg-emerald-50">
+               <>
+                 <Card className="p-4 mb-6 bg-emerald-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-6">
                       <div>
