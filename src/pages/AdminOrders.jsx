@@ -23,10 +23,15 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminOrders() {
+  // P4-2：整理狀態管理，分組 UI 狀態和資料狀態
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [orderStatus, setOrderStatus] = useState('pending');
+  
+  // UI 對話框狀態
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
+  
+  // 登入狀態
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
@@ -87,9 +92,15 @@ export default function AdminOrders() {
     [products]
   );
 
+  // P4-3：提取數據映射邏輯
   const memberMap = useMemo(() => 
     new Map(allMembers.map(m => [m.id, m])),
     [allMembers]
+  );
+
+  const productMap = useMemo(() =>
+    new Map(products.map(p => [p.id, p])),
+    [products]
   );
 
   const updateOrder = useMutation({

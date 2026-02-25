@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+// P4-1：添加缺失的 useCallback import
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
