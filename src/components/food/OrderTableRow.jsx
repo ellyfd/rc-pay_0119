@@ -40,6 +40,7 @@ export default function OrderTableRow({
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         {mealBox ? (
           <span className="text-slate-700 whitespace-nowrap">
+            {/* P2-13: 直接用 parseOrderItems 的 riceLabel 結果，避免重複計算 */}
             {parseOrderItems(items, mealBoxes, sideDishProducts).riceLabel}
           </span>
         ) : (

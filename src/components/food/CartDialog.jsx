@@ -9,13 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-// P2-12: 改用共用常數
-const RICE_OPTION_LABELS = {
-  normal: '正常飯量',
-  less_rice: '飯少',
-  rice_to_veg: '飯換菜'
-};
+import { RICE_OPTION_LABELS } from "@/utils/constants";
 
 export default function CartDialog({ open, onOpenChange, cart, onUpdateItem, onRemoveItem, onCheckout, totalAmount }) {
   return (

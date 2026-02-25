@@ -22,13 +22,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { format } from "date-fns";
-
-// P2-12: 改用共用常數
-const RICE_OPTION_LABELS = {
-  normal: '正常飯量',
-  less_rice: '飯少',
-  rice_to_veg: '飯換菜'
-};
+import { RICE_OPTION_LABELS } from "@/utils/constants";
 
 export default function CheckoutDialog({ open, onOpenChange, cart, members, totalAmount, onComplete }) {
   const [memberId, setMemberId] = useState('');
