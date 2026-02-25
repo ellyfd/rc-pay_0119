@@ -90,16 +90,21 @@ export default function DrinkOrderDetail() {
   const deleteOrder = useMutation({
     mutationFn: async (id) => {
       const allTransactions = await base44.entities.Transaction.list();
-      const orderDateStr = format(new Date(order.order_date), 'yyyy/MM/dd');
-      const relatedTransactions = allTransactions.filter(t => 
-        t.note && t.note.includes(`${orderDateStr} 飲料`)
-      );
+      const relatedTransactions = allTransactions.filter(t => {
+        if (!t.note) return false;
+        // 新格式：精確比對 order_id
+        if (t.note.includes(`[${order.id}]`)) return true;
+        // 舊格式 fallback
+        const orderDateStr = format(new Date(order.order_date), 'yyyy/MM/dd');
+        if (t.note.includes(`${orderDateStr} 飲料`)) {
+          const memberIds = [...new Set(order.items?.map(i => i.member_id))];
+          return memberIds.includes(t.from_member_id) || memberIds.includes(t.to_member_id);
+        }
+        return false;
+      });
       
       for (const transaction of relatedTransactions) {
-        const memberIds = [...new Set(order.items?.map(i => i.member_id))];
-        if (memberIds.includes(transaction.from_member_id) || memberIds.includes(transaction.to_member_id)) {
-          await base44.entities.Transaction.delete(transaction.id);
-        }
+        await base44.entities.Transaction.delete(transaction.id);
       }
       
       return base44.entities.DrinkOrder.delete(id);
@@ -165,7 +170,7 @@ export default function DrinkOrderDetail() {
       to_member_id: toMember.id,
       from_member_name: fromMember.name,
       to_member_name: toMember.name,
-      note: `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料`
+      note: `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料 [${orderId}]`
     });
 
     await updateMember.mutateAsync({

@@ -30,11 +30,7 @@ export default function GroupBuyDetail() {
   const groupBuyId = urlParams.get('id');
   
   // Debug: log URL info
-  console.log('=== GroupBuyDetail Debug ===');
-  console.log('Full URL:', window.location.href);
-  console.log('Search params:', window.location.search);
-  console.log('groupBuyId:', groupBuyId);
-  console.log('All params:', Object.fromEntries(urlParams));
+
   
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -586,10 +582,6 @@ export default function GroupBuyDetail() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto" />
           <p className="text-slate-500 mt-4">載入中...</p>
-          <p className="text-xs text-slate-400 mt-2">ID: {groupBuyId}</p>
-          <p className="text-xs text-slate-400">User: {currentUser ? '已登入' : '未登入'}</p>
-          <p className="text-xs text-slate-400">Loading: {groupBuyLoading ? '是' : '否'}</p>
-          <p className="text-xs text-slate-400">GroupBuy: {groupBuy ? '已載入' : '未載入'}</p>
         </div>
       </div>
     );

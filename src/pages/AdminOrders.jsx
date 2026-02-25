@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, User, Package, Edit, Trash2, History, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle, Package, Edit, Trash2, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -376,7 +376,6 @@ export default function AdminOrders() {
                   <tbody>
                     {orders.map((order) => {
                       const items = getOrderItems(order.id);
-                      const mealBoxItem = items.find(item => item.rice_option && item.rice_option !== 'normal');
                       const mealBox = items.find(item => {
                         const product = mealBoxes.find(p => p.id === item.product_id);
                         return product && product.category === 'meal_box';
@@ -405,13 +404,11 @@ export default function AdminOrders() {
                             )}
                           </td>
                           <td className="px-1.5 sm:px-3 py-2 sm:py-3">
-                            {mealBox && mealBoxItem ? (
+                            {mealBox ? (
                               <span className="text-slate-700 whitespace-nowrap">
-                                {mealBoxItem.rice_option === 'less_rice' ? '飯少' : 
-                                 mealBoxItem.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
+                                {mealBox.rice_option === 'less_rice' ? '飯少' : 
+                                 mealBox.rice_option === 'rice_to_veg' ? '飯換菜' : '正常'}
                               </span>
-                            ) : mealBox ? (
-                              <span className="text-slate-700">正常</span>
                             ) : (
                               <span className="text-slate-400">-</span>
                             )}

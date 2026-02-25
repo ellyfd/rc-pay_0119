@@ -117,8 +117,10 @@ export default function FoodOrder() {
     const totalAmount = total;
     
     // Determine payment method based on whether member is the payer
-    const finalPaymentMethod = payerId && selectedMember === payerId ? 'payer' : paymentMethod;
-    const payer = payerId ? allMembers.find(m => m.id === payerId) : null;
+    const finalMealBoxId = mealBoxId === '__none__' ? '' : mealBoxId;
+    const finalPayerId = payerId === '__none__' ? '' : payerId;
+    const finalPaymentMethod = finalPayerId && selectedMember === finalPayerId ? 'payer' : paymentMethod;
+    const payer = finalPayerId ? allMembers.find(m => m.id === finalPayerId) : null;
 
     // Create order with pending status
     const orderRecord = await createOrder.mutateAsync({
@@ -128,14 +130,14 @@ export default function FoodOrder() {
       payment_method: finalPaymentMethod,
       status: 'pending',
       order_date: orderDate,
-      payer_id: payerId || undefined,
+      payer_id: finalPayerId || undefined,
       payer_name: payer?.name || undefined,
       note: note || undefined
     });
 
     // Create order items
-    if (mealBoxId) {
-      const mealBox = mealBoxes.find(p => p.id === mealBoxId);
+    if (finalMealBoxId) {
+      const mealBox = mealBoxes.find(p => p.id === finalMealBoxId);
       if (mealBox) {
         await createOrderItem.mutateAsync({
           order_id: orderRecord.id,
@@ -294,7 +296,7 @@ export default function FoodOrder() {
                     <SelectValue placeholder="選擇餐盒（可不選）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>不選</SelectItem>
+                    <SelectItem value="__none__">不選</SelectItem>
                     {mealBoxes.map((box) => (
                       <SelectItem key={box.id} value={box.id}>
                         <div className="flex items-center gap-2">
@@ -378,7 +380,7 @@ export default function FoodOrder() {
                     <SelectValue placeholder="選擇統一付款的人（留空則各付各的）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>無（各付各的）</SelectItem>
+                    <SelectItem value="__none__">無（各付各的）</SelectItem>
                     {allMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         {member.name}
