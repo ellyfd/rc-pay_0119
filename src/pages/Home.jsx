@@ -27,20 +27,8 @@ export default function Home() {
   const [showTransaction, setShowTransaction] = useState(false);
   const [showBatchTransaction, setShowBatchTransaction] = useState(false);
   const [showSelectMember, setShowSelectMember] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
 
   // P1-8: queryFn 只取数据，排序交给 useMemo（不同页面有不同排序而不影响缓存）
   const { data: rawMembers = [], isLoading: membersLoading } = useQuery({
