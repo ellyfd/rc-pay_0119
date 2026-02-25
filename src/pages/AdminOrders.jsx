@@ -183,6 +183,60 @@ export default function AdminOrders() {
     setEditingOrder(null);
   };
 
+  // P2-2：提取交易邏輯到獨立函式
+  const processOrderPayment = async (order, member, transactionNote) => {
+    const amount = order.total_amount || 0;
+
+    if (order.payment_method === 'payer') {
+      await createTransaction.mutateAsync({
+        type: 'note',
+        amount: amount,
+        wallet_type: 'payer',
+        from_member_id: member.id,
+        from_member_name: member.name,
+        note: `${transactionNote}（由 ${order.payer_id ? memberMap.get(order.payer_id)?.name : '未知'} 代付）`
+      });
+    } else if (order.payment_method === 'balance') {
+      const freshMembers = await base44.entities.Member.list('name');
+      const freshMember = freshMembers.find(m => m.id === member.id);
+      if (freshMember && (freshMember.balance || 0) >= amount) {
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: amount,
+          wallet_type: 'balance',
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: transactionNote
+        });
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: { balance: (freshMember.balance || 0) - amount }
+        });
+      } else {
+        console.warn(`${member.name} 餘額不足，跳過此訂單`);
+      }
+    } else if (order.payment_method === 'cash') {
+      const freshMembers = await base44.entities.Member.list('name');
+      const freshMember = freshMembers.find(m => m.id === member.id);
+      if (freshMember && (freshMember.cash_balance || 0) >= amount) {
+        await createTransaction.mutateAsync({
+          type: 'withdraw',
+          amount: amount,
+          wallet_type: 'cash',
+          from_member_id: member.id,
+          from_member_name: member.name,
+          note: transactionNote
+        });
+        await updateMember.mutateAsync({
+          id: member.id,
+          data: { cash_balance: (freshMember.cash_balance || 0) - amount }
+        });
+      } else {
+        console.warn(`${member.name} 現金餘額不足，跳過此訂單`);
+      }
+    }
+  };
+
   const handleCheckoutAll = async () => {
     if (currentUser?.role !== 'admin') {
       alert('僅管理員可執行此操作');
@@ -194,69 +248,13 @@ export default function AdminOrders() {
       const member = memberMap.get(order.member_id);
       if (!member) continue;
 
-      // Update order status
       await updateOrder.mutateAsync({
         id: order.id,
         data: { status: 'completed' }
       });
 
       const transactionNote = `${format(new Date(order.order_date), 'yyyy/MM/dd')} 七分飽`;
-
-      const amount = order.total_amount || 0;
-
-      if (order.payment_method === 'payer') {
-        // 建立紀錄但不扣款
-        await createTransaction.mutateAsync({
-          type: 'note',
-          amount: amount,
-          wallet_type: 'payer',
-          from_member_id: member.id,
-          from_member_name: member.name,
-          note: `${transactionNote}（由 ${order.payer_id ? memberMap.get(order.payer_id)?.name : '未知'} 代付）`
-        });
-      } else if (order.payment_method === 'balance') {
-        // P0-1：重新讀取最新餘額以防競態
-        const freshMembers = await base44.entities.Member.list('name');
-        const freshMember = freshMembers.find(m => m.id === member.id);
-        if (freshMember && (freshMember.balance || 0) >= amount) {
-          await createTransaction.mutateAsync({
-            type: 'withdraw',
-            amount: amount,
-            wallet_type: 'balance',
-            from_member_id: member.id,
-            from_member_name: member.name,
-            note: transactionNote
-          });
-
-          await updateMember.mutateAsync({
-            id: member.id,
-            data: { balance: (freshMember.balance || 0) - amount }
-          });
-        } else {
-          console.warn(`${member.name} 餘額不足，跳過此訂單`);
-        }
-      } else if (order.payment_method === 'cash') {
-        // P0-1：重新讀取最新餘額以防競態
-        const freshMembers = await base44.entities.Member.list('name');
-        const freshMember = freshMembers.find(m => m.id === member.id);
-        if (freshMember && (freshMember.cash_balance || 0) >= amount) {
-          await createTransaction.mutateAsync({
-            type: 'withdraw',
-            amount: amount,
-            wallet_type: 'cash',
-            from_member_id: member.id,
-            from_member_name: member.name,
-            note: transactionNote
-          });
-
-          await updateMember.mutateAsync({
-            id: member.id,
-            data: { cash_balance: (freshMember.cash_balance || 0) - amount }
-          });
-        } else {
-          console.warn(`${member.name} 現金餘額不足，跳過此訂單`);
-        }
-      }
+      await processOrderPayment(order, member, transactionNote);
     }
 
     alert('結帳完成！');

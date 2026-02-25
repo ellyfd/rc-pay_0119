@@ -394,21 +394,24 @@ export default function DrinkOrderDetail() {
 
   const isCompleted = order.status === 'completed';
   
-  const memberGroups = {};
-  order.items?.forEach((item, idx) => {
-    const key = item.member_id || item.member_name;
-    if (!memberGroups[key]) {
-      memberGroups[key] = [];
-    }
-    memberGroups[key].push({ ...item, idx });
-  });
+  // P2-1：統一 memberGroups 邏輯，一次遍歷計算 totalMembers
+  const { memberGroups, totalMembers } = useMemo(() => {
+    const groups = {};
+    order.items?.forEach((item, idx) => {
+      const key = item.member_id || item.member_name;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push({ ...item, idx });
+    });
+    return { memberGroups: groups, totalMembers: Object.keys(groups).length };
+  }, [order?.items]);
 
-  const totalMembers = Object.keys(memberGroups).length;
-
-  const getMemberShipping = (memberId) => {
+  // P2-3：合併運費計算邏輯
+  const getMemberShipping = useCallback((memberId) => {
     if (manualShipping[memberId] !== undefined) return manualShipping[memberId];
     return totalMembers > 0 ? Math.round((order.shipping_fee || 0) / totalMembers) : 0;
-  };
+  }, [manualShipping, totalMembers, order?.shipping_fee]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
