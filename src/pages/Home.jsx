@@ -5,7 +5,7 @@ import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, LogOut } from "lucide-react";
+import { UserPlus, Plus, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, LogOut, Wallet } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
