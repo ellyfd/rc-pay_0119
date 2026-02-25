@@ -126,10 +126,12 @@ export default function FoodOrder() {
     });
 
     // Create order items
+    const itemsToCreate = [];
+    
     if (finalMealBoxId) {
       const mealBox = mealBoxes.find(p => p.id === finalMealBoxId);
       if (mealBox) {
-        await createOrderItem.mutateAsync({
+        itemsToCreate.push({
           order_id: orderRecord.id,
           product_id: mealBox.id,
           product_name: mealBox.name,
@@ -143,7 +145,7 @@ export default function FoodOrder() {
     for (const dishId of sideDishes) {
       const dish = sideDishProducts.find(p => p.id === dishId);
       if (dish) {
-        await createOrderItem.mutateAsync({
+        itemsToCreate.push({
           order_id: orderRecord.id,
           product_id: dish.id,
           product_name: dish.name,
@@ -152,6 +154,11 @@ export default function FoodOrder() {
           rice_option: 'normal'
         });
       }
+    }
+
+    // Batch create order items
+    for (const item of itemsToCreate) {
+      await createOrderItem.mutateAsync(item);
     }
 
     // Reset form
