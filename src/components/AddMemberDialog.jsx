@@ -108,7 +108,7 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
                 <button
                   key={color}
                   type="button"
-                  className={`w-10 h-10 rounded-full ${colorMap[color]} transition-all ${
+                  className={`w-10 h-10 rounded-full ${getAvatarColorStyle(color)} transition-all ${
                     selectedColor === color ? 'ring-4 ring-amber-400 scale-110' : 'opacity-60 hover:opacity-100'
                   }`}
                   onClick={() => setSelectedColor(color)}
