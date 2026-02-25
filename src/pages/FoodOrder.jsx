@@ -21,7 +21,6 @@ export default function FoodOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedMember, setSelectedMember] = useState('');
   const [isOrderingForOthers, setIsOrderingForOthers] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [mealBoxId, setMealBoxId] = useState('');
   const [riceOption, setRiceOption] = useState('normal');
   const [sideDishes, setSideDishes] = useState([]);
