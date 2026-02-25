@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DiscountRulesEditor from "./DiscountRulesEditor";
+import ProductListEditor from "./ProductListEditor";
 
 export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, members = [], currentUser }) {
   const fileInputRef = React.useRef(null);
@@ -203,25 +205,7 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
 
 
 
-  const addProduct = () => {
-    setProducts([...products, {
-      product_name: '',
-      price: 0,
-      description: ''
-    }]);
-  };
 
-  const removeProduct = (index) => {
-    if (products.length > 1) {
-      setProducts(products.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateProduct = (index, field, value) => {
-    const newProducts = [...products];
-    newProducts[index][field] = value;
-    setProducts(newProducts);
-  };
 
   const handleSubmit = async () => {
     if (!formData.title.trim()) {
@@ -408,267 +392,19 @@ export default function CreateGroupBuyDialog({ open, onOpenChange, onCreate, mem
               type="url" />
           </div>
 
-          {/* Discount Rules */}
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold text-slate-800 text-sm border-b pb-2 mb-3">💰 團購優惠規則（選填）</h3>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  <span className="font-semibold">設定折扣規則範例：</span><br/>
-                  • 按數量：滿 10 件打 9 折、滿 20 件全團折 $500<br/>
-                  • 按金額：滿 $5,000 打 9 折、滿 $10,000 全團折 $1,000
-                </p>
-              </div>
-            </div>
-            
-            {/* Global Type Selectors */}
-            <div className="flex gap-4 p-3 bg-slate-50 rounded-lg border flex-wrap">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">折扣類型：</Label>
-                <Select value={discountRuleType} onValueChange={setDiscountRuleType}>
-                  <SelectTrigger className="h-9 w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="quantity">數量</SelectItem>
-                    <SelectItem value="amount">金額</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">優惠方式：</Label>
-                <Select value={discountType} onValueChange={setDiscountType}>
-                  <SelectTrigger className="h-9 w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="percent">百分比</SelectItem>
-                    <SelectItem value="fixed">固定金額</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {discountType === 'fixed' && (
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm whitespace-nowrap">分攤方式：</Label>
-                  <Select value={fixedDiscountAllocation} onValueChange={setFixedDiscountAllocation}>
-                    <SelectTrigger className="h-9 w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="proportional">按比例</SelectItem>
-                      <SelectItem value="per_item">按項目</SelectItem>
-                      <SelectItem value="per_member">按人數</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+          <DiscountRulesEditor
+            discountRules={discountRules}
+            setDiscountRules={setDiscountRules}
+            discountRuleType={discountRuleType}
+            setDiscountRuleType={setDiscountRuleType}
+            discountType={discountType}
+            setDiscountType={setDiscountType}
+            fixedDiscountAllocation={fixedDiscountAllocation}
+            setFixedDiscountAllocation={setFixedDiscountAllocation}
+            showTipExample={null}
+          />
 
-            {discountRules.length > 0 && (
-              <div className="border rounded-lg overflow-hidden mb-2">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">
-                        達標條件 ({discountRuleType === 'quantity' ? '數量' : '金額'})
-                      </th>
-                      <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">
-                        折扣 ({discountType === 'percent' ? '百分比' : '固定金額'})
-                      </th>
-                      <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-16"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {discountRules.map((rule, index) => (
-                      <tr key={index}>
-                        <td className="px-3 py-2">
-                          {discountRuleType === 'amount' ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-600">$</span>
-                              <Input
-                                type="number"
-                                min="1"
-                                value={rule.min_amount || 0}
-                                onChange={(e) => {
-                                  const newRules = [...discountRules];
-                                  newRules[index].min_amount = parseInt(e.target.value) || 0;
-                                  setDiscountRules(newRules);
-                                }}
-                                placeholder="1000"
-                                className="h-9"
-                              />
-                            </div>
-                          ) : (
-                            <Input
-                              type="number"
-                              min="1"
-                              value={rule.min_quantity || 0}
-                              onChange={(e) => {
-                                const newRules = [...discountRules];
-                                newRules[index].min_quantity = parseInt(e.target.value) || 0;
-                                setDiscountRules(newRules);
-                              }}
-                              placeholder="10"
-                              className="h-9"
-                            />
-                          )}
-                        </td>
-                        <td className="px-3 py-2">
-                          {discountType === 'fixed' ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-600">-$</span>
-                              <Input
-                                type="number"
-                                min="0"
-                                value={rule.discount_amount || 0}
-                                onChange={(e) => {
-                                  const newRules = [...discountRules];
-                                  newRules[index].discount_amount = parseFloat(e.target.value) || 0;
-                                  setDiscountRules(newRules);
-                                }}
-                                placeholder="100"
-                                className="h-9"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={rule.discount_percent || 0}
-                                onChange={(e) => {
-                                  const newRules = [...discountRules];
-                                  newRules[index].discount_percent = parseFloat(e.target.value) || 0;
-                                  setDiscountRules(newRules);
-                                }}
-                                placeholder="10"
-                                className="h-9"
-                              />
-                              <span className="text-sm text-slate-600">% off</span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDiscountRules(discountRules.filter((_, i) => i !== index))}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <Button
-              type="button"
-              onClick={() => {
-                const newRule = {
-                  type: discountRuleType,
-                  discount_type: discountType
-                };
-                if (discountRuleType === 'quantity') {
-                  newRule.min_quantity = 0;
-                } else {
-                  newRule.min_amount = 0;
-                }
-                if (discountType === 'percent') {
-                  newRule.discount_percent = 0;
-                } else {
-                  newRule.discount_amount = 0;
-                }
-                setDiscountRules([...discountRules, newRule]);
-              }}
-              variant="outline"
-              className="w-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              新增折扣規則
-            </Button>
-          </div>
-
-          {/* Products */}
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold text-slate-800 text-sm border-b pb-2 mb-3">🛍️ 商品列表（選填）</h3>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-                <p className="text-xs text-green-800 leading-relaxed">
-                  <span className="font-semibold">提示：</span>先新增商品列表，參與者就能快速點選訂購。也可以建立團購後再慢慢新增商品。
-                </p>
-              </div>
-            </div>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full table-auto">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[40%]">商品名稱</th>
-                    <th className="text-right px-3 py-2 text-sm font-semibold text-slate-700 w-[25%]">單價</th>
-                    <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700 w-[25%]">說明</th>
-                    <th className="text-center px-3 py-2 text-sm font-semibold text-slate-700 w-[10%]"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {products.map((product, index) =>
-                  <tr key={index}>
-                      <td className="px-3 py-2">
-                        <Input
-                        value={product.product_name}
-                        onChange={(e) => updateProduct(index, 'product_name', e.target.value)}
-                        placeholder="洋芋片、口紅..."
-                        className="h-9" />
-
-                      </td>
-                      <td className="px-3 py-2">
-                        <Input
-                        type="number"
-                        min="0"
-                        value={product.price}
-                        onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
-                        placeholder="0"
-                        className="h-9 text-right" />
-
-                      </td>
-                      <td className="px-3 py-2">
-                        <Input
-                        value={product.description}
-                        onChange={(e) => updateProduct(index, 'description', e.target.value)}
-                        placeholder="規格、說明..."
-                        className="h-9" />
-
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        {products.length > 1 &&
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeProduct(index)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700">
-
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                      }
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <Button
-              type="button"
-              onClick={addProduct}
-              variant="outline"
-              className="w-full mt-2">
-
-              <Plus className="w-4 h-4 mr-2" />
-              新增商品
-            </Button>
-          </div>
+          <ProductListEditor products={products} setProducts={setProducts} />
         </div>
 
         <DialogFooter className="flex flex-row justify-center gap-2">
