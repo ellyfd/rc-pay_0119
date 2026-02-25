@@ -196,7 +196,19 @@ export default function OrderHistoryByDate() {
                             <tbody>
                               {dateOrders.map(order => {
                                  const items = getOrderItems(order.id);
-                                 const { mealBox, riceLabel, sideItems } = parseOrderItems(items, mealBoxes, sideDishProducts);
+                                 // P0-9 + P2-10: 統一從 mealBox 取 rice_option
+                                 const mealBox = items.find(item => {
+                                   const product = mealBoxes.find(p => p.id === item.product_id);
+                                   return product && product.category === 'meal_box';
+                                 });
+                                 const riceOption = mealBox?.rice_option || 'normal';
+                                 const riceLabel = riceOption === 'less_rice' ? '飯少'
+                                   : riceOption === 'rice_to_veg' ? '飯換菜'
+                                   : '正常';
+                                 const sideItems = items.filter(item => {
+                                   const product = mealBoxes.concat(sideDishProducts).find(p => p.id === item.product_id);
+                                   return product && product.category === 'side_dish';
+                                 });
 
                                  return (
                                    <tr key={order.id} className="border-b hover:bg-slate-50">
