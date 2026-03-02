@@ -119,33 +119,18 @@ export default function MemberDetail() {
   const transactionBalances = useMemo(() => {
     const balanceMap = new Map();
 
-    // 按钱包类型分组
     for (const walletType of ['balance', 'cash']) {
       const txns = allMemberTransactions
         .filter(t => t.wallet_type === walletType)
         .sort((a, b) => {
           const timeA = new Date(a.created_date).getTime();
           const timeB = new Date(b.created_date).getTime();
-          if (timeA !== timeB) return timeA - timeB;  // 旧→新
+          if (timeA !== timeB) return timeA - timeB;
           return a.id.localeCompare(b.id);
         });
 
-      // 起始余额 = 当前余额 - 所有交易的净影响
-      let totalNet = 0;
-      for (const t of txns) {
-        const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId))
-          ? t.amount
-          : -t.amount;
-        totalNet += change;
-      }
+      let runningBalance = 0;
 
-      const currentBalance = walletType === 'balance'
-        ? (member?.balance || 0)
-        : (member?.cash_balance || 0);
-
-      let runningBalance = currentBalance - totalNet;
-
-      // 从旧到新逐笔加上每笔交易的影响
       for (const t of txns) {
         const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId))
           ? t.amount
@@ -156,7 +141,7 @@ export default function MemberDetail() {
     }
 
     return balanceMap;
-  }, [allMemberTransactions, member, memberId]);
+  }, [allMemberTransactions, memberId]);
 
   // Apply filters for display only
   const memberTransactions = useMemo(() => {
