@@ -402,8 +402,8 @@ export default function MemberDetail() {
             >
               <div className="text-center">
                 <p className="text-slate-400 text-sm mb-2">現金餘額</p>
-                <p className={`text-3xl font-bold ${(member?.cash_balance || 0) >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
-                  ${(member?.cash_balance || 0).toLocaleString()}
+                <p className={`text-3xl font-bold ${getLatestCash >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                  ${getLatestCash.toLocaleString()}
                 </p>
               </div>
             </Card>
