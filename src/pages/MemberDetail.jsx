@@ -375,8 +375,8 @@ export default function MemberDetail() {
             >
               <div className="text-center">
                 <p className="text-slate-400 text-sm mb-2">錢包餘額</p>
-                <p className={`text-3xl font-bold ${calculatedBalances.balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  ${calculatedBalances.balance.toLocaleString()}
+                <p className={`text-3xl font-bold ${(member?.balance || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  ${(member?.balance || 0).toLocaleString()}
                 </p>
               </div>
             </Card>
@@ -386,8 +386,8 @@ export default function MemberDetail() {
             >
               <div className="text-center">
                 <p className="text-slate-400 text-sm mb-2">現金餘額</p>
-                <p className={`text-3xl font-bold ${calculatedBalances.cash_balance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
-                  ${calculatedBalances.cash_balance.toLocaleString()}
+                <p className={`text-3xl font-bold ${(member?.cash_balance || 0) >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                  ${(member?.cash_balance || 0).toLocaleString()}
                 </p>
               </div>
             </Card>
