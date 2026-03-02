@@ -98,9 +98,9 @@ export default function MemberManagement() {
     );
   }
 
-  // P2-8: 使用 AdminGuard 元件檢查權限
-  const guard = <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Users} />;
-  if (guard) return guard;
+  if (!currentUser || currentUser.role !== 'admin') {
+    return <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Users} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
