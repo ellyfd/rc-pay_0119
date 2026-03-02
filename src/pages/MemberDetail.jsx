@@ -143,6 +143,26 @@ export default function MemberDetail() {
     return balanceMap;
   }, [allMemberTransactions, memberId]);
 
+  // Calculate balances from transaction history (single source of truth)
+  const calculatedBalances = useMemo(() => {
+    const getLatest = (walletType) => {
+      const txns = allMemberTransactions
+        .filter(t => t.wallet_type === walletType)
+        .sort((a, b) => {
+          const timeA = new Date(a.created_date).getTime();
+          const timeB = new Date(b.created_date).getTime();
+          if (timeA !== timeB) return timeB - timeA;
+          return b.id.localeCompare(a.id);
+        });
+      if (txns.length === 0) return 0;
+      return transactionBalances.get(txns[0].id) || 0;
+    };
+    return {
+      balance: getLatest('balance'),
+      cash_balance: getLatest('cash'),
+    };
+  }, [allMemberTransactions, transactionBalances]);
+
   // Apply filters for display only
   const memberTransactions = useMemo(() => {
     let filtered = [...allMemberTransactions];
