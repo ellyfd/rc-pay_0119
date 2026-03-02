@@ -235,7 +235,28 @@ export default function AdminOrders() {
       alert('僅管理員可執行此操作');
       return;
     }
-    if (!confirm(`確認要結帳 ${orders.length} 筆訂單嗎？`)) return;
+
+    // 先取最新成員資料，統一列出餘額不足者
+    const freshMembers = await base44.entities.Member.list('name');
+    const insufficientList = [];
+
+    for (const order of orders) {
+      const freshMember = freshMembers.find(m => m.id === order.member_id);
+      if (!freshMember) continue;
+      const amount = order.total_amount || 0;
+      if (order.payment_method === 'balance' && (freshMember.balance || 0) < amount) {
+        insufficientList.push(`・${order.member_name}：餘額 $${freshMember.balance || 0}，應付 $${amount}`);
+      } else if (order.payment_method === 'cash' && (freshMember.cash_balance || 0) < amount) {
+        insufficientList.push(`・${order.member_name}（現金）：餘額 $${freshMember.cash_balance || 0}，應付 $${amount}`);
+      }
+    }
+
+    let confirmMessage = `確認要結帳 ${orders.length} 筆訂單嗎？`;
+    if (insufficientList.length > 0) {
+      confirmMessage += `\n\n⚠️ 以下成員餘額不足，將扣成負數：\n${insufficientList.join('\n')}`;
+    }
+
+    if (!confirm(confirmMessage)) return;
 
     const failedOrders = [];
 
