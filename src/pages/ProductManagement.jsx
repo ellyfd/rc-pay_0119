@@ -92,9 +92,9 @@ export default function ProductManagement() {
     );
   }
 
-  // P2-8: 使用 AdminGuard 元件檢查權限
-  const guard = <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Package} />;
-  if (guard) return guard;
+  if (!currentUser || currentUser.role !== 'admin') {
+    return <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Package} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
