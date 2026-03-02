@@ -143,11 +143,12 @@ export default function MemberDetail() {
     return balanceMap;
   }, [allMemberTransactions, memberId]);
 
-  // Calculate balances from transaction history (single source of truth)
+  // Calculate cash_balance from transaction history (single source of truth)
+  // balance still uses DB value
   const calculatedBalances = useMemo(() => {
-    const getLatest = (walletType) => {
+    const getLatestCash = () => {
       const txns = allMemberTransactions
-        .filter(t => t.wallet_type === walletType)
+        .filter(t => t.wallet_type === 'cash')
         .sort((a, b) => {
           const timeA = new Date(a.created_date).getTime();
           const timeB = new Date(b.created_date).getTime();
@@ -158,10 +159,10 @@ export default function MemberDetail() {
       return transactionBalances.get(txns[0].id) || 0;
     };
     return {
-      balance: getLatest('balance'),
-      cash_balance: getLatest('cash'),
+      balance: member?.balance || 0,
+      cash_balance: getLatestCash(),
     };
-  }, [allMemberTransactions, transactionBalances]);
+  }, [allMemberTransactions, transactionBalances, member]);
 
   // Apply filters for display only
   const memberTransactions = useMemo(() => {
