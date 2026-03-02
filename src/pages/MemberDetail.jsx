@@ -115,7 +115,7 @@ export default function MemberDetail() {
     };
   }, [allMemberTransactions, memberId]);
 
-  // P1-6: 预计算所有交易的「交易后余额」，避免渲染时 O(N²) 重复计算
+  // P1-6: 用 DB 餘額反推起始點，計算每筆交易後的餘額
   const transactionBalances = useMemo(() => {
     const balanceMap = new Map();
 
@@ -129,40 +129,30 @@ export default function MemberDetail() {
           return a.id.localeCompare(b.id);
         });
 
-      let runningBalance = 0;
+      // 用 DB 餘額往回推起始點
+      let totalNet = 0;
+      for (const t of txns) {
+        const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId))
+          ? t.amount : -t.amount;
+        totalNet += change;
+      }
+
+      const currentBalance = walletType === 'balance'
+        ? (member?.balance || 0)
+        : (member?.cash_balance || 0);
+
+      let runningBalance = currentBalance - totalNet;
 
       for (const t of txns) {
         const change = (t.type === 'deposit' || (t.type === 'transfer' && t.to_member_id === memberId))
-          ? t.amount
-          : -t.amount;
+          ? t.amount : -t.amount;
         runningBalance += change;
         balanceMap.set(t.id, runningBalance);
       }
     }
 
     return balanceMap;
-  }, [allMemberTransactions, memberId]);
-
-  // Calculate cash_balance from transaction history (single source of truth)
-  // balance still uses DB value
-  const calculatedBalances = useMemo(() => {
-    const getLatestCash = () => {
-      const txns = allMemberTransactions
-        .filter(t => t.wallet_type === 'cash')
-        .sort((a, b) => {
-          const timeA = new Date(a.created_date).getTime();
-          const timeB = new Date(b.created_date).getTime();
-          if (timeA !== timeB) return timeB - timeA;
-          return b.id.localeCompare(a.id);
-        });
-      if (txns.length === 0) return 0;
-      return transactionBalances.get(txns[0].id) || 0;
-    };
-    return {
-      balance: member?.balance || 0,
-      cash_balance: getLatestCash(),
-    };
-  }, [allMemberTransactions, transactionBalances, member]);
+  }, [allMemberTransactions, member, memberId]);
 
   // Apply filters for display only
   const memberTransactions = useMemo(() => {
