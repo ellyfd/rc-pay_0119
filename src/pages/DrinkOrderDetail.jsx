@@ -385,6 +385,25 @@ export default function DrinkOrderDetail() {
     toast.success(`已分攤給 ${result.length} 位成員`);
   };
 
+  // P2-1：統一 memberGroups 邏輯，一次遍歷計算 totalMembers（移到早返回前）
+  const { memberGroups, totalMembers } = useMemo(() => {
+    const groups = {};
+    order?.items?.forEach((item, idx) => {
+      const key = item.member_id || item.member_name;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push({ ...item, idx });
+    });
+    return { memberGroups: groups, totalMembers: Object.keys(groups).length };
+  }, [order?.items]);
+
+  // P2-3：合併運費計算邏輯（移到早返回前）
+  const getMemberShipping = useCallback((memberId) => {
+    if (manualShipping[memberId] !== undefined) return manualShipping[memberId];
+    return totalMembers > 0 ? Math.round(((order?.shipping_fee) || 0) / totalMembers) : 0;
+  }, [manualShipping, totalMembers, order?.shipping_fee]);
+
   if (!order) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex items-center justify-center">
@@ -397,25 +416,6 @@ export default function DrinkOrderDetail() {
   }
 
   const isCompleted = order.status === 'completed';
-  
-  // P2-1：統一 memberGroups 邏輯，一次遍歷計算 totalMembers
-  const { memberGroups, totalMembers } = useMemo(() => {
-    const groups = {};
-    order.items?.forEach((item, idx) => {
-      const key = item.member_id || item.member_name;
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push({ ...item, idx });
-    });
-    return { memberGroups: groups, totalMembers: Object.keys(groups).length };
-  }, [order?.items]);
-
-  // P2-3：合併運費計算邏輯
-  const getMemberShipping = useCallback((memberId) => {
-    if (manualShipping[memberId] !== undefined) return manualShipping[memberId];
-    return totalMembers > 0 ? Math.round((order.shipping_fee || 0) / totalMembers) : 0;
-  }, [manualShipping, totalMembers, order?.shipping_fee]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
