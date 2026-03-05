@@ -30,6 +30,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
   const [toMemberId, setToMemberId] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const { user: currentUser } = useCurrentUser();
 
   const resetForm = () => {
