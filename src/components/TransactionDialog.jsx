@@ -301,7 +301,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
               {loading ? '處理中...' : isRC ? '確認' : '送出申請'}
             </Button>
           </form>
-        </Tabs>
+          </Tabs>
         )}
       </DialogContent>
 
