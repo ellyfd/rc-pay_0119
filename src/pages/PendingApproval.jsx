@@ -197,23 +197,29 @@ export default function PendingApproval() {
                 </div>
 
                 <div className="flex flex-col gap-2 flex-shrink-0">
-                  <Button
-                    size="sm"
-                    onClick={() => handleApprove(t)}
-                    className="bg-green-600 hover:bg-green-700 text-white gap-1"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    核准
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleReject(t)}
-                    className="text-red-600 border-red-300 hover:bg-red-50 gap-1"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    拒絕
-                  </Button>
+                  {canApprove ? (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => handleApprove(t)}
+                        className="bg-green-600 hover:bg-green-700 text-white gap-1"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        核准
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReject(t)}
+                        className="text-red-600 border-red-300 hover:bg-red-50 gap-1"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        拒絕
+                      </Button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400 text-right">僅 RC 可操作</span>
+                  )}
                 </div>
               </div>
             </Card>
