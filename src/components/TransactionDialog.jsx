@@ -111,7 +111,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { resetForm(); setSubmitted(false); } onOpenChange(v); }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-800">新增交易</DialogTitle>
