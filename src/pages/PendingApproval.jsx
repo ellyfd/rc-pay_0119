@@ -126,6 +126,17 @@ export default function PendingApproval() {
     return 'bg-blue-500';
   };
 
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <Card className="p-12 text-center">
+          <XCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+          <p className="text-slate-600 font-medium">僅限管理員查看</p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="bg-slate-900 text-white">
