@@ -225,9 +225,9 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
             className={`w-full h-12 font-medium text-white ${
               type === 'withdraw' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'
             }`}
-            disabled={loading || !isValid() || currentUser?.role !== 'admin'}
+            disabled={loading || !isValid() || !isRC}
           >
-            {loading ? '處理中...' : currentUser?.role !== 'admin' ? '僅限管理員操作' : `確認${type === 'withdraw' ? '扣款' : '入帳'} ${items.length} 筆交易`}
+            {loading ? '處理中...' : !isRC ? '僅限 RC 操作' : `確認${type === 'withdraw' ? '扣款' : '入帳'} ${items.length} 筆交易`}
           </Button>
         </form>
       </DialogContent>
