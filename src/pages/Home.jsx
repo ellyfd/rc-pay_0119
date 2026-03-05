@@ -79,9 +79,20 @@ export default function Home() {
 
   // P3-6: 移除未使用的 totalBalance 计算
 
+  const isAdmin = currentUser?.role === 'admin';
+
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.Transaction.list('-created_date', 5)
+  });
+
+  const { data: pendingTransactions = [] } = useQuery({
+    queryKey: ['transactions', 'pending'],
+    queryFn: async () => {
+      const all = await base44.entities.Transaction.list('-created_date');
+      return all.filter(t => t.status === 'pending');
+    },
+    enabled: isAdmin,
   });
 
   const createMember = useMutation({
