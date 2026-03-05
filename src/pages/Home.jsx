@@ -5,7 +5,7 @@ import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, Plus, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, LogOut, Wallet } from "lucide-react";
+import { UserPlus, Plus, TrendingUp, History, Users, UtensilsCrossed, Settings, ShoppingCart, User, LogOut, Wallet, Clock } from "lucide-react";
 // P3-7: 移除未使用的 MoreVertical import
 import {
   DropdownMenu,
@@ -22,6 +22,8 @@ import TransactionDialog from "@/components/TransactionDialog";
 import BatchTransactionDialog from "@/components/BatchTransactionDialog";
 import SelectMemberDialog from "@/components/SelectMemberDialog";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import NotificationBell from "@/components/NotificationBell";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
