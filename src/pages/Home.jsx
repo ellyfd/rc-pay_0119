@@ -456,7 +456,8 @@ export default function Home() {
         open={showTransaction}
         onOpenChange={setShowTransaction}
         members={allMembers}
-        onTransaction={handleTransaction} />
+        onTransaction={handleTransaction}
+        onPendingSubmitted={() => toast.success('已送出，等待 RC 審核')} />
 
       <BatchTransactionDialog
         open={showBatchTransaction}
