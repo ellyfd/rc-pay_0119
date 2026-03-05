@@ -62,6 +62,7 @@ import OrderHistoryByMember from './pages/OrderHistoryByMember';
 import ProductCatalog from './pages/ProductCatalog';
 import ProductManagement from './pages/ProductManagement';
 import TransactionHistory from './pages/TransactionHistory';
+import PendingApproval from './pages/PendingApproval';
 
 
 export const PAGES = {
@@ -80,6 +81,7 @@ export const PAGES = {
     "ProductCatalog": ProductCatalog,
     "ProductManagement": ProductManagement,
     "TransactionHistory": TransactionHistory,
+    "PendingApproval": PendingApproval,
 }
 
 export const pagesConfig = {
