@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from "lucide-react";
 import { format } from "date-fns";
 
-export default function TransactionDialog({ open, onOpenChange, members, onTransaction }) {
+export default function TransactionDialog({ open, onOpenChange, members, onTransaction, onPendingSubmitted }) {
   const [type, setType] = useState('deposit');
   const [walletType, setWalletType] = useState('balance');
   const [amount, setAmount] = useState('');
@@ -40,19 +40,58 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
     setWalletType('balance');
   };
 
+  const isAdmin = currentUser?.role === 'admin';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) return;
-    
+
     setLoading(true);
-    await onTransaction({
-      type,
-      amount: parseFloat(amount),
-      from_member_id: type === 'deposit' ? null : fromMemberId,
-      to_member_id: type === 'withdraw' ? null : toMemberId,
-      wallet_type: walletType,
-      note
-    });
+
+    if (isAdmin) {
+      // Admin: direct execution
+      await onTransaction({
+        type,
+        amount: parseFloat(amount),
+        from_member_id: type === 'deposit' ? null : fromMemberId,
+        to_member_id: type === 'withdraw' ? null : toMemberId,
+        wallet_type: walletType,
+        note,
+        status: 'approved',
+      });
+    } else {
+      // Non-admin: create pending transaction + notify RC
+      const fromMember = members.find(m => m.id === fromMemberId);
+      const toMember = members.find(m => m.id === toMemberId);
+      const submitterName = currentUser?.full_name || currentUser?.email || '';
+      const typeLabel = type === 'deposit' ? '入帳' : type === 'withdraw' ? '出帳' : '轉帳';
+
+      const created = await base44.entities.Transaction.create({
+        type,
+        amount: parseFloat(amount),
+        wallet_type: walletType,
+        from_member_id: type === 'deposit' ? null : fromMemberId,
+        to_member_id: type === 'withdraw' ? null : toMemberId,
+        from_member_name: fromMember?.name || '',
+        to_member_name: toMember?.name || '',
+        note,
+        status: 'pending',
+        submitted_by_email: currentUser?.email || '',
+        submitted_by_name: submitterName,
+      });
+
+      await base44.entities.Notification.create({
+        recipient_email: 'bv2hh128@gmail.com',
+        type: 'pending_approval',
+        transaction_id: created.id,
+        message: `${submitterName} 提交了一筆${typeLabel}申請 $${parseFloat(amount)}`,
+        actor_name: submitterName,
+        is_read: false,
+      });
+
+      if (onPendingSubmitted) onPendingSubmitted();
+    }
+
     setLoading(false);
     resetForm();
     onOpenChange(false);
@@ -235,9 +274,9 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                 type === 'withdraw' ? 'bg-red-500 hover:bg-red-600' :
                 'bg-blue-600 hover:bg-blue-700'
               }`}
-              disabled={loading || !isValid() || currentUser?.role !== 'admin'}
+              disabled={loading || !isValid()}
             >
-              {loading ? '處理中...' : currentUser?.role !== 'admin' ? '僅限管理員操作' : '確認'}
+              {loading ? '處理中...' : isAdmin ? '確認' : '送出申請'}
             </Button>
           </form>
         </Tabs>
