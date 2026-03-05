@@ -270,33 +270,54 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-white hover:bg-white hover:text-slate-900">
-                  <Settings className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {currentMember && (
-                  <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative text-white hover:bg-slate-800 p-2">
+                    <Settings className="w-5 h-5" />
+                    {isAdmin && pendingTransactions.length > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                        {pendingTransactions.length > 9 ? '9+' : pendingTransactions.length}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  {currentMember && (
+                    <Link to={createPageUrl('MemberDetail') + '?id=' + currentMember.id}>
+                      <DropdownMenuItem>
+                        <User className="w-4 h-4 mr-2" />
+                        個人資料
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
+                  <Link to={createPageUrl('MemberManagement')}>
                     <DropdownMenuItem>
-                      <User className="w-4 h-4 mr-2" />
-                      個人資料
+                      <Settings className="w-4 h-4 mr-2" />
+                      成員管理
                     </DropdownMenuItem>
                   </Link>
-                )}
-                <Link to={createPageUrl('MemberManagement')}>
-                  <DropdownMenuItem>
-                    <Settings className="w-4 h-4 mr-2" />
-                    成員管理
+                  {isAdmin && (
+                    <Link to={createPageUrl('PendingApproval')}>
+                      <DropdownMenuItem>
+                        <Clock className="w-4 h-4 mr-2" />
+                        待審核交易
+                        {pendingTransactions.length > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                            {pendingTransactions.length}
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
+                  <DropdownMenuItem onClick={() => base44.auth.logout()}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    登出
                   </DropdownMenuItem>
-                </Link>
-                <DropdownMenuItem onClick={() => base44.auth.logout()}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  登出
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
