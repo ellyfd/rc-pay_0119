@@ -16,7 +16,10 @@ export default function TransactionHistory() {
   // P1-5: 延迟加载 + staleTime，避免一次拉 6 张表全量数据
   const { data: allTransactions = [], isLoading } = useQuery({
     queryKey: ['transactions', 'all'],
-    queryFn: () => base44.entities.Transaction.list('-created_date'),
+    queryFn: async () => {
+      const all = await base44.entities.Transaction.list('-created_date');
+      return all.filter(t => t.status !== 'pending');
+    },
     staleTime: 30 * 1000,
   });
 

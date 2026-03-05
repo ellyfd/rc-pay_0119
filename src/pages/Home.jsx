@@ -83,7 +83,10 @@ export default function Home() {
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 5)
+    queryFn: async () => {
+      const all = await base44.entities.Transaction.list('-created_date', 20);
+      return all.filter(t => t.status !== 'pending').slice(0, 5);
+    }
   });
 
   const { data: pendingTransactions = [] } = useQuery({

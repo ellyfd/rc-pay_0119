@@ -92,7 +92,8 @@ export default function MemberDetail() {
   const allMemberTransactions = useMemo(() => {
     if (!memberId) return [];
     return allTransactions.filter(
-      t => t.from_member_id === memberId || t.to_member_id === memberId
+      t => (t.from_member_id === memberId || t.to_member_id === memberId)
+        && t.status !== 'pending'
     );
   }, [allTransactions, memberId]);
 
