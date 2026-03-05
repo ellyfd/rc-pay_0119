@@ -277,7 +277,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
               }`}
               disabled={loading || !isValid()}
             >
-              {loading ? '處理中...' : isAdmin ? '確認' : '送出申請'}
+              {loading ? '處理中...' : isRC ? '確認' : '送出申請'}
             </Button>
           </form>
         </Tabs>
