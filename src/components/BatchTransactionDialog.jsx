@@ -28,6 +28,8 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const { user: currentUser } = useCurrentUser();
+  const RC_EMAIL = 'bv2hh128@gmail.com';
+  const isRC = currentUser?.email === RC_EMAIL;
 
   const resetForm = () => {
     setType('withdraw');
