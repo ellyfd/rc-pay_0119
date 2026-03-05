@@ -92,6 +92,9 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
       });
 
       if (onPendingSubmitted) onPendingSubmitted();
+      setLoading(false);
+      setSubmitted(true);
+      return;
     }
 
     setLoading(false);
