@@ -305,6 +305,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
         </Tabs>
         )}
       </DialogContent>
+
     </Dialog>
   );
 }
