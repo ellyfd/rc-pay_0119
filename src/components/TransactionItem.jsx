@@ -85,9 +85,17 @@ export default function TransactionItem({ transaction }) {
           {getRelativeTime()}
         </p>
       </div>
-      <div className={`font-bold text-base md:text-lg ${getAmountColor()} whitespace-nowrap`}>
-        {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
-        ${transaction.amount?.toLocaleString()}
+      <div className="flex flex-col items-end gap-1">
+        <div className={`font-bold text-base md:text-lg ${getAmountColor()} whitespace-nowrap`}>
+          {transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}
+          ${transaction.amount?.toLocaleString()}
+        </div>
+        {transaction.status === 'pending' && (
+          <span className="text-xs bg-yellow-100 text-yellow-800 border border-yellow-300 px-1.5 py-0.5 rounded-full font-medium">待審核</span>
+        )}
+        {transaction.status === 'rejected' && (
+          <span className="text-xs bg-gray-100 text-gray-600 border border-gray-300 px-1.5 py-0.5 rounded-full font-medium">已拒絕</span>
+        )}
       </div>
     </div>
   );
