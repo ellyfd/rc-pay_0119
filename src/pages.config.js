@@ -59,10 +59,10 @@ import MemberDetail from './pages/MemberDetail';
 import MemberManagement from './pages/MemberManagement';
 import OrderHistoryByDate from './pages/OrderHistoryByDate';
 import OrderHistoryByMember from './pages/OrderHistoryByMember';
+import PendingApproval from './pages/PendingApproval';
 import ProductCatalog from './pages/ProductCatalog';
 import ProductManagement from './pages/ProductManagement';
 import TransactionHistory from './pages/TransactionHistory';
-import PendingApproval from './pages/PendingApproval';
 
 
 export const PAGES = {
@@ -78,10 +78,10 @@ export const PAGES = {
     "MemberManagement": MemberManagement,
     "OrderHistoryByDate": OrderHistoryByDate,
     "OrderHistoryByMember": OrderHistoryByMember,
+    "PendingApproval": PendingApproval,
     "ProductCatalog": ProductCatalog,
     "ProductManagement": ProductManagement,
     "TransactionHistory": TransactionHistory,
-    "PendingApproval": PendingApproval,
 }
 
 export const pagesConfig = {

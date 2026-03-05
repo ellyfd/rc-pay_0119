@@ -186,7 +186,7 @@ export default function DrinkOrderDetail() {
       to_member_id: toMember.id,
       from_member_name: fromMember.name,
       to_member_name: toMember.name,
-      note: `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料 [${orderId}]`
+      note: `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料`
     });
 
     await updateMember.mutateAsync({
