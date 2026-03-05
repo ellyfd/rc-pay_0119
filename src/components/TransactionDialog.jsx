@@ -117,6 +117,23 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
           <DialogTitle className="text-xl font-bold text-slate-800">新增交易</DialogTitle>
         </DialogHeader>
         
+        {submitted ? (
+          <div className="py-8 flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+              <Clock className="w-8 h-8 text-yellow-500" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-slate-800">已送出申請</p>
+              <p className="text-sm text-slate-500 mt-1">等待 RC 審核後才會生效</p>
+            </div>
+            <Button
+              className="w-full h-12 bg-slate-800 hover:bg-slate-900 text-white"
+              onClick={() => { resetForm(); setSubmitted(false); onOpenChange(false); }}
+            >
+              確定
+            </Button>
+          </div>
+        ) : (
         <Tabs value={type} onValueChange={setType} className="mt-4">
           <TabsList className="grid w-full grid-cols-3 h-14">
             <TabsTrigger value="deposit" className="flex items-center gap-2 data-[state=active]:bg-emerald-100">
