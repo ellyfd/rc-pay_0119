@@ -135,6 +135,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
           </div>
         ) : (
         <Tabs value={type} onValueChange={setType} className="mt-4">
+
           <TabsList className="grid w-full grid-cols-3 h-14">
             <TabsTrigger value="deposit" className="flex items-center gap-2 data-[state=active]:bg-emerald-100">
               <ArrowDownCircle className="w-4 h-4" />
