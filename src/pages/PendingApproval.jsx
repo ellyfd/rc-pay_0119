@@ -11,9 +11,12 @@ import { createPageUrl } from '@/utils';
 import { formatTaiwanTime } from '@/components/utils/dateUtils';
 import { toast } from 'sonner';
 
+const RC_EMAIL = 'bv2hh128@gmail.com';
+
 export default function PendingApproval() {
   const { user: currentUser } = useCurrentUser();
   const isAdmin = currentUser?.role === 'admin';
+  const canApprove = currentUser?.email === RC_EMAIL;
   const queryClient = useQueryClient();
 
   const { data: pendingTransactions = [], isLoading } = useQuery({
