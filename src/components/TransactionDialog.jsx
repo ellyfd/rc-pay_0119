@@ -40,7 +40,8 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
     setWalletType('balance');
   };
 
-  const isAdmin = currentUser?.role === 'admin';
+  const RC_EMAIL = 'bv2hh128@gmail.com';
+  const isRC = currentUser?.email === RC_EMAIL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,7 +49,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
 
     setLoading(true);
 
-    if (isAdmin) {
+    if (isRC) {
       // Admin: direct execution
       await onTransaction({
         type,
