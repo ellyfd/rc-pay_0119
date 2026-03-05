@@ -11,12 +11,12 @@ import { createPageUrl } from '@/utils';
 import { formatTaiwanTime } from '@/components/utils/dateUtils';
 import { toast } from 'sonner';
 
-const RC_EMAIL = 'bv2hh128@gmail.com';
+const RC_EMAILS = ['bv2hh128@gmail.com', 'bv2hh128@hotmail.com'];
 
 export default function PendingApproval() {
   const { user: currentUser } = useCurrentUser();
   const isAdmin = currentUser?.role === 'admin';
-  const canApprove = currentUser?.email === RC_EMAIL;
+  const canApprove = RC_EMAILS.includes(currentUser?.email);
   const queryClient = useQueryClient();
 
   const { data: pendingTransactions = [], isLoading } = useQuery({

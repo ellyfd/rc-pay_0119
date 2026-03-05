@@ -41,8 +41,8 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
     setWalletType('balance');
   };
 
-  const RC_EMAIL = 'bv2hh128@gmail.com';
-  const isRC = currentUser?.email === RC_EMAIL;
+  const RC_EMAILS = ['bv2hh128@gmail.com', 'bv2hh128@hotmail.com'];
+  const isRC = RC_EMAILS.includes(currentUser?.email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
