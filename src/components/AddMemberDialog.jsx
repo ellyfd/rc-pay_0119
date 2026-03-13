@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { z } from 'zod';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -10,31 +12,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { colors, getAvatarColorStyle } from "@/components/utils/colorMap";
 
+const memberSchema = z.object({
+  name: z.string().trim().min(1, '請輸入成員姓名').max(20, '姓名最多 20 個字'),
+});
+
 export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
   const [name, setName] = useState('');
   const [aliases, setAliases] = useState([]);
   const [newAlias, setNewAlias] = useState('');
   const [selectedColor, setSelectedColor] = useState('blue');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    
+    const result = memberSchema.safeParse({ name });
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      setErrors(fieldErrors);
+      return;
+    }
+    setErrors({});
+
     setLoading(true);
-    await onAdd({ 
-      name: name.trim(), 
-      alias: aliases,
-      avatar_color: selectedColor, 
-      balance: 0,
-      cash_balance: 0
-    });
-    setLoading(false);
-    setName('');
-    setAliases([]);
-    setNewAlias('');
-    setSelectedColor('blue');
-    onOpenChange(false);
+    try {
+      await onAdd({
+        name: result.data.name,
+        alias: aliases,
+        avatar_color: selectedColor,
+        balance: 0,
+        cash_balance: 0
+      });
+      setName('');
+      setAliases([]);
+      setNewAlias('');
+      setSelectedColor('blue');
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(`新增成員失敗：${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddAlias = () => {
@@ -62,10 +80,11 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => { setName(e.target.value); setErrors({}); }}
               placeholder="輸入成員姓名"
-              className="h-12"
+              className={`h-12 ${errors.name ? 'border-red-500' : ''}`}
             />
+            {errors.name && <p className="text-sm text-red-500">{errors.name[0]}</p>}
           </div>
 
           <div className="space-y-2">

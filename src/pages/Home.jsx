@@ -166,14 +166,13 @@ export default function Home() {
         });
       } catch (error) {
         // 回滾扣款
-        console.error('轉帳失敗，回滾扣款:', error);
         try {
           await updateMember.mutateAsync({
             id: from_member_id,
             data: { [balanceField]: fromOriginal }
           });
         } catch (rollbackError) {
-          console.error('回滾失敗，請手動檢查:', rollbackError);
+          toast.error(`回滾失敗，請手動檢查 ${fromMember.name} 的餘額`);
         }
         throw new Error(`轉帳失敗，已還原 ${fromMember.name} 的餘額`);
       }
