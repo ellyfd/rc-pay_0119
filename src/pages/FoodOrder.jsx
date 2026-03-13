@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -93,12 +94,12 @@ export default function FoodOrder() {
 
   const handleSubmitOrder = async () => {
     if (!selectedMember) {
-      alert('請選擇成員！');
+      toast.error('請選擇成員');
       return;
     }
 
     if (!mealBoxId && sideDishes.length === 0) {
-      alert('請至少選擇一個餐盒或單點！');
+      toast.error('請至少選擇一個餐盒或單點');
       return;
     }
 
@@ -106,73 +107,73 @@ export default function FoodOrder() {
     if (!member) return;
 
     const totalAmount = total;
-    
+
     // Determine payment method based on whether member is the payer
     const finalMealBoxId = mealBoxId === '__none__' ? '' : mealBoxId;
     const finalPayerId = payerId === '__none__' ? '' : payerId;
     const finalPaymentMethod = finalPayerId && selectedMember === finalPayerId ? 'payer' : paymentMethod;
     const payer = finalPayerId ? allMembers.find(m => m.id === finalPayerId) : null;
 
-    // Create order with pending status
-    const orderRecord = await createOrder.mutateAsync({
-      member_id: member.id,
-      member_name: member.name,
-      total_amount: totalAmount,
-      payment_method: finalPaymentMethod,
-      status: 'pending',
-      order_date: orderDate,
-      payer_id: finalPayerId || undefined,
-      payer_name: payer?.name || undefined,
-      note: note || undefined
-    });
-
-    // Create order items
-    const itemsToCreate = [];
-    
-    if (finalMealBoxId) {
-      const mealBox = mealBoxes.find(p => p.id === finalMealBoxId);
-      if (mealBox) {
-        itemsToCreate.push({
-          order_id: orderRecord.id,
-          product_id: mealBox.id,
-          product_name: mealBox.name,
-          price: mealBox.price,
-          quantity: 1,
-          rice_option: riceOption
-        });
-      }
-    }
-
-    for (const dishId of sideDishes) {
-      const dish = sideDishProducts.find(p => p.id === dishId);
-      if (dish) {
-        itemsToCreate.push({
-          order_id: orderRecord.id,
-          product_id: dish.id,
-          product_name: dish.name,
-          price: dish.price,
-          quantity: 1,
-          rice_option: 'normal'
-        });
-      }
-    }
-
-    // Batch create order items
-    for (const item of itemsToCreate) {
-      await createOrderItem.mutateAsync(item);
-    }
-
-    // Reset form & verify
     try {
+      // Create order with pending status
+      const orderRecord = await createOrder.mutateAsync({
+        member_id: member.id,
+        member_name: member.name,
+        total_amount: totalAmount,
+        payment_method: finalPaymentMethod,
+        status: 'pending',
+        order_date: orderDate,
+        payer_id: finalPayerId || undefined,
+        payer_name: payer?.name || undefined,
+        note: note || undefined
+      });
+
+      // Create order items
+      const itemsToCreate = [];
+
+      if (finalMealBoxId) {
+        const mealBox = mealBoxes.find(p => p.id === finalMealBoxId);
+        if (mealBox) {
+          itemsToCreate.push({
+            order_id: orderRecord.id,
+            product_id: mealBox.id,
+            product_name: mealBox.name,
+            price: mealBox.price,
+            quantity: 1,
+            rice_option: riceOption
+          });
+        }
+      }
+
+      for (const dishId of sideDishes) {
+        const dish = sideDishProducts.find(p => p.id === dishId);
+        if (dish) {
+          itemsToCreate.push({
+            order_id: orderRecord.id,
+            product_id: dish.id,
+            product_name: dish.name,
+            price: dish.price,
+            quantity: 1,
+            rice_option: 'normal'
+          });
+        }
+      }
+
+      // Batch create order items
+      for (const item of itemsToCreate) {
+        await createOrderItem.mutateAsync(item);
+      }
+
+      // Reset form
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
       setMealBoxId('');
       setRiceOption('normal');
       setSideDishes([]);
       setNote('');
       setPayerId('');
-      alert('訂單已送出，等待管理員結帳！');
+      toast.success('訂單已送出，等待管理員結帳');
     } catch (error) {
-      alert('訂單已建立，但資料同步失敗，請稍後重試');
+      toast.error(`訂單送出失敗：${error.message}`);
     }
   };
 

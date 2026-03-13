@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -46,11 +47,11 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave, o
   const handleAddEmail = () => {
     if (!newEmail.trim()) return;
     if (!newEmail.includes('@')) {
-      alert('請輸入有效的 email 格式');
+      toast.error('請輸入有效的 email 格式');
       return;
     }
     if (formData.user_emails.includes(newEmail)) {
-      alert('此 email 已存在');
+      toast.error('此 email 已存在');
       return;
     }
     setFormData({ ...formData, user_emails: [...formData.user_emails, newEmail] });
@@ -67,7 +68,7 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave, o
   const handleAddAlias = () => {
     if (!newAlias.trim()) return;
     if (formData.alias.includes(newAlias.trim())) {
-      alert('此別名已存在');
+      toast.error('此別名已存在');
       return;
     }
     setFormData({ ...formData, alias: [...formData.alias, newAlias.trim()] });
@@ -83,7 +84,7 @@ export default function EditMemberDialog({ open, onOpenChange, member, onSave, o
 
   const handleSubmit = () => {
     if (!formData.name.trim()) {
-      alert('請輸入成員姓名！');
+      toast.error('請輸入成員姓名');
       return;
     }
     onSave(formData);

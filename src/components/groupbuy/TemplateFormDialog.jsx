@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from "sonner";
 import { base44 } from '@/api/base44Client';
 import {
   Dialog,
@@ -58,7 +59,7 @@ export default function TemplateFormDialog({ open, onOpenChange, template, onSav
       const result = await base44.integrations.Core.UploadFile({ file });
       setFormData({ ...formData, image_url: result.file_url });
     } catch (error) {
-      alert('上傳失敗：' + error.message);
+      toast.error('上傳失敗：' + error.message);
     } finally {
       setUploading(false);
     }
@@ -80,7 +81,7 @@ export default function TemplateFormDialog({ open, onOpenChange, template, onSav
 
   const handleSubmit = () => {
     if (!formData.template_name.trim()) {
-      alert('請輸入範本名稱！');
+      toast.error('請輸入範本名稱');
       return;
     }
 

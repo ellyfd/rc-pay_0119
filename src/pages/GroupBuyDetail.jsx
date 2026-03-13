@@ -179,95 +179,114 @@ export default function GroupBuyDetail() {
     const member = memberMap.get(memberId);
     if (!member || !currentUser) return;
 
-    const updatedEmails = member.user_emails || [];
-    if (!updatedEmails.includes(currentUser.email)) {
-      updatedEmails.push(currentUser.email);
+    try {
+      const updatedEmails = member.user_emails || [];
+      if (!updatedEmails.includes(currentUser.email)) {
+        updatedEmails.push(currentUser.email);
+      }
+
+      await updateMember.mutateAsync({
+        id: memberId,
+        data: { user_emails: updatedEmails }
+      });
+
+      setUserMember(member);
+      setShowSelectMember(false);
+    } catch (error) {
+      toast.error(`關聯成員失敗：${error.message}`);
     }
-
-    await updateMember.mutateAsync({
-      id: memberId,
-      data: { user_emails: updatedEmails }
-    });
-
-    setUserMember(member);
-    setShowSelectMember(false);
   };
 
   const handleAddItem = async (itemData) => {
-    if (editingItem) {
-      await updateItem.mutateAsync({ id: editingItem.id, data: itemData });
-      setShowAddItem(false);
-      setEditingItem(null);
-    } else {
-      // Single item is passed from the dialog
-      await createItem.mutateAsync({
-        ...itemData,
-        group_buy_id: groupBuyId
-      });
+    try {
+      if (editingItem) {
+        await updateItem.mutateAsync({ id: editingItem.id, data: itemData });
+        setShowAddItem(false);
+        setEditingItem(null);
+      } else {
+        await createItem.mutateAsync({
+          ...itemData,
+          group_buy_id: groupBuyId
+        });
+      }
+    } catch (error) {
+      toast.error(`新增品項失敗：${error.message}`);
     }
   };
 
   const handleDeleteItem = async () => {
-    if (deletingItem) {
+    if (!deletingItem) return;
+    try {
       // Check if this item is part of a split order
       const isSplitItem = deletingItem.note && deletingItem.note.includes('平分');
-      
+
       if (isSplitItem) {
-        // Find all items with the same product name and split note pattern
-        const relatedItems = items.filter(item => 
+        const relatedItems = items.filter(item =>
           item.product_name === deletingItem.product_name &&
-          item.note && 
+          item.note &&
           item.note.includes('平分') &&
           item.note.includes(deletingItem.note.split('訂購')[0] + '訂購')
         );
-        
-        // Delete all related split items
+
         for (const item of relatedItems) {
           await deleteItem.mutateAsync(item.id);
         }
       } else {
-        // Normal delete
         await deleteItem.mutateAsync(deletingItem.id);
       }
-      
+
       setDeletingItem(null);
+    } catch (error) {
+      toast.error(`刪除品項失敗：${error.message}`);
     }
   };
 
   const handleEditGroupBuy = async (data) => {
-    await updateGroupBuy.mutateAsync({
-      id: groupBuyId,
-      data
-    });
-    setShowEditGroupBuy(false);
+    try {
+      await updateGroupBuy.mutateAsync({
+        id: groupBuyId,
+        data
+      });
+      setShowEditGroupBuy(false);
+    } catch (error) {
+      toast.error(`編輯團購失敗：${error.message}`);
+    }
   };
 
   const handleDeleteGroupBuy = async () => {
-    // Delete all items first
-    for (const item of items) {
-      await deleteItem.mutateAsync(item.id);
+    try {
+      // Delete all items first
+      for (const item of items) {
+        await deleteItem.mutateAsync(item.id);
+      }
+      // Then delete the group buy
+      await deleteGroupBuy.mutateAsync(groupBuyId);
+    } catch (error) {
+      toast.error(`刪除團購失敗：${error.message}`);
     }
-    // Then delete the group buy
-    await deleteGroupBuy.mutateAsync(groupBuyId);
   };
 
   const handleSaveAsTemplate = async () => {
     const templateName = prompt('請輸入範本名稱：', `${groupBuy.title} 範本`);
     if (!templateName) return;
 
-    await createTemplate.mutateAsync({
-      template_name: templateName,
-      title: groupBuy.title,
-      description: groupBuy.description,
-      product_link: groupBuy.product_link,
-      image_url: groupBuy.image_url,
-      discount_rules: groupBuy.discount_rules,
-      products: products.map(p => ({
-        product_name: p.product_name,
-        price: p.price,
-        description: p.description
-      }))
-    });
+    try {
+      await createTemplate.mutateAsync({
+        template_name: templateName,
+        title: groupBuy.title,
+        description: groupBuy.description,
+        product_link: groupBuy.product_link,
+        image_url: groupBuy.image_url,
+        discount_rules: groupBuy.discount_rules,
+        products: products.map(p => ({
+          product_name: p.product_name,
+          price: p.price,
+          description: p.description
+        }))
+      });
+    } catch (error) {
+      toast.error(`儲存範本失敗：${error.message}`);
+    }
   };
 
   const handleCloseGroupBuy = async () => {

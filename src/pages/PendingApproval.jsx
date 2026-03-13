@@ -10,13 +10,12 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { formatTaiwanTime } from '@/components/utils/dateUtils';
 import { toast } from 'sonner';
-
-const RC_EMAILS = ['bv2hh128@gmail.com', 'bv2hh128@hotmail.com'];
+import { isRCEmail } from '@/components/utils/constants/rcEmails';
 
 export default function PendingApproval() {
   const { user: currentUser } = useCurrentUser();
   const isAdmin = currentUser?.role === 'admin';
-  const canApprove = RC_EMAILS.includes(currentUser?.email);
+  const canApprove = isRCEmail(currentUser?.email);
   const queryClient = useQueryClient();
 
   const { data: pendingTransactions = [], isLoading } = useQuery({

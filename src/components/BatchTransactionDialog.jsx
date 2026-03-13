@@ -21,6 +21,7 @@ import {
 import { Plus, Trash2, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isRCEmail } from "@/components/utils/constants/rcEmails";
 
 export default function BatchTransactionDialog({ open, onOpenChange, members, onBatchTransaction }) {
   const [type, setType] = useState('withdraw');
@@ -29,8 +30,7 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const { user: currentUser } = useCurrentUser();
-  const RC_EMAIL = 'bv2hh128@gmail.com';
-  const isRC = currentUser?.email === RC_EMAIL;
+  const isRC = isRCEmail(currentUser?.email);
 
   const resetForm = () => {
     setType('withdraw');
