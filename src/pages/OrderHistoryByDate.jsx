@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Package, Calendar } from "lucide-react";
@@ -54,11 +55,11 @@ export default function OrderHistoryByDate() {
 
   const handleSearch = () => {
     if (!startDate || !endDate) {
-      alert('請選擇開始和結束日期');
+      toast.error('請選擇開始和結束日期');
       return;
     }
     if (startDate > endDate) {
-      alert('開始日期不能晚於結束日期');
+      toast.error('開始日期不能晚於結束日期');
       return;
     }
     setHasSearched(true);

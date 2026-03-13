@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -123,7 +124,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
 
   const handleSubmit = () => {
     if (!selectedMember) {
-      alert('請選擇成員！');
+      toast.error('請選擇成員');
       return;
     }
 
@@ -136,7 +137,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
     );
 
     if (validItems.length === 0) {
-      alert('請至少新增一個有效的品項（需填寫商品名稱和單價）！');
+      toast.error('請至少新增一個有效的品項（需填寫商品名稱和單價）');
       return;
     }
 

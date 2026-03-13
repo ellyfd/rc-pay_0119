@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from "sonner";
 import { getAvatarColorStyle } from '@/components/utils/colorMap';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -57,7 +58,7 @@ export default function OrderHistoryByMember() {
 
   const handleSearch = () => {
     if (!selectedMemberId) {
-      alert('請選擇成員');
+      toast.error('請選擇成員');
       return;
     }
     setHasSearched(true);

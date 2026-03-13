@@ -23,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { isRCEmail, RC_EMAILS } from "@/components/utils/constants/rcEmails";
 
 export default function TransactionDialog({ open, onOpenChange, members, onTransaction, onPendingSubmitted }) {
   const [type, setType] = useState('deposit');
@@ -43,8 +44,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
     setWalletType('balance');
   };
 
-  const RC_EMAILS = ['bv2hh128@gmail.com', 'bv2hh128@hotmail.com'];
-  const isRC = RC_EMAILS.includes(currentUser?.email);
+  const isRC = isRCEmail(currentUser?.email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,7 +106,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
       });
 
       await base44.entities.Notification.create({
-        recipient_email: 'bv2hh128@gmail.com',
+        recipient_email: RC_EMAILS[0],
         type: 'pending_approval',
         transaction_id: created.id,
         message: `${submitterName} 提交了一筆${typeLabel}申請 $${parseFloat(amount)}`,

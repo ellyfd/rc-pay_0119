@@ -114,7 +114,12 @@ export default function Home() {
   });
 
   const handleAddMember = async (memberData) => {
-    await createMember.mutateAsync(memberData);
+    try {
+      await createMember.mutateAsync(memberData);
+    } catch (error) {
+      toast.error(`新增成員失敗：${error.message}`);
+      throw error;
+    }
   };
 
   const handleTransaction = async (transactionData) => {
@@ -123,6 +128,11 @@ export default function Home() {
     const fromMember = memberMap.get(from_member_id);
     const toMember = memberMap.get(to_member_id);
     const balanceField = wallet_type === 'cash' ? 'cash_balance' : 'balance';
+
+    // P0-10: 扣款前重新讀取最新餘額，避免競態條件
+    const freshMembers = await base44.entities.Member.list('name');
+    const freshFrom = from_member_id ? freshMembers.find(m => m.id === from_member_id) : null;
+    const freshTo = to_member_id ? freshMembers.find(m => m.id === to_member_id) : null;
 
     // Create transaction record
     await createTransaction.mutateAsync({
@@ -136,22 +146,22 @@ export default function Home() {
       note
     });
 
-    // Update balances
-    if (type === 'deposit' && toMember) {
+    // Update balances using fresh data
+    if (type === 'deposit' && freshTo) {
       await updateMember.mutateAsync({
         id: to_member_id,
-        data: { [balanceField]: (toMember[balanceField] || 0) + amount }
+        data: { [balanceField]: (freshTo[balanceField] || 0) + amount }
       });
-    } else if (type === 'withdraw' && fromMember) {
+    } else if (type === 'withdraw' && freshFrom) {
       await updateMember.mutateAsync({
         id: from_member_id,
-        data: { [balanceField]: (fromMember[balanceField] || 0) - amount }
+        data: { [balanceField]: (freshFrom[balanceField] || 0) - amount }
       });
-    } else if (type === 'transfer' && fromMember && toMember) {
-      // P0-7: 先扣款，若失敗則回滾（不能先加值，這樣若失敗 fromMember 已被扣）
-      const fromOriginal = fromMember[balanceField] || 0;
-      const toOriginal = toMember[balanceField] || 0;
-      
+    } else if (type === 'transfer' && freshFrom && freshTo) {
+      // P0-7: 先扣款，若失敗則回滾
+      const fromOriginal = freshFrom[balanceField] || 0;
+      const toOriginal = freshTo[balanceField] || 0;
+
       try {
         // 步驟 1：先扣款
         await updateMember.mutateAsync({
@@ -230,12 +240,16 @@ export default function Home() {
     const member = memberMap.get(memberId);
     if (!member || !currentUser) return;
 
-    const updatedEmails = [...(member.user_emails || []), currentUser.email];
-    await updateMember.mutateAsync({
-      id: memberId,
-      data: { user_emails: updatedEmails }
-    });
-    setShowSelectMember(false);
+    try {
+      const updatedEmails = [...(member.user_emails || []), currentUser.email];
+      await updateMember.mutateAsync({
+        id: memberId,
+        data: { user_emails: updatedEmails }
+      });
+      setShowSelectMember(false);
+    } catch (error) {
+      toast.error(`關聯成員失敗：${error.message}`);
+    }
   };
 
 

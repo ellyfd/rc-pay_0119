@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,7 @@ export default function SelectMemberDialog({ open, members, currentUserEmail, on
 
   const handleSubmit = () => {
     if (!selectedMemberId) {
-      alert('請選擇一個成員');
+      toast.error('請選擇一個成員');
       return;
     }
     onSelect(selectedMemberId);

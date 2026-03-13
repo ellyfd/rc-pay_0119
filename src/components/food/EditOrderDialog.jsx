@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save } from "lucide-react";
+import { toast } from "sonner";
 import { parseOrderItems } from "@/components/utils/orderItemUtils";
 
 export default function EditOrderDialog({ open, onOpenChange, order, orderItems, products, onSave }) {
@@ -55,7 +56,7 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
     const effectiveMealBoxId = mealBoxId === '__none__' ? '' : mealBoxId;
     
     if (!effectiveMealBoxId && sideDishes.length === 0) {
-      alert('請至少選擇一個餐盒或單點！');
+      toast.error('請至少選擇一個餐盒或單點');
       return;
     }
 

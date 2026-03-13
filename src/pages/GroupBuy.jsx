@@ -65,26 +65,30 @@ export default function GroupBuy() {
 
   const handleCreate = async (data) => {
     const { products, organizer_id, ...groupBuyData } = data;
-    
+
     // Find organizer member
     const organizerMember = memberMap.get(organizer_id);
     if (!organizerMember) return;
-    
-    // Create group buy
-    const groupBuy = await createGroupBuy.mutateAsync({
-      ...groupBuyData,
-      organizer_id: organizer_id,
-      organizer_name: organizerMember.name
-    });
-    
-    // Create products if any
-    if (products && products.length > 0) {
-      for (const product of products) {
-        await createGroupBuyProduct.mutateAsync({
-          ...product,
-          group_buy_id: groupBuy.id
-        });
+
+    try {
+      // Create group buy
+      const groupBuy = await createGroupBuy.mutateAsync({
+        ...groupBuyData,
+        organizer_id: organizer_id,
+        organizer_name: organizerMember.name
+      });
+
+      // Create products if any
+      if (products && products.length > 0) {
+        for (const product of products) {
+          await createGroupBuyProduct.mutateAsync({
+            ...product,
+            group_buy_id: groupBuy.id
+          });
+        }
       }
+    } catch (error) {
+      toast.error(`建立團購失敗：${error.message}`);
     }
   };
 
