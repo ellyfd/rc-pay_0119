@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { z } from 'zod';
+import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import {
@@ -46,10 +48,31 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) return;
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      toast.error('請輸入有效的正數金額');
+      return;
+    }
+    if (type === 'deposit' && !toMemberId) {
+      toast.error('請選擇存入對象');
+      return;
+    }
+    if (type === 'withdraw' && !fromMemberId) {
+      toast.error('請選擇扣款對象');
+      return;
+    }
+    if (type === 'transfer' && (!fromMemberId || !toMemberId)) {
+      toast.error('請選擇轉出和轉入對象');
+      return;
+    }
+    if (type === 'transfer' && fromMemberId === toMemberId) {
+      toast.error('轉出和轉入不能是同一人');
+      return;
+    }
 
     setLoading(true);
 
+    try {
     if (isRC) {
       // Admin: direct execution
       await onTransaction({
@@ -100,6 +123,10 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
     setLoading(false);
     resetForm();
     onOpenChange(false);
+    } catch (error) {
+      toast.error(`交易失敗：${error.message}`);
+      setLoading(false);
+    }
   };
 
   const isValid = () => {

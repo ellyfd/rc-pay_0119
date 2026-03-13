@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Wallet, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -120,8 +121,7 @@ export default function CheckoutDialog({ open, onOpenChange, cart, members, tota
       setNote('');
       onComplete();
     } catch (error) {
-      console.error('訂單建立失敗:', error);
-      // toast.error 由父元件處理
+      toast.error(`訂單建立失敗：${error.message}`);
       throw error;
     } finally {
       setLoading(false);

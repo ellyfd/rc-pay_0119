@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { base44 } from '@/api/base44Client';
 import { Upload, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -66,8 +67,7 @@ export default function ProductCatalogFormDialog({ open, onOpenChange, product, 
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setFormData({ ...formData, image_url: file_url });
     } catch (error) {
-      alert('圖片上傳失敗');
-      console.error(error);
+      toast.error('圖片上傳失敗');
     } finally {
       setUploading(false);
     }
@@ -75,7 +75,7 @@ export default function ProductCatalogFormDialog({ open, onOpenChange, product, 
 
   const handleSubmit = () => {
     if (!formData.name || !formData.category) {
-      alert('請填寫產品名稱和分類！');
+      toast.error('請填寫產品名稱和分類');
       return;
     }
     onSave(formData);

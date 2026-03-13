@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle, Package, Edit, Trash2, Users } from "lucide-react";
@@ -54,7 +55,7 @@ export default function AdminOrders() {
         const allItems = await base44.entities.OrderItem.list();
         return allItems.filter(item => orders.some(o => o.id === item.order_id));
       } catch (error) {
-        console.error('Error fetching order items:', error);
+        toast.error('載入訂單項目失敗');
         return [];
       }
     },
@@ -135,7 +136,7 @@ export default function AdminOrders() {
       try {
         await deleteOrderItem.mutateAsync(item.id);
       } catch (error) {
-        console.error('Error deleting item:', error);
+        toast.error(`刪除項目失敗：${error.message}`);
       }
     }
 
@@ -157,7 +158,7 @@ export default function AdminOrders() {
       try {
         await deleteOrderItem.mutateAsync(item.id);
       } catch (error) {
-        console.error('Error deleting item:', error);
+        toast.error(`刪除項目失敗：${error.message}`);
       }
     }
 
@@ -232,7 +233,7 @@ export default function AdminOrders() {
 
   const handleCheckoutAll = async () => {
     if (currentUser?.role !== 'admin') {
-      alert('僅管理員可執行此操作');
+      toast.error('僅管理員可執行此操作');
       return;
     }
 
@@ -273,14 +274,13 @@ export default function AdminOrders() {
         await processOrderPayment(order, member, transactionNote);
       } catch (error) {
         failedOrders.push(order.member_name);
-        console.error(`結帳失敗: ${order.member_name}`, error);
       }
     }
 
     if (failedOrders.length > 0) {
-      alert(`結帳完成，但以下訂單扣款失敗，請手動處理：\n${failedOrders.join('\n')}`);
+      toast.error(`以下訂單扣款失敗，請手動處理：${failedOrders.join('、')}`);
     } else {
-      alert('結帳完成！');
+      toast.success('結帳完成！');
     }
   };
 
@@ -299,17 +299,16 @@ export default function AdminOrders() {
         try {
           await deleteOrderItem.mutateAsync(item.id);
         } catch (error) {
-          console.error('Error deleting item:', error);
+          toast.error(`刪除項目失敗：${error.message}`);
         }
       }
 
       // Then delete the order
       await deleteOrder.mutateAsync(deletingOrder.id);
       setDeletingOrder(null);
-      alert('訂單已刪除');
+      toast.success('訂單已刪除');
     } catch (error) {
-      alert('刪除失敗，請重試');
-      console.error('Delete error:', error);
+      toast.error(`刪除失敗：${error.message}`);
     }
   };
 

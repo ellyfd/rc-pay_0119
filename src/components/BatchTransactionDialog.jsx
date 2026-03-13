@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import {
   Dialog,
@@ -70,18 +71,36 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
     e.preventDefault();
     if (!isValid()) return;
 
+    // 驗證每筆金額
+    for (const item of items) {
+      const amount = parseFloat(item.amount);
+      if (isNaN(amount) || amount <= 0) {
+        toast.error('每筆交易金額必須為正數');
+        return;
+      }
+      if (!item.member_id) {
+        toast.error('每筆交易必須選擇成員');
+        return;
+      }
+    }
+
     setLoading(true);
-    const transactions = items.map(item => ({
-      member_id: item.member_id,
-      amount: parseFloat(item.amount),
-      type,
-      wallet_type: walletType,
-      note
-    }));
-    await onBatchTransaction(transactions);
-    setLoading(false);
-    resetForm();
-    onOpenChange(false);
+    try {
+      const transactions = items.map(item => ({
+        member_id: item.member_id,
+        amount: parseFloat(item.amount),
+        type,
+        wallet_type: walletType,
+        note
+      }));
+      await onBatchTransaction(transactions);
+      resetForm();
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(`批次交易失敗：${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAvailableMembers = (currentIndex) => {

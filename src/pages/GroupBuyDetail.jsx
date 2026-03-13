@@ -88,7 +88,7 @@ export default function GroupBuyDetail() {
   );
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(console.error);
+    base44.auth.me().then(setCurrentUser).catch(() => toast.error('載入使用者資料失敗'));
   }, []);
 
   useEffect(() => {
