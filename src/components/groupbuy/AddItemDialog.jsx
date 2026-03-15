@@ -361,7 +361,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                             variant="ghost"
                             size="icon"
                             onClick={() => removeRow(index)}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                            className="h-10 w-10 text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

@@ -225,7 +225,7 @@ export default function TemplateFormDialog({ open, onOpenChange, template, onSav
                             variant="ghost"
                             size="icon"
                             onClick={() => setDiscountRules(discountRules.filter((_, i) => i !== index))}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                            className="h-10 w-10 text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -294,7 +294,7 @@ export default function TemplateFormDialog({ open, onOpenChange, template, onSav
                             variant="ghost"
                             size="icon"
                             onClick={() => removeProduct(index)}
-                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                            className="h-10 w-10 text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
