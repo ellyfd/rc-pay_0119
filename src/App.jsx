@@ -11,14 +11,15 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import BottomNav from '@/components/BottomNav';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import PageTransition from '@/components/PageTransition';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+  <Layout currentPageName={currentPageName}><PageTransition>{children}</PageTransition></Layout>
+  : <PageTransition>{children}</PageTransition>;
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();

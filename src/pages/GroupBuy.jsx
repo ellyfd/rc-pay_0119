@@ -8,6 +8,7 @@ import { ArrowLeft, Plus, ShoppingCart, Users, Package, FileText, Filter } from 
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import GroupBuyCard from "@/components/groupbuy/GroupBuyCard";
+import EmptyState from "@/components/EmptyState";
 import CreateGroupBuyDialog from "@/components/groupbuy/CreateGroupBuyDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -256,11 +257,7 @@ export default function GroupBuy() {
                 ))}
               </div>
             ) : openGroupBuys.length === 0 ? (
-              <Card className="p-12 text-center border-dashed">
-                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500 text-lg mb-2">目前沒有進行中的團購</p>
-                <p className="text-slate-400 text-sm">點擊「我要開團」開始第一個團購！</p>
-              </Card>
+              <EmptyState icon={Package} title="目前沒有進行中的團購" description="點擊「我要開團」開始第一個團購！" />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {openGroupBuys.map(groupBuy => (
@@ -278,11 +275,7 @@ export default function GroupBuy() {
 
           <TabsContent value="closed">
             {closedGroupBuys.length === 0 ? (
-              <Card className="p-12 text-center border-dashed">
-                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">沒有待收款的團購</p>
-                <p className="text-slate-400 text-sm mt-2">所有團購的款項都已結清</p>
-              </Card>
+              <EmptyState icon={Package} title="沒有待收款的團購" description="所有團購的款項都已結清" />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {closedGroupBuys.map(groupBuy => (
@@ -300,10 +293,7 @@ export default function GroupBuy() {
 
           <TabsContent value="completed">
             {completedGroupBuys.length === 0 ? (
-              <Card className="p-12 text-center border-dashed">
-                <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">沒有已完成的團購</p>
-              </Card>
+              <EmptyState icon={Package} title="沒有已完成的團購" />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {completedGroupBuys.map(groupBuy => (

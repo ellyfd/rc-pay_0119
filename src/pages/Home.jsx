@@ -16,6 +16,7 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import MemberCard from "@/components/MemberCard";
+import EmptyState from "@/components/EmptyState";
 import TransactionItem from "@/components/TransactionItem";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import TransactionDialog from "@/components/TransactionDialog";
@@ -25,6 +26,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import NotificationBell from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import usePullToRefresh from "@/hooks/usePullToRefresh";
 
 export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
@@ -33,6 +35,11 @@ export default function Home() {
   const [showSelectMember, setShowSelectMember] = useState(false);
   const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
+
+  usePullToRefresh(() => {
+    queryClient.invalidateQueries({ queryKey: ['members'] });
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+  });
 
   // P1-8: queryFn 只取数据，排序交给 useMemo（不同页面有不同排序而不影响缓存）
   const { data: rawMembers = [], isLoading: membersLoading } = useQuery({
@@ -407,11 +414,7 @@ export default function Home() {
           {membersLoading ?
           <LoadingSpinner message="載入成員中..." /> :
           members.length === 0 ?
-          <Card className="p-8 text-center border-dashed">
-              <UserPlus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚未新增成員</p>
-              <p className="text-slate-400 text-sm mt-1">點擊上方按鈕開始新增</p>
-            </Card> :
+          <EmptyState icon={UserPlus} title="尚未新增成員" description="點擊上方按鈕開始新增" /> :
 
           <motion.div
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-3"
@@ -455,10 +458,7 @@ export default function Home() {
           {transactionsLoading ?
           <LoadingSpinner message="載入交易中..." /> :
           transactions.length === 0 ?
-          <Card className="p-8 text-center border-dashed">
-              <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">尚無交易紀錄</p>
-            </Card> :
+          <EmptyState icon={History} title="尚無交易紀錄" /> :
 
           <motion.div
             className="space-y-3"
