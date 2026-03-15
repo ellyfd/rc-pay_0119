@@ -496,8 +496,10 @@ export default function GroupBuyDetail() {
     }
   };
 
-  // Check if all items are paid
-  const allPaid = items.length > 0 && items.every(item => item.paid);
+  // Check if all items are paid (organizer is always considered paid)
+  const allPaid = items.length > 0 && items.every(item =>
+    item.member_id === groupBuy?.organizer_id || item.paid
+  );
 
   // Check if discount creates decimals
   const hasDiscountDecimals = useMemo(() => {
@@ -512,15 +514,16 @@ export default function GroupBuyDetail() {
   }, [groupBuy?.discount_rules, getApplicableDiscount, items, getDiscountedPrice]);
 
   // Group items by member
-  const memberSummary = useMemo(() => 
+  const memberSummary = useMemo(() =>
     items.reduce((acc, item) => {
       const existing = acc.find(m => m.member_id === item.member_id);
       const discountedPrice = getDiscountedPrice(item.price, item.member_id);
       const itemTotal = discountedPrice * item.quantity;
+      const isOrganizerMember = item.member_id === groupBuy?.organizer_id;
       if (existing) {
         existing.items.push(item);
         existing.total += itemTotal;
-        existing.paid = existing.paid && item.paid;
+        existing.paid = isOrganizerMember ? true : (existing.paid && item.paid);
         // Check if any item uses RC Pay
         if (item.payment_method === 'rcpay') {
           existing.hasRcPay = true;
@@ -531,13 +534,14 @@ export default function GroupBuyDetail() {
           member_name: item.member_name,
           items: [item],
           total: itemTotal,
-          paid: item.paid || false,
-          hasRcPay: item.payment_method === 'rcpay'
+          paid: isOrganizerMember ? true : (item.paid || false),
+          hasRcPay: item.payment_method === 'rcpay',
+          isOrganizerMember
         });
       }
       return acc;
     }, []),
-    [items, getDiscountedPrice]
+    [items, getDiscountedPrice, groupBuy?.organizer_id]
   );
 
   // Group items by product for order summary
@@ -756,7 +760,7 @@ export default function GroupBuyDetail() {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-600">已付款</span>
                     <span className={`font-semibold ${allPaid ? 'text-green-600' : 'text-amber-600'}`}>
-                      {memberSummary.filter(m => m.paid).length} / {memberSummary.length}
+                      {memberSummary.filter(m => !m.isOrganizerMember && m.paid).length} / {memberSummary.filter(m => !m.isOrganizerMember).length}
                     </span>
                   </div>
                 )}
@@ -953,7 +957,7 @@ export default function GroupBuyDetail() {
                           <tr key={item.id} className="hover:bg-slate-50">
                             {itemIdx === 0 && (
                               <>
-                                <td 
+                                <td
                                   className="px-2 sm:px-3 py-2 font-medium align-top text-xs sm:text-sm"
                                   rowSpan={summary.items.length}
                                 >
@@ -963,6 +967,9 @@ export default function GroupBuyDetail() {
                                   >
                                     {summary.member_name}
                                   </Link>
+                                  {summary.isOrganizerMember && (
+                                    <div className="text-[10px] text-green-600 mt-0.5">開團者</div>
+                                  )}
                                 </td>
                               </>
                             )}
@@ -1030,6 +1037,11 @@ export default function GroupBuyDetail() {
                               </td>
                             )}
                             {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
+                              summary.isOrganizerMember ? (
+                                <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
+                                  <span className="text-[10px] sm:text-xs text-green-600 font-medium">開團者免付</span>
+                                </td>
+                              ) : (
                               <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
                                 <Select
                                   value={item.payment_method || ''}
@@ -1058,9 +1070,13 @@ export default function GroupBuyDetail() {
                                   </SelectContent>
                                 </Select>
                               </td>
+                              )
                             )}
                             {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
-                              <td 
+                              summary.isOrganizerMember ? (
+                                <td className="px-1 sm:px-2 py-2 align-top" rowSpan={summary.items.length}></td>
+                              ) : (
+                              <td
                                 className="px-1 sm:px-2 py-2 align-top"
                                 rowSpan={summary.items.length}
                               >
@@ -1068,8 +1084,8 @@ export default function GroupBuyDetail() {
                                   <button
                                     onClick={() => handleTogglePaid(summary)}
                                     className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                                      summary.paid 
-                                        ? 'bg-green-600 border-green-600' 
+                                      summary.paid
+                                        ? 'bg-green-600 border-green-600'
                                         : 'border-slate-300 hover:border-slate-400'
                                     }`}
                                   >
@@ -1077,6 +1093,7 @@ export default function GroupBuyDetail() {
                                   </button>
                                 </div>
                               </td>
+                              )
                             )}
                             {((isOrganizer || (currentUser && item.created_by === currentUser.email)) && isOpen) && (
                               <td className="px-1 sm:px-2 py-2">
@@ -1140,11 +1157,11 @@ export default function GroupBuyDetail() {
                         )}
                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-medium text-slate-800 text-xs sm:text-sm whitespace-nowrap"></td>
                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-purple-600 whitespace-nowrap">
-                          ${memberSummary.reduce((sum, m) => sum + m.total, 0).toLocaleString()}
+                          ${memberSummary.filter(m => !m.isOrganizerMember).reduce((sum, m) => sum + m.total, 0).toLocaleString()}
                         </td>
                         {hasDiscountDecimals && isOrganizer && isClosed && (
                           <td className="px-2 sm:px-3 py-2 sm:py-3 text-right text-base sm:text-lg text-orange-600 whitespace-nowrap">
-                            ${memberSummary.reduce((sum, m) => {
+                            ${memberSummary.filter(m => !m.isOrganizerMember).reduce((sum, m) => {
                               const actualCharge = actualCharges[m.member_id] ?? Math.round(m.total);
                               return sum + actualCharge;
                             }, 0).toLocaleString()}
@@ -1193,7 +1210,7 @@ export default function GroupBuyDetail() {
                     disabled={!allPaid}
                     >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    標記為已完成 {!allPaid && `(${memberSummary.filter(m => m.paid).length}/${memberSummary.length})`}
+                    標記為已完成 {!allPaid && `(${memberSummary.filter(m => !m.isOrganizerMember && m.paid).length}/${memberSummary.filter(m => !m.isOrganizerMember).length})`}
                     </Button>
                     )}
                     </div>
