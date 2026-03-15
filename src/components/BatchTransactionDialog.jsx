@@ -153,7 +153,7 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
             {items.map((item, index) => (
               <Card key={index} className="p-4 bg-slate-50 border-slate-200">
                 <div className="flex gap-3 items-start">
-                  <div className="flex-1 grid grid-cols-2 gap-3">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label className="text-xs text-slate-600">成員</Label>
                       <Select

@@ -273,25 +273,26 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
       <div className="bg-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-slate-900" />
-                  </div>
-                  <h1 className="text-2xl font-bold tracking-tight">RC Pay</h1>
-                </div>
-                <p className="text-slate-400 text-sm">團隊小金庫管理系統</p>
+        <div className="max-w-4xl mx-auto px-4 py-4 md:py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-amber-400 rounded-xl flex items-center justify-center">
+                <Wallet className="w-5 h-5 md:w-6 md:h-6 text-slate-900" />
               </div>
-              <div className="h-12 w-px bg-slate-700" />
-              <Link to={createPageUrl('GroupBuy')}>
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  團購專區
-                </Button>
-              </Link>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight leading-tight">RC Pay</h1>
+                <p className="text-slate-400 text-xs md:text-sm hidden sm:block">團隊小金庫管理系統</p>
+              </div>
+              {/* 桌面版顯示團購入口（手機版由 BottomNav 提供） */}
+              <div className="hidden md:flex items-center gap-4 ml-4">
+                <div className="h-8 w-px bg-slate-700" />
+                <Link to={createPageUrl('GroupBuy')}>
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <ShoppingCart className="w-4 h-4 mr-1.5" />
+                    團購專區
+                  </Button>
+                </Link>
+              </div>
             </div>
             <div className="flex items-center gap-1">
               <NotificationBell />
@@ -300,7 +301,7 @@ export default function Home() {
                   <Button variant="ghost" className="relative text-white hover:bg-slate-800 p-2">
                     <Settings className="w-5 h-5" />
                     {isAdmin && pendingTransactions.length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
                         {pendingTransactions.length > 9 ? '9+' : pendingTransactions.length}
                       </span>
                     )}
@@ -345,7 +346,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-20 md:pb-6 space-y-8">
         {/* Pending Approval Banner */}
         {isAdmin && pendingTransactions.length > 0 && (
           <Link to={createPageUrl('PendingApproval')}>

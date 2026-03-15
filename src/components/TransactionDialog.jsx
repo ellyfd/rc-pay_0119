@@ -211,7 +211,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
             </TabsContent>
             
             <TabsContent value="transfer" className="space-y-4 mt-0">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-slate-700">轉出</Label>
                   <Select value={fromMemberId} onValueChange={setFromMemberId}>

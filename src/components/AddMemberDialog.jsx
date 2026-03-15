@@ -96,9 +96,9 @@ export default function AddMemberDialog({ open, onOpenChange, onAdd }) {
                 onChange={(e) => setNewAlias(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAlias())}
                 placeholder="輸入別名後按 Enter"
-                className="h-12"
+                className="h-12 min-w-0"
               />
-              <Button type="button" onClick={handleAddAlias} variant="outline" className="h-12">
+              <Button type="button" onClick={handleAddAlias} variant="outline" className="h-12 shrink-0">
                 新增
               </Button>
             </div>
