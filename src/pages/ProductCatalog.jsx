@@ -257,7 +257,7 @@ export default function ProductCatalog() {
                               variant="ghost"
                               size="icon"
                               onClick={() => setDeletingProduct(product)}
-                              className="h-8 w-8 text-red-500"
+                              className="h-10 w-10 text-red-500"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>

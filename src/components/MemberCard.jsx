@@ -18,13 +18,13 @@ export default function MemberCard({ member, onClick, selected }) {
         </div>
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="bg-emerald-50 rounded p-1.5">
-            <p className="text-[10px] sm:text-xs text-slate-500">錢包</p>
+            <p className="text-xs text-slate-500">錢包</p>
             <p className={`text-xs sm:text-sm font-bold ${member.balance >= 0 ? 'text-emerald-600' : 'text-red-500'} break-words`}>
               ${member.balance?.toLocaleString() || 0}
             </p>
           </div>
           <div className="bg-amber-50 rounded p-1.5">
-            <p className="text-[10px] sm:text-xs text-slate-500">現金</p>
+            <p className="text-xs text-slate-500">現金</p>
             <p className={`text-xs sm:text-sm font-bold ${member.cash_balance >= 0 ? 'text-amber-600' : 'text-red-500'} break-words`}>
               ${member.cash_balance?.toLocaleString() || 0}
             </p>

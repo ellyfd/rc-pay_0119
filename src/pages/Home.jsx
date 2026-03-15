@@ -339,6 +339,26 @@ export default function Home() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
+        {/* Pending Approval Banner */}
+        {isAdmin && pendingTransactions.length > 0 && (
+          <Link to={createPageUrl('PendingApproval')}>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between hover:bg-amber-100 transition-colors cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-900">
+                    {pendingTransactions.length} 筆待審核交易
+                  </p>
+                  <p className="text-xs text-amber-700">點擊前往審核</p>
+                </div>
+              </div>
+              <span className="text-amber-600 text-sm font-medium">查看 →</span>
+            </div>
+          </Link>
+        )}
+
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <Link to={createPageUrl('FoodOrder')}>
@@ -357,20 +377,22 @@ export default function Home() {
           </Link>
           <Button
             onClick={() => setShowTransaction(true)}
-            className="bg-amber-500 text-slate-900 px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-amber-600"
+            variant="outline"
+            className="px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors h-12 md:h-14 border-slate-300 text-slate-700 hover:bg-slate-100"
             disabled={allMembers.length === 0}
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
-            <span className="hidden sm:inline">新增交易（單筆）</span>
+            <span className="hidden sm:inline">單筆交易</span>
             <span className="sm:hidden">單筆</span>
           </Button>
           <Button
             onClick={() => setShowBatchTransaction(true)}
-            className="bg-red-500 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-red-600"
+            variant="outline"
+            className="px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors h-12 md:h-14 border-slate-300 text-slate-700 hover:bg-slate-100"
             disabled={allMembers.length === 0}
           >
             <Users className="w-4 h-4 md:w-5 md:h-5" />
-            <span className="hidden sm:inline">新增交易（多筆）</span>
+            <span className="hidden sm:inline">多筆交易</span>
             <span className="sm:hidden">多筆</span>
           </Button>
         </div>
