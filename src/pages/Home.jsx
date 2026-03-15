@@ -26,7 +26,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import NotificationBell from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import usePullToRefresh from "@/hooks/usePullToRefresh";
+import usePullToRefresh from "@/components/hooks/usePullToRefresh";
 
 export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
