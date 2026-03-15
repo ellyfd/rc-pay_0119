@@ -6,12 +6,35 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { ArrowLeft, Upload, Sparkles, Save, Trash2, Coffee, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Save, Trash2, Coffee, CheckCircle, Plus, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DrinkOrder() {
   const [dateRange, setDateRange] = useState('today');
@@ -26,6 +49,7 @@ export default function DrinkOrder() {
   const [orderItems, setOrderItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [manualAdjustment, setManualAdjustment] = useState(0);
+  const [deleteOrderId, setDeleteOrderId] = useState(null);
   const [feeDetails, setFeeDetails] = useState({
     delivery_fee: 0,
     service_fee: 0,
@@ -622,11 +646,9 @@ export default function DrinkOrder() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (window.confirm('確定要刪除此訂單？相關交易紀錄也會一併刪除。')) {
-                              deleteOrder.mutate(order.id);
-                            }
+                            setDeleteOrderId(order.id);
                           }}
-                          className="text-red-500 hover:text-red-700 h-8 w-8"
+                          className="text-red-500 hover:text-red-700 h-10 w-10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -642,31 +664,28 @@ export default function DrinkOrder() {
         </div>
 
         {/* 新增訂單對話框 */}
-        {showCreateDialog && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <Card className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-                <h2 className="text-xl font-bold text-slate-800">新增訂單</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setShowCreateDialog(false);
-                    setOrderItems([]);
-                    setOrderName('');
-                    setPayerId('');
-                    setStoreName('');
-                    setUploadedImageUrl('');
-                    setManualAdjustment(0);
-                    setFeeDetails({ delivery_fee: 0, service_fee: 0, delivery_discount: 0, member_rewards: 0 });
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }}
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </div>
-              
-              <div className="p-6 space-y-6">
+        <Dialog
+          open={showCreateDialog}
+          onOpenChange={(v) => {
+            if (!v) {
+              setShowCreateDialog(false);
+              setOrderItems([]);
+              setOrderName('');
+              setPayerId('');
+              setStoreName('');
+              setUploadedImageUrl('');
+              setManualAdjustment(0);
+              setFeeDetails({ delivery_fee: 0, service_fee: 0, delivery_discount: 0, member_rewards: 0 });
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+          }}
+        >
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-slate-800">新增訂單</DialogTitle>
+            </DialogHeader>
+
+              <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">訂購日期</label>
                   <Input
@@ -679,16 +698,16 @@ export default function DrinkOrder() {
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">訂單支付人</label>
-                  <select
-                    value={payerId}
-                    onChange={(e) => setPayerId(e.target.value)}
-                    className="w-full px-3 py-2 border rounded"
-                  >
-                    <option value="">選擇支付人</option>
-                    {members.map(m => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                  </select>
+                  <Select value={payerId} onValueChange={setPayerId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="選擇支付人" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {members.map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -771,24 +790,26 @@ export default function DrinkOrder() {
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-slate-800">訂單明細</h3>
                         <div className="flex items-center gap-2">
-                          <label className="text-sm text-slate-600">批次填入成員：</label>
-                          <select
-                            onChange={(e) => handleBatchFillMember(e.target.value)}
-                            className="px-3 py-1 border rounded text-sm"
-                            defaultValue=""
-                          >
-                            <option value="">選擇成員</option>
-                            {members.map(m => (
-                              <option key={m.id} value={m.id}>{m.name}</option>
-                            ))}
-                          </select>
+                          <label className="text-sm text-slate-600 hidden sm:inline">批次填入：</label>
+                          <Select onValueChange={handleBatchFillMember}>
+                            <SelectTrigger className="w-[130px] h-8 text-sm">
+                              <SelectValue placeholder="批次填入" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {members.map(m => (
+                                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <Button variant="outline" size="sm" onClick={addEmptyItem} className="text-sm">
-                            + 新增項目
+                            <Plus className="w-3 h-3 mr-1" />
+                            新增
                           </Button>
                         </div>
                       </div>
-                      <div className="overflow-x-auto border rounded-lg">
-                        <table className="w-full min-w-[650px]">
+                      {/* Desktop: Table view */}
+                      <div className="hidden md:block overflow-x-auto border rounded-lg">
+                        <table className="w-full">
                           <thead className="bg-slate-50 border-b">
                             <tr>
                               <th className="text-center px-3 py-3 text-sm font-semibold text-slate-700 w-[50px]">
@@ -817,16 +838,16 @@ export default function DrinkOrder() {
                                   />
                                 </td>
                                 <td className="px-4 py-3">
-                                  <select
-                                    value={item.member_id}
-                                    onChange={(e) => updateItem(index, 'member_id', e.target.value)}
-                                    className="w-full px-2 py-1 border rounded text-sm"
-                                  >
-                                    <option value="">選擇成員</option>
-                                    {members.map(m => (
-                                      <option key={m.id} value={m.id}>{m.name}</option>
-                                    ))}
-                                  </select>
+                                  <Select value={item.member_id} onValueChange={(v) => updateItem(index, 'member_id', v)}>
+                                    <SelectTrigger className="text-sm">
+                                      <SelectValue placeholder="選擇成員" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {members.map(m => (
+                                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                   {!item.member_id && item.member_name && (
                                     <div className="text-xs text-amber-600 mt-1">AI識別: {item.member_name}</div>
                                   )}
@@ -853,7 +874,7 @@ export default function DrinkOrder() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => removeItem(index)}
-                                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                                    className="h-10 w-10 text-red-500 hover:text-red-700"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -878,6 +899,83 @@ export default function DrinkOrder() {
                             </tr>
                           </tbody>
                         </table>
+                      </div>
+
+                      {/* Mobile: Card view */}
+                      <div className="md:hidden space-y-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.length === orderItems.length && orderItems.length > 0}
+                            onChange={toggleSelectAll}
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                          <span className="text-xs text-slate-500">全選</span>
+                        </div>
+                        {orderItems.map((item, index) => (
+                          <div
+                            key={index}
+                            className={`border rounded-lg p-3 space-y-2 ${selectedItems.includes(index) ? 'bg-blue-50 border-blue-300' : 'bg-white'}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.includes(index)}
+                                  onChange={() => toggleSelectItem(index)}
+                                  className="w-4 h-4 cursor-pointer"
+                                />
+                                <span className="text-xs text-slate-400">#{index + 1}</span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeItem(index)}
+                                className="h-8 w-8 text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                            <div>
+                              <Select value={item.member_id} onValueChange={(v) => updateItem(index, 'member_id', v)}>
+                                <SelectTrigger className="text-sm h-9">
+                                  <User className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                                  <SelectValue placeholder="選擇成員" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {members.map(m => (
+                                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {!item.member_id && item.member_name && (
+                                <div className="text-xs text-amber-600 mt-1">AI識別: {item.member_name}</div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                value={item.item_name}
+                                onChange={(e) => updateItem(index, 'item_name', e.target.value)}
+                                placeholder="飲料名稱"
+                                className="text-sm flex-1"
+                              />
+                              <Input
+                                type="number"
+                                value={item.price}
+                                onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value) || 0)}
+                                placeholder="$0"
+                                className="text-sm text-right w-24"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        {/* Mobile summary */}
+                        <div className="bg-orange-50 rounded-lg p-3 flex items-center justify-between">
+                          <span className="text-sm text-slate-700">
+                            共 {new Set(orderItems.map(i => i.member_id).filter(Boolean)).size} 人 · {orderItems.length} 項
+                          </span>
+                          <span className="font-bold text-orange-600 text-lg">${getTotalAmount().toLocaleString()}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -951,9 +1049,32 @@ export default function DrinkOrder() {
                   </>
                 )}
               </div>
-            </Card>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
+
+        {/* 刪除確認對話框 */}
+        <AlertDialog open={!!deleteOrderId} onOpenChange={(v) => { if (!v) setDeleteOrderId(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>確定要刪除此訂單？</AlertDialogTitle>
+              <AlertDialogDescription>
+                相關交易紀錄也會一併刪除，此操作無法復原。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  deleteOrder.mutate(deleteOrderId);
+                  setDeleteOrderId(null);
+                }}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                確定刪除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
