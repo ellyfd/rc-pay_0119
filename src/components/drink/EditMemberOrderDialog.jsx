@@ -1,9 +1,21 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Trash2, Plus, X, Users } from "lucide-react";
+import { Trash2, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // P3-2：提取編輯對話框為獨立元件
 export default function EditMemberOrderDialog({
@@ -19,8 +31,6 @@ export default function EditMemberOrderDialog({
   onUpdateItem,
   onSplitItem
 }) {
-  if (!showEditDialog) return null;
-
   const handleSave = async () => {
     if (!editItems.every(item => item.member_id && item.item_name && item.price)) {
       toast.warning('請填寫完整資料！');
@@ -32,59 +42,60 @@ export default function EditMemberOrderDialog({
   const handleUpdateEditItem = (index, field, value) => {
     const newItems = [...editItems];
     newItems[index][field] = value;
-    
+
     if (field === 'member_id') {
       const member = memberMap.get(value);
       if (member) {
         newItems[index].member_name = member.name;
       }
     }
-    
+
     onUpdateItem(newItems);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-          <h2 className="text-lg font-bold text-slate-800">
+    <Dialog open={showEditDialog} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold text-slate-800">
             {editingMember ? '編輯成員訂單' : '新增成員訂單'}
-          </h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="p-4 sm:p-6 space-y-4">
+        <div className="space-y-4">
           {editItems.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
                 <label className="text-sm font-semibold text-slate-700">成員：</label>
-                <select
+                <Select
                   value={editItems[0].member_id}
-                  onChange={(e) => {
-                    const member = memberMap.get(e.target.value);
+                  onValueChange={(v) => {
+                    const member = memberMap.get(v);
                     const updated = editItems.map(item => ({
                       ...item,
-                      member_id: e.target.value,
+                      member_id: v,
                       member_name: member?.name || ''
                     }));
                     onUpdateItem(updated);
                   }}
-                  className="px-3 py-1 border rounded text-sm flex-1"
-                  disabled={editingMember}
+                  disabled={!!editingMember}
                 >
-                  <option value="">選擇成員</option>
-                  {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="text-sm flex-1">
+                    <SelectValue placeholder="選擇成員" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
 
-          <div className="overflow-x-auto border rounded-lg">
-            <table className="w-full min-w-[500px]">
+          {/* Desktop: Table */}
+          <div className="hidden sm:block overflow-x-auto border rounded-lg">
+            <table className="w-full">
               <thead className="bg-slate-50 border-b">
                 <tr>
                   <th className="text-left px-3 py-2 text-sm font-semibold text-slate-700">品項</th>
@@ -146,6 +157,57 @@ export default function EditMemberOrderDialog({
             </table>
           </div>
 
+          {/* Mobile: Card list */}
+          <div className="sm:hidden space-y-2">
+            {editItems.map((item, index) => (
+              <div key={index} className="border rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">#{index + 1}</span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onSplitItem(index)}
+                      className="h-8 w-8 text-blue-600"
+                      title="平分"
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onRemoveItem(index)}
+                      className="h-8 w-8 text-red-500"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={item.item_name}
+                    onChange={(e) => handleUpdateEditItem(index, 'item_name', e.target.value)}
+                    placeholder="飲料名稱"
+                    className="text-sm flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={item.price}
+                    onChange={(e) => handleUpdateEditItem(index, 'price', parseFloat(e.target.value) || 0)}
+                    placeholder="$0"
+                    className="text-sm text-right w-24"
+                  />
+                </div>
+              </div>
+            ))}
+            <div className="bg-orange-50 rounded-lg p-3 flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-700">總計</span>
+              <span className="font-bold text-orange-600">
+                ${editItems.reduce((sum, item) => sum + (item.price || 0), 0)}
+              </span>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-between gap-3">
             <Button
               variant="outline"
@@ -163,7 +225,7 @@ export default function EditMemberOrderDialog({
             </Button>
           </div>
         </div>
-      </Card>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

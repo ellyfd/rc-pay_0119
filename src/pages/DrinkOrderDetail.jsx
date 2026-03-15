@@ -15,6 +15,23 @@ import { toast } from "sonner";
 import SplitDialog from "@/components/SplitDialog";
 import ConfirmPaymentDialog from "@/components/drink/ConfirmPaymentDialog";
 import EditMemberOrderDialog from "@/components/drink/EditMemberOrderDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DrinkOrderDetail() {
   const [orderId, setOrderId] = useState(null);
@@ -28,6 +45,7 @@ export default function DrinkOrderDetail() {
   const [showSplitDialog, setShowSplitDialog] = useState(false);
   const [splitItemIndex, setSplitItemIndex] = useState(null);
   const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [confirmPayment, setConfirmPayment] = useState(null);
   const [manualShipping, setManualShipping] = useState({});
   const queryClient = useQueryClient();
@@ -498,17 +516,16 @@ export default function DrinkOrderDetail() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <label className="text-sm text-slate-600 whitespace-nowrap">訂單支付人：</label>
-                <select
-                  value={order.payer_id || ''}
-                  onChange={(e) => updateOrderPayer(e.target.value)}
-                  className="px-2 py-1 border rounded text-sm flex-1 min-w-0"
-                  disabled={isCompleted}
-                >
-                  <option value="">選擇支付人</option>
-                  {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
+                <Select value={order.payer_id || ''} onValueChange={updateOrderPayer} disabled={isCompleted}>
+                  <SelectTrigger className="text-sm flex-1 min-w-0 h-8">
+                    <SelectValue placeholder="選擇支付人" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex items-center gap-2">
@@ -526,11 +543,7 @@ export default function DrinkOrderDetail() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        if (window.confirm('確定要刪除此訂單？相關交易紀錄也會一併刪除。')) {
-                          deleteOrder.mutate(orderId);
-                        }
-                      }}
+                      onClick={() => setShowDeleteConfirm(true)}
                       className="text-red-500 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4 md:mr-2" />
@@ -552,20 +565,18 @@ export default function DrinkOrderDetail() {
                 </span>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-600">批量設定支付方式：</label>
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        batchUpdatePaymentMethod(selectedMembers, e.target.value);
-                      }
-                    }}
-                    defaultValue=""
-                    className="px-2 py-1 border rounded text-sm"
+                  <Select
+                    onValueChange={(v) => batchUpdatePaymentMethod(selectedMembers, v)}
                     disabled={selectedMembers.length === 0}
                   >
-                    <option value="">選擇方式</option>
-                    <option value="cash">現金</option>
-                    <option value="balance">餘額</option>
-                  </select>
+                    <SelectTrigger className="w-[100px] h-8 text-sm">
+                      <SelectValue placeholder="選擇方式" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">現金</SelectItem>
+                      <SelectItem value="balance">餘額</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {selectedMembers.length > 0 && (
                     <Button
                       variant="ghost"
@@ -726,14 +737,18 @@ export default function DrinkOrderDetail() {
                                 <>
                                   {!isCompleted && (
                                     <td className="px-3 py-2" rowSpan={items.length}>
-                                      <select
+                                      <Select
                                         value={firstItem.payment_method || 'cash'}
-                                        onChange={(e) => updateMemberPayment(item.member_id, 'payment_method', e.target.value)}
-                                        className="px-2 py-1 border rounded text-xs"
+                                        onValueChange={(v) => updateMemberPayment(item.member_id, 'payment_method', v)}
                                       >
-                                        <option value="cash">現金</option>
-                                        <option value="balance">餘額</option>
-                                      </select>
+                                        <SelectTrigger className="h-7 text-xs w-[80px]">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="cash">現金</SelectItem>
+                                          <SelectItem value="balance">餘額</SelectItem>
+                                        </SelectContent>
+                                      </Select>
                                     </td>
                                   )}
                                   <td className="px-3 py-2 text-center" rowSpan={items.length}>
@@ -949,6 +964,30 @@ export default function DrinkOrderDetail() {
           }
         }}
       />
+
+      {/* 刪除確認對話框 */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確定要刪除此訂單？</AlertDialogTitle>
+            <AlertDialogDescription>
+              相關交易紀錄也會一併刪除，此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                deleteOrder.mutate(orderId);
+                setShowDeleteConfirm(false);
+              }}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              確定刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

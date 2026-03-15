@@ -18,6 +18,13 @@ import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
 import { exportGroupBuyOrderSummary, exportGroupBuyPaymentRecord } from "@/components/utils/ExportCSV";
 import SelectMemberDialog from "@/components/SelectMemberDialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -1024,30 +1031,32 @@ export default function GroupBuyDetail() {
                             )}
                             {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
                               <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
-                                <select
+                                <Select
                                   value={item.payment_method || ''}
-                                  onChange={(e) => {
-                                    // Update all items for this member
+                                  onValueChange={(v) => {
                                     summary.items.forEach(memberItem => {
                                       updateItem.mutate({
                                         id: memberItem.id,
-                                        data: { payment_method: e.target.value }
+                                        data: { payment_method: v }
                                       });
                                     });
                                   }}
-                                  className="text-[10px] sm:text-xs px-1 sm:px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 w-full max-w-[80px]"
                                 >
-                                  <option value="">請選擇</option>
-                                  {(() => {
-                                    const member = memberMap.get(item.member_id);
-                                    return member && member.balance > 0 ? (
-                                      <option value="rcpay">RC Pay</option>
-                                    ) : null;
-                                  })()}
-                                  <option value="linepay">Line Pay</option>
-                                  <option value="ipasspay">iPASS Pay</option>
-                                  <option value="cash">現金</option>
-                                </select>
+                                  <SelectTrigger className="h-7 text-[10px] sm:text-xs w-full max-w-[90px]">
+                                    <SelectValue placeholder="請選擇" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {(() => {
+                                      const member = memberMap.get(item.member_id);
+                                      return member && member.balance > 0 ? (
+                                        <SelectItem value="rcpay">RC Pay</SelectItem>
+                                      ) : null;
+                                    })()}
+                                    <SelectItem value="linepay">Line Pay</SelectItem>
+                                    <SelectItem value="ipasspay">iPASS Pay</SelectItem>
+                                    <SelectItem value="cash">現金</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </td>
                             )}
                             {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
