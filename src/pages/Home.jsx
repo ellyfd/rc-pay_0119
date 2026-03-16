@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import NotificationBell from "@/components/NotificationBell";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import usePullToRefresh from "@/hooks/usePullToRefresh";
+import usePullToRefresh from "@/components/hooks/usePullToRefresh";
 
 export default function Home() {
   const [showAddMember, setShowAddMember] = useState(false);
