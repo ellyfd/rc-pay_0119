@@ -12,16 +12,25 @@ import BottomNav from '@/components/BottomNav';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PageTransition from '@/components/PageTransition';
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
-
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}><PageTransition>{children}</PageTransition></Layout>
-  : <PageTransition>{children}</PageTransition>;
+import Home from './pages/Home';
+import TransactionHistory from './pages/TransactionHistory';
+import MemberDetail from './pages/MemberDetail';
+import MemberManagement from './pages/MemberManagement';
+import FoodOrder from './pages/FoodOrder';
+import DrinkOrder from './pages/DrinkOrder';
+import DrinkOrderDetail from './pages/DrinkOrderDetail';
+import GroupBuy from './pages/GroupBuy';
+import GroupBuyDetail from './pages/GroupBuyDetail';
+import GroupBuyTemplates from './pages/GroupBuyTemplates';
+import PendingApproval from './pages/PendingApproval';
+import AdminOrders from './pages/AdminOrders';
+import OrderHistoryByDate from './pages/OrderHistoryByDate';
+import OrderHistoryByMember from './pages/OrderHistoryByMember';
+import ProductManagement from './pages/ProductManagement';
+import ProductCatalog from './pages/ProductCatalog';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
