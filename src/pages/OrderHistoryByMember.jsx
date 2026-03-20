@@ -234,7 +234,7 @@ export default function OrderHistoryByMember() {
                                  {mealBox ? (
                                    <div className="text-slate-700 leading-tight">
                                      <div className="break-words line-clamp-2">{mealBox.product_name}</div>
-                                     <div className="text-[10px] sm:text-xs text-slate-500">${mealBox.price}</div>
+                                     <div className="text-xs text-slate-500">${mealBox.price}</div>
                                    </div>
                                  ) : (
                                    <span className="text-slate-400">-</span>
@@ -255,7 +255,7 @@ export default function OrderHistoryByMember() {
                                      {sideItems.map(item => (
                                        <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
                                          {item.product_name}
-                                         <span className="text-[10px] sm:text-xs text-slate-500 ml-1">${item.price}</span>
+                                         <span className="text-xs text-slate-500 ml-1">${item.price}</span>
                                        </div>
                                      ))}
                                    </div>
@@ -264,7 +264,7 @@ export default function OrderHistoryByMember() {
                                  )}
                                </td>
                                <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
-                                 <Badge className={`text-[10px] sm:text-xs ${
+                                 <Badge className={`text-xs ${
                                    order.payment_method === 'cash' ? 'bg-amber-500' : 
                                    order.payment_method === 'payer' ? 'bg-purple-500' :
                                    'bg-blue-500'
@@ -275,7 +275,7 @@ export default function OrderHistoryByMember() {
                                  </Badge>
                                </td>
                                <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
-                                 <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}`}>
+                                 <Badge className={`text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-slate-400'}`}>
                                    {order.status === 'completed' ? '已完成' : '待處理'}
                                  </Badge>
                                </td>
