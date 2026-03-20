@@ -17,15 +17,15 @@ export default function MemberCard({ member, onClick, selected }) {
           <h3 className="font-semibold text-sm text-slate-800 truncate flex-1">{member.name}</h3>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="bg-emerald-50 rounded p-1.5">
-            <p className="text-xs text-slate-500">錢包</p>
-            <p className={`text-xs sm:text-sm font-bold ${member.balance >= 0 ? 'text-emerald-600' : 'text-red-500'} break-words`}>
+          <div className="bg-emerald-50 rounded p-2">
+            <p className="text-xs text-slate-600 font-medium">錢包</p>
+            <p className={`text-sm font-bold ${member.balance >= 0 ? 'text-emerald-600' : 'text-red-500'} break-words`}>
               ${member.balance?.toLocaleString() || 0}
             </p>
           </div>
-          <div className="bg-amber-50 rounded p-1.5">
-            <p className="text-xs text-slate-500">現金</p>
-            <p className={`text-xs sm:text-sm font-bold ${member.cash_balance >= 0 ? 'text-amber-600' : 'text-red-500'} break-words`}>
+          <div className="bg-amber-50 rounded p-2">
+            <p className="text-xs text-slate-600 font-medium">現金</p>
+            <p className={`text-sm font-bold ${member.cash_balance >= 0 ? 'text-amber-600' : 'text-red-500'} break-words`}>
               ${member.cash_balance?.toLocaleString() || 0}
             </p>
           </div>

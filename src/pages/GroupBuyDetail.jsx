@@ -837,7 +837,7 @@ export default function GroupBuyDetail() {
                           <th className="text-right px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700">
                             <div className="whitespace-nowrap">折扣價</div>
                             {getApplicableDiscount && (
-                              <div className="text-[10px] sm:text-xs text-green-600 font-normal mt-0.5">
+                              <div className="text-xs text-green-600 font-normal mt-0.5">
                                 ({getApplicableDiscount.discount_percent}% off)
                               </div>
                             )}
@@ -968,7 +968,7 @@ export default function GroupBuyDetail() {
                                     {summary.member_name}
                                   </Link>
                                   {summary.isOrganizerMember && (
-                                    <div className="text-[10px] text-green-600 mt-0.5">開團者</div>
+                                    <div className="text-xs text-green-600 mt-0.5">開團者</div>
                                   )}
                                 </td>
                               </>
@@ -976,7 +976,7 @@ export default function GroupBuyDetail() {
                             <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">
                               <div className="text-slate-700">{item.product_name}</div>
                               {item.note && item.note.includes('平分') && (
-                                <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">{item.note}</div>
+                                <div className="text-xs text-slate-500 mt-0.5">{item.note}</div>
                               )}
                             </td>
                             <td className="px-1 sm:px-2 py-2 text-center text-slate-700 text-xs sm:text-sm">
@@ -1039,7 +1039,7 @@ export default function GroupBuyDetail() {
                             {itemIdx === 0 && isOrganizer && isClosed && !isFullyPaid && (
                               summary.isOrganizerMember ? (
                                 <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
-                                  <span className="text-[10px] sm:text-xs text-green-600 font-medium">開團者免付</span>
+                                  <span className="text-xs text-green-600 font-medium">開團者免付</span>
                                 </td>
                               ) : (
                               <td className="px-1 sm:px-2 py-2 text-center align-top" rowSpan={summary.items.length}>
@@ -1054,7 +1054,7 @@ export default function GroupBuyDetail() {
                                     });
                                   }}
                                 >
-                                  <SelectTrigger className="h-7 text-[10px] sm:text-xs w-full max-w-[90px]">
+                                  <SelectTrigger className="h-7 text-xs w-full max-w-[90px]">
                                     <SelectValue placeholder="請選擇" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1125,7 +1125,7 @@ export default function GroupBuyDetail() {
                                       </Button>
                                     </div>
                                   ) : (
-                                    <div className="text-center text-[10px] sm:text-xs text-slate-400">-</div>
+                                    <div className="text-center text-xs text-slate-400">-</div>
                                   );
                                 })()}
                               </td>
@@ -1178,7 +1178,7 @@ export default function GroupBuyDetail() {
                         <tr className="bg-slate-50 border-none">
                           <td colSpan={4}></td>
                           {groupBuy.discount_rules?.length > 0 && (
-                            <td className="px-2 sm:px-3 py-0 -mt-2.5 text-right text-red-500 text-[10px] sm:text-xs whitespace-nowrap">
+                            <td className="px-2 sm:px-3 py-0 -mt-2.5 text-right text-red-500 text-xs whitespace-nowrap">
                               ({groupBuy.fixed_discount_allocation === 'proportional' ? '按比例分攤' : 
                                 groupBuy.fixed_discount_allocation === 'per_item' ? '按項目分攤' : '按人數分攤'})
                             </td>

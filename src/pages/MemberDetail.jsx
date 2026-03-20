@@ -374,36 +374,36 @@ export default function MemberDetail() {
             </Button>
           </Link>
           
-          <div className="flex items-center gap-4 mb-6">
-            <div className={`w-16 h-16 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-2xl`}>
+          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-xl md:text-2xl`}>
               {member.name?.charAt(0)}
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{member.name}</h1>
+              <h1 className="text-xl md:text-2xl font-bold">{member.name}</h1>
               <p className="text-slate-400 text-sm">成員帳戶明細</p>
             </div>
           </div>
 
           {/* Balance Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card 
-              className="bg-slate-800/50 border-slate-700 p-6 cursor-pointer hover:bg-slate-800/70 transition-colors"
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <Card
+              className="bg-slate-800/50 border-slate-700 p-4 md:p-6 cursor-pointer hover:bg-slate-800/70 transition-colors"
               onClick={() => setShowStats(!showStats)}
             >
               <div className="text-center">
-                <p className="text-slate-400 text-sm mb-2">錢包餘額</p>
-                <p className={`text-3xl font-bold ${(member?.balance || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <p className="text-slate-400 text-sm mb-1 md:mb-2">錢包餘額</p>
+                <p className={`text-2xl md:text-3xl font-bold ${(member?.balance || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   ${(member?.balance || 0).toLocaleString()}
                 </p>
               </div>
             </Card>
-            <Card 
-              className="bg-slate-800/50 border-slate-700 p-6 cursor-pointer hover:bg-slate-800/70 transition-colors"
+            <Card
+              className="bg-slate-800/50 border-slate-700 p-4 md:p-6 cursor-pointer hover:bg-slate-800/70 transition-colors"
               onClick={() => setShowStats(!showStats)}
             >
               <div className="text-center">
-                <p className="text-slate-400 text-sm mb-2">現金餘額</p>
-                <p className={`text-3xl font-bold ${getLatestCash >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                <p className="text-slate-400 text-sm mb-1 md:mb-2">現金餘額</p>
+                <p className={`text-2xl md:text-3xl font-bold ${getLatestCash >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
                   ${getLatestCash.toLocaleString()}
                 </p>
               </div>
@@ -674,7 +674,7 @@ export default function MemberDetail() {
           <Card className="p-2 md:p-4 bg-emerald-50 border-emerald-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
               <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-emerald-600" />
-              <p className="text-[10px] md:text-xs text-emerald-700 font-medium">總入帳</p>
+              <p className="text-xs text-emerald-700 font-medium">總入帳</p>
             </div>
             <p className="text-sm md:text-xl font-bold text-emerald-700">
               ${totalDeposit.toLocaleString()}
@@ -684,7 +684,7 @@ export default function MemberDetail() {
           <Card className="p-2 md:p-4 bg-red-50 border-red-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
               <TrendingDown className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
-              <p className="text-[10px] md:text-xs text-red-700 font-medium">總出帳</p>
+              <p className="text-xs text-red-700 font-medium">總出帳</p>
             </div>
             <p className="text-sm md:text-xl font-bold text-red-700">
               ${totalWithdraw.toLocaleString()}
@@ -694,7 +694,7 @@ export default function MemberDetail() {
           <Card className="p-2 md:p-4 bg-blue-50 border-blue-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
               <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-              <p className="text-[10px] md:text-xs text-blue-700 font-medium">轉入金額</p>
+              <p className="text-xs text-blue-700 font-medium">轉入金額</p>
             </div>
             <p className="text-sm md:text-xl font-bold text-blue-700">
               ${totalTransferIn.toLocaleString()}
@@ -704,7 +704,7 @@ export default function MemberDetail() {
           <Card className="p-2 md:p-4 bg-orange-50 border-orange-200">
             <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
               <TrendingDown className="w-3 h-3 md:w-4 md:h-4 text-orange-600" />
-              <p className="text-[10px] md:text-xs text-orange-700 font-medium">轉出金額</p>
+              <p className="text-xs text-orange-700 font-medium">轉出金額</p>
             </div>
             <p className="text-sm md:text-xl font-bold text-orange-700">
               ${totalTransferOut.toLocaleString()}
@@ -804,7 +804,7 @@ export default function MemberDetail() {
 
                           return (
                             <tr key={transaction.id} className="border-b hover:bg-slate-50">
-                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-[11px] sm:text-sm">
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap text-xs sm:text-sm">
                                 <div className="hidden sm:block">
                                   {formatTaiwanTime(transaction.created_date, 'yyyy/MM/dd HH:mm')}
                                 </div>
@@ -813,14 +813,14 @@ export default function MemberDetail() {
                                 </div>
                               </td>
                               <td className="px-1 sm:px-4 py-2 sm:py-3">
-                                <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                                <Badge className={`text-xs whitespace-nowrap ${
                                   transaction.type === 'deposit' ? 'bg-emerald-500' :
                                   transaction.type === 'withdraw' ? 'bg-red-500' :
                                   'bg-blue-500'
                                 }`}>
                                   {getTypeLabel()}
                                 </Badge>
-                                <div className="sm:hidden text-[10px] text-slate-500 mt-1">
+                                <div className="sm:hidden text-xs text-slate-500 mt-1">
                                   {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
                                 </div>
                               </td>
@@ -829,16 +829,16 @@ export default function MemberDetail() {
                                   {transaction.wallet_type === 'cash' ? '現金' : '錢包'}
                                 </Badge>
                               </td>
-                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-[11px] sm:text-sm">
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 text-xs sm:text-sm">
                                 <div className="line-clamp-2">{getDescription()}</div>
                                 {transaction.note && (
-                                  <div className="text-[10px] sm:text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
+                                  <div className="text-xs text-slate-500 mt-1 line-clamp-1">{transaction.note}</div>
                                 )}
                               </td>
-                              <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-[11px] sm:text-sm ${getAmountColor()}`}>
+                              <td className={`px-1.5 sm:px-4 py-2 sm:py-3 text-right font-bold whitespace-nowrap text-xs sm:text-sm ${getAmountColor()}`}>
                                 {getAmountPrefix()}${transaction.amount?.toLocaleString()}
                               </td>
-                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap text-[11px] sm:text-sm">
+                              <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap text-xs sm:text-sm">
                                 <span className={`font-semibold ${balanceAfterTransaction >= 0 ? (transaction.wallet_type === 'cash' ? 'text-amber-600' : 'text-blue-600') : 'text-red-600'}`}>
                                   ${balanceAfterTransaction.toLocaleString()}
                                 </span>
@@ -920,14 +920,14 @@ export default function MemberDetail() {
                       <td className="px-1.5 sm:px-4 py-2 sm:py-3">
                         <a 
                           href={createPageUrl('GroupBuyDetail') + '?id=' + gb.id}
-                          className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
+                          className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-xs sm:text-sm"
                         >
                           {gb.title}
                         </a>
                       </td>
                       <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
                         <Badge 
-                          className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                          className={`text-xs whitespace-nowrap ${
                             gb.status === 'open' ? 'bg-green-500' :
                             gb.status === 'closed' && !gb.is_fully_paid ? 'bg-amber-500' :
                             'bg-blue-500'
@@ -939,15 +939,15 @@ export default function MemberDetail() {
                         </Badge>
                       </td>
                       <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{gb.participantCount}</td>
-                      <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-purple-600 whitespace-nowrap text-[11px] sm:text-sm">
+                      <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right font-semibold text-purple-600 whitespace-nowrap text-xs sm:text-sm">
                         ${gb.totalAmount.toLocaleString()}
                       </td>
                       <td className="px-1 sm:px-4 py-2 sm:py-3 text-center">
                         {gb.status === 'open' ? (
-                          <span className="text-slate-400 text-[10px] sm:text-xs">-</span>
+                          <span className="text-slate-400 text-xs">-</span>
                         ) : (
                           <Badge 
-                            className={`text-[10px] sm:text-xs ${gb.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}
+                            className={`text-xs ${gb.allPaid ? 'bg-green-500' : 'bg-amber-500'}`}
                           >
                             {gb.allPaid ? '完成' : '未完'}
                           </Badge>
@@ -995,7 +995,7 @@ export default function MemberDetail() {
                               <td className="px-1.5 sm:px-4 py-2 sm:py-3 align-top" rowSpan={groupBuy.items.length}>
                                 <a 
                                   href={createPageUrl('GroupBuyDetail') + '?id=' + groupBuy.group_buy_id}
-                                  className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-[11px] sm:text-sm"
+                                  className="font-medium text-slate-800 hover:text-purple-600 line-clamp-2 text-xs sm:text-sm"
                                 >
                                   {groupBuy.group_buy_title}
                                 </a>
@@ -1009,7 +1009,7 @@ export default function MemberDetail() {
                                   
                                   return (
                                     <Badge 
-                                      className={`text-[10px] sm:text-xs whitespace-nowrap ${
+                                      className={`text-xs whitespace-nowrap ${
                                         isOpen ? 'bg-green-500' :
                                         isClosed && !isFullyPaid ? 'bg-amber-500' :
                                         allPaid ? 'bg-blue-500' : 'bg-slate-500'
@@ -1026,18 +1026,18 @@ export default function MemberDetail() {
                           )}
                           <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-slate-700 hidden sm:table-cell">
                             <div className="line-clamp-2">{item.product_name}</div>
-                            {item.note && item.note.includes('平分') && <div className="text-[10px] text-slate-400 mt-0.5">{item.note}</div>}
+                            {item.note && item.note.includes('平分') && <div className="text-xs text-slate-500 mt-0.5">{item.note}</div>}
                           </td>
                           <td className="px-1 sm:px-4 py-2 sm:py-3 text-center text-slate-700 hidden sm:table-cell">{item.quantity}</td>
                           <td className="px-1 sm:px-4 py-2 sm:py-3 text-right text-slate-700 hidden md:table-cell whitespace-nowrap">${item.price.toLocaleString()}</td>
                           {itemIdx === 0 && (
-                            <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right align-top font-semibold text-purple-600 whitespace-nowrap text-[11px] sm:text-sm" rowSpan={groupBuy.items.length}>
+                            <td className="px-1.5 sm:px-4 py-2 sm:py-3 text-right align-top font-semibold text-purple-600 whitespace-nowrap text-xs sm:text-sm" rowSpan={groupBuy.items.length}>
                               ${groupBuy.total.toLocaleString()}
                             </td>
                           )}
                           {itemIdx === 0 && (
                             <td className="px-1 sm:px-4 py-2 sm:py-3 text-center align-top" rowSpan={groupBuy.items.length}>
-                              <Badge className={`text-[10px] sm:text-xs ${allPaid ? 'bg-green-500' : 'bg-amber-500'}`}>
+                              <Badge className={`text-xs ${allPaid ? 'bg-green-500' : 'bg-amber-500'}`}>
                                 {allPaid ? '已付' : '未付'}
                               </Badge>
                             </td>
@@ -1095,7 +1095,7 @@ export default function MemberDetail() {
                         </td>
                         {idx === 0 && (
                           <td className="px-2 py-2 text-center align-middle" rowSpan={order.memberItems.length}>
-                            <Badge className={`text-[10px] sm:text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
+                            <Badge className={`text-xs ${order.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`}>
                               {order.status === 'completed' ? '已完成' : '待付款'}
                             </Badge>
                           </td>
@@ -1105,9 +1105,9 @@ export default function MemberDetail() {
                         </td>
                         <td className="px-2 py-2 text-center">
                           {order.payer_id && item.member_id === order.payer_id ? (
-                            <span className="text-slate-500 text-[10px] sm:text-xs">不需支付</span>
+                            <span className="text-slate-500 text-xs">不需支付</span>
                           ) : (
-                            <Badge className={`text-[10px] sm:text-xs ${item.paid ? 'bg-green-500' : 'bg-slate-400'}`}>
+                            <Badge className={`text-xs ${item.paid ? 'bg-green-500' : 'bg-slate-400'}`}>
                               {item.paid ? '已付' : '未付'}
                             </Badge>
                           )}

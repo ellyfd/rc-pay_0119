@@ -93,11 +93,11 @@ export default function TransactionHistory() {
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                   size="sm"
-                  className="h-8 md:h-10 px-3 md:px-4 text-xs md:text-sm"
+                  className="h-10 px-4 text-sm"
                 >
                   上一頁
                 </Button>
-                <span className="text-xs md:text-sm text-slate-600">
+                <span className="text-sm text-slate-600">
                   {page} / {totalPages}
                 </span>
                 <Button
@@ -105,7 +105,7 @@ export default function TransactionHistory() {
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
                   size="sm"
-                  className="h-8 md:h-10 px-3 md:px-4 text-xs md:text-sm"
+                  className="h-10 px-4 text-sm"
                 >
                   下一頁
                 </Button>
