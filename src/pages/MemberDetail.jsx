@@ -368,20 +368,34 @@ export default function MemberDetail() {
       {/* Header */}
       <div className="bg-slate-900 text-white sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="text-sm md:text-base">返回</span>
-            </Button>
-          </Link>
-          
-          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-xl md:text-2xl`}>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center gap-2 mb-3 md:hidden">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-slate-800 -ml-2 h-8 w-8 p-0">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className={`w-8 h-8 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-sm`}>
               {member.name?.charAt(0)}
             </div>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold">{member.name}</h1>
-              <p className="text-slate-400 text-sm">成員帳戶明細</p>
+            <h1 className="text-lg font-bold">{member.name}</h1>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回
+              </Button>
+            </Link>
+            <div className="flex items-center gap-4 mb-6">
+              <div className={`w-16 h-16 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-2xl`}>
+                {member.name?.charAt(0)}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{member.name}</h1>
+                <p className="text-slate-400 text-sm">成員帳戶明細</p>
+              </div>
             </div>
           </div>
 

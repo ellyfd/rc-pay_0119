@@ -134,27 +134,55 @@ export default function ProductCatalog() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="bg-slate-900 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回首頁
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">產品目錄</h1>
-              <p className="text-slate-400 text-sm">統一管理所有產品，可用於訂餐和團購</p>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl('Home')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-slate-800 -ml-2 h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <Package className="w-4 h-4 text-slate-900" />
+              </div>
+              <h1 className="text-lg font-bold">產品目錄</h1>
             </div>
             <Button
+              size="sm"
               onClick={() => {
                 setEditingProduct(null);
                 setShowForm(true);
               }}
-              className="bg-white text-slate-900 hover:bg-slate-100"
+              className="bg-white text-slate-900 hover:bg-slate-100 h-8"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              新增產品
+              <Plus className="w-4 h-4 mr-1" />
+              新增
             </Button>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回首頁
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">產品目錄</h1>
+                <p className="text-slate-400 text-sm">統一管理所有產品，可用於訂餐和團購</p>
+              </div>
+              <Button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setShowForm(true);
+                }}
+                className="bg-white text-slate-900 hover:bg-slate-100"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                新增產品
+              </Button>
+            </div>
           </div>
         </div>
       </div>

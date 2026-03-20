@@ -106,27 +106,52 @@ export default function MemberManagement() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="bg-slate-900 text-white sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回首頁
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Users className="w-6 h-6" />
-                成員管理
-              </h1>
-              <p className="text-slate-400 text-sm mt-1">新增、編輯或刪除成員</p>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl('Home')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-slate-800 -ml-2 h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <Users className="w-4 h-4 text-slate-900" />
+              </div>
+              <h1 className="text-lg font-bold">成員管理</h1>
             </div>
             <Button
+              size="sm"
               onClick={() => setShowAddMember(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+              className="bg-amber-500 hover:bg-amber-600 text-slate-900 h-8"
             >
-              <UserPlus className="w-5 h-5 mr-2" />
-              新增成員
+              <UserPlus className="w-4 h-4 mr-1" />
+              新增
             </Button>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回首頁
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                  <Users className="w-6 h-6" />
+                  成員管理
+                </h1>
+                <p className="text-slate-400 text-sm mt-1">新增、編輯或刪除成員</p>
+              </div>
+              <Button
+                onClick={() => setShowAddMember(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                新增成員
+              </Button>
+            </div>
           </div>
         </div>
       </div>

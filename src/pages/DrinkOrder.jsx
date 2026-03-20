@@ -518,19 +518,32 @@ export default function DrinkOrder() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
       <div className="bg-orange-600 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-orange-500 -ml-2 mb-2 md:mb-4 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-              <Coffee className="w-6 h-6 text-orange-600" />
+          <div className="flex items-center gap-2 md:hidden">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-orange-500 -ml-2 h-8 w-8 p-0">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+              <Coffee className="w-4 h-4 text-orange-600" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">訂飲料</h1>
-              <p className="text-orange-100 text-sm">上傳 Uber Eats 訂單，AI 自動分析</p>
+            <h1 className="text-lg font-bold">訂飲料</h1>
+          </div>
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-orange-500 -ml-2 mb-4">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+                <Coffee className="w-6 h-6 text-orange-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">訂飲料</h1>
+                <p className="text-orange-100 text-sm">上傳 Uber Eats 訂單，AI 自動分析</p>
+              </div>
             </div>
           </div>
         </div>

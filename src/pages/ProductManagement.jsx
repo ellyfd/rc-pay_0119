@@ -100,27 +100,55 @@ export default function ProductManagement() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <div className="bg-emerald-600 text-white sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('FoodOrder')}>
-            <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回訂餐
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">產品管理</h1>
-              <p className="text-emerald-100 text-sm">管理餐盒和單點產品</p>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl('FoodOrder')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-emerald-500 -ml-2 h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <Package className="w-4 h-4 text-emerald-600" />
+              </div>
+              <h1 className="text-lg font-bold">產品管理</h1>
             </div>
             <Button
+              size="sm"
               onClick={() => {
                 setEditingProduct(null);
                 setShowForm(true);
               }}
-              className="bg-white text-emerald-600 hover:bg-emerald-50"
+              className="bg-white text-emerald-600 hover:bg-emerald-50 h-8"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              新增產品
+              <Plus className="w-4 h-4 mr-1" />
+              新增
             </Button>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('FoodOrder')}>
+              <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回訂餐
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">產品管理</h1>
+                <p className="text-emerald-100 text-sm">管理餐盒和單點產品</p>
+              </div>
+              <Button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setShowForm(true);
+                }}
+                className="bg-white text-emerald-600 hover:bg-emerald-50"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                新增產品
+              </Button>
+            </div>
           </div>
         </div>
       </div>

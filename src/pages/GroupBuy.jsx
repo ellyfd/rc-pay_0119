@@ -155,37 +155,69 @@ export default function GroupBuy() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       {/* Header */}
       <div className="bg-purple-600 text-white sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回首頁
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                <ShoppingCart className="w-6 h-6 text-purple-600" />
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-6">
+          {/* Mobile: compact single-row header */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl('Home')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-purple-500 -ml-2 h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <ShoppingCart className="w-4 h-4 text-purple-600" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">團購專區</h1>
-                <p className="text-purple-100 text-sm">開團、跟團、輕鬆購</p>
-              </div>
+              <h1 className="text-lg font-bold">團購專區</h1>
             </div>
-            <div className="flex flex-col-reverse md:flex-row gap-2">
-              <Link to={createPageUrl('GroupBuyTemplates')} className="w-full md:w-auto">
-                <Button variant="ghost" className="text-white hover:bg-purple-500 w-full">
-                  <FileText className="w-5 h-5 mr-2" />
-                  範本管理
+            <div className="flex items-center gap-1">
+              <Link to={createPageUrl('GroupBuyTemplates')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-purple-500 h-8 px-2">
+                  <FileText className="w-4 h-4" />
                 </Button>
               </Link>
               <Button
                 onClick={() => setShowCreate(true)}
-                className="bg-white text-purple-600 hover:bg-purple-50 w-full md:w-auto"
+                size="sm"
+                className="bg-white text-purple-600 hover:bg-purple-50 h-8 px-3 text-xs"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                我要開團
+                <Plus className="w-4 h-4 mr-1" />
+                開團
               </Button>
+            </div>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回首頁
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+                  <ShoppingCart className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">團購專區</h1>
+                  <p className="text-purple-100 text-sm">開團、跟團、輕鬆購</p>
+                </div>
+              </div>
+              <div className="flex flex-row gap-2">
+                <Link to={createPageUrl('GroupBuyTemplates')} className="w-auto">
+                  <Button variant="ghost" className="text-white hover:bg-purple-500 w-full">
+                    <FileText className="w-5 h-5 mr-2" />
+                    範本管理
+                  </Button>
+                </Link>
+                <Button
+                  onClick={() => setShowCreate(true)}
+                  className="bg-white text-purple-600 hover:bg-purple-50 w-auto"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  我要開團
+                </Button>
+              </div>
             </div>
           </div>
         </div>
