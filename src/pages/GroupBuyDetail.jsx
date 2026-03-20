@@ -634,12 +634,12 @@ export default function GroupBuyDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       {/* Header */}
-      <div className="bg-purple-600 text-white">
-        <div className="mx-auto px-4 py-6">
+      <div className="bg-purple-600 text-white sticky top-0 z-40">
+        <div className="mx-auto px-4 py-3 md:py-6">
           <Link to={createPageUrl('GroupBuy')}>
-            <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回團購列表
+            <Button variant="ghost" className="text-white hover:bg-purple-500 -ml-2 h-8 md:h-10">
+              <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+              <span className="text-sm md:text-base">返回團購列表</span>
             </Button>
           </Link>
         </div>

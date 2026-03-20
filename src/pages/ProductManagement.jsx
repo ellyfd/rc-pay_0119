@@ -98,10 +98,10 @@ export default function ProductManagement() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-      <div className="bg-emerald-600 text-white">
-        <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="bg-emerald-600 text-white sticky top-0 z-40">
+        <div className="max-w-5xl mx-auto px-4 py-3 md:py-6">
           <Link to={createPageUrl('FoodOrder')}>
-            <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-4 -ml-2">
+            <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
               <ArrowLeft className="w-4 h-4 mr-2" />
               返回訂餐
             </Button>

@@ -154,7 +154,7 @@ export default function GroupBuy() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       {/* Header */}
-      <div className="bg-purple-600 text-white">
+      <div className="bg-purple-600 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2">
