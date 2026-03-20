@@ -267,7 +267,7 @@ export default function ProductManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 text-red-500"
+                        className="h-8 w-8 text-red-500"
                         onClick={() => setDeletingProduct(product)}
                       >
                         <Trash2 className="w-3 h-3" />
