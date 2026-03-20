@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { getAvatarColorStyle } from "@/components/utils/colorMap";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function SelectMemberDialog({ open, members, currentUserEmail, onSelect }) {
   const [selectedMemberId, setSelectedMemberId] = useState(null);
@@ -51,7 +52,7 @@ export default function SelectMemberDialog({ open, members, currentUserEmail, on
                     {member.name?.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-800 truncate">{member.name}</p>
+                    <p className="font-semibold text-slate-800 truncate">{getShortName(member.name)}</p>
                     <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                       <span>餘額 ${((member.balance || 0) + (member.cash_balance || 0)).toLocaleString()}</span>
                     </div>

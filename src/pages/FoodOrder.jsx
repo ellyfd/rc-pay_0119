@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { parseOrderItems } from "@/components/utils/orderItemUtils";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function FoodOrder() {
   const [orderDate, setOrderDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -270,7 +271,7 @@ export default function FoodOrder() {
                       <SelectContent>
                         {allMembers.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
-                            {member.name}
+                            {getShortName(member.name)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -380,7 +381,7 @@ export default function FoodOrder() {
                     <SelectItem value="__none__">無（各付各的）</SelectItem>
                     {allMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
-                        {member.name}
+                        {getShortName(member.name)}
                       </SelectItem>
                     ))}
                   </SelectContent>

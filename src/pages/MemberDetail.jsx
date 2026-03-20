@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
+import { getShortName } from "@/components/utils/nameUtils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -747,16 +748,16 @@ export default function MemberDetail() {
                           const getDescription = () => {
                             switch (transaction.type) {
                               case 'deposit':
-                                return `${transaction.to_member_name}`;
+                                return `${getShortName(transaction.to_member_name)}`;
                               case 'withdraw':
-                                return `${transaction.from_member_name}`;
+                                return `${getShortName(transaction.from_member_name)}`;
                               case 'transfer':
                                 if (isTransferOut) {
-                                  return `轉出 to ${transaction.to_member_name}`;
+                                  return `轉出給 ${getShortName(transaction.to_member_name)}`;
                                 } else if (isTransferIn) {
-                                  return `轉入 from ${transaction.from_member_name}`;
+                                  return `轉入自 ${getShortName(transaction.from_member_name)}`;
                                 }
-                                return `${transaction.from_member_name} → ${transaction.to_member_name}`;
+                                return `${getShortName(transaction.from_member_name)} → ${getShortName(transaction.to_member_name)}`;
                               default:
                                 return '';
                             }

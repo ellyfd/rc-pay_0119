@@ -11,6 +11,7 @@ import { createPageUrl } from '@/utils';
 import { formatTaiwanTime } from '@/components/utils/dateUtils';
 import { toast } from 'sonner';
 import { isRCEmail } from '@/components/utils/constants/rcEmails';
+import { getShortName } from '@/components/utils/nameUtils';
 
 export default function PendingApproval() {
   const { user: currentUser } = useCurrentUser();
@@ -182,9 +183,9 @@ export default function PendingApproval() {
                   </div>
 
                   <div className="text-sm text-slate-600 space-y-0.5">
-                    {t.type === 'deposit' && <p>入帳對象：{t.to_member_name}</p>}
-                    {t.type === 'withdraw' && <p>出帳對象：{t.from_member_name}</p>}
-                    {t.type === 'transfer' && <p>轉帳：{t.from_member_name} → {t.to_member_name}</p>}
+                    {t.type === 'deposit' && <p>入帳對象：{getShortName(t.to_member_name)}</p>}
+                    {t.type === 'withdraw' && <p>出帳對象：{getShortName(t.from_member_name)}</p>}
+                    {t.type === 'transfer' && <p>轉帳：{getShortName(t.from_member_name)} → {getShortName(t.to_member_name)}</p>}
                     {t.note && <p className="text-slate-500">備註：{t.note}</p>}
                   </div>
 

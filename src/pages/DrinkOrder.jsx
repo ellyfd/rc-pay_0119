@@ -35,6 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function DrinkOrder() {
   const [dateRange, setDateRange] = useState('today');
@@ -704,7 +705,7 @@ export default function DrinkOrder() {
                     </SelectTrigger>
                     <SelectContent>
                       {members.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -797,7 +798,7 @@ export default function DrinkOrder() {
                             </SelectTrigger>
                             <SelectContent>
                               {members.map(m => (
-                                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -844,7 +845,7 @@ export default function DrinkOrder() {
                                     </SelectTrigger>
                                     <SelectContent>
                                       {members.map(m => (
-                                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                        <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
@@ -944,7 +945,7 @@ export default function DrinkOrder() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {members.map(m => (
-                                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                    <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>

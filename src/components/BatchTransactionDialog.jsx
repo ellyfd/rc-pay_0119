@@ -22,6 +22,7 @@ import { Plus, Trash2, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isRCEmail } from "@/components/utils/constants/rcEmails";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function BatchTransactionDialog({ open, onOpenChange, members, onBatchTransaction }) {
   const [type, setType] = useState('withdraw');
@@ -166,12 +167,12 @@ export default function BatchTransactionDialog({ open, onOpenChange, members, on
                         <SelectContent>
                           {item.member_id && (
                             <SelectItem value={item.member_id}>
-                              {members.find(m => m.id === item.member_id)?.name}
+                              {getShortName(members.find(m => m.id === item.member_id)?.name)}
                             </SelectItem>
                           )}
                           {getAvailableMembers(index).map((m) => (
                             <SelectItem key={m.id} value={m.id}>
-                              {m.name}
+                              {getShortName(m.name)}
                             </SelectItem>
                           ))}
                         </SelectContent>

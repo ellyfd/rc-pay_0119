@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { isRCEmail, RC_EMAILS } from "@/components/utils/constants/rcEmails";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function TransactionDialog({ open, onOpenChange, members, onTransaction, onPendingSubmitted }) {
   const [type, setType] = useState('deposit');
@@ -187,7 +188,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                   </SelectTrigger>
                   <SelectContent>
                     {members.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -203,7 +204,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                   </SelectTrigger>
                   <SelectContent>
                     {members.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -220,7 +221,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                     </SelectTrigger>
                     <SelectContent>
                       {members.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -233,7 +234,7 @@ export default function TransactionDialog({ open, onOpenChange, members, onTrans
                     </SelectTrigger>
                     <SelectContent>
                       {members.filter(m => m.id !== fromMemberId).map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

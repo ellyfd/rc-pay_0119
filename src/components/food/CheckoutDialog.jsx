@@ -24,6 +24,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { format } from "date-fns";
 import { RICE_OPTION_LABELS } from "@/components/utils/constants";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function CheckoutDialog({ open, onOpenChange, cart, members, totalAmount, onComplete }) {
   const [memberId, setMemberId] = useState('');
@@ -184,7 +185,7 @@ export default function CheckoutDialog({ open, onOpenChange, cart, members, tota
               <SelectContent>
                 {members.map(member => (
                   <SelectItem key={member.id} value={member.id}>
-                    {member.name} - 餘額: ${member.balance?.toLocaleString() || 0}
+                    {getShortName(member.name)} - ${member.balance?.toLocaleString() || 0}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getShortName } from "@/components/utils/nameUtils";
 
 // P3-2：提取編輯對話框為獨立元件
 export default function EditMemberOrderDialog({
@@ -85,7 +86,7 @@ export default function EditMemberOrderDialog({
                   </SelectTrigger>
                   <SelectContent>
                     {members.map(m => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

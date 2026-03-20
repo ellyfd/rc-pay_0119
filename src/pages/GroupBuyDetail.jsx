@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import AddItemDialog from "@/components/groupbuy/AddItemDialog";
 import EditGroupBuyDialog from "@/components/groupbuy/EditGroupBuyDialog";
 import { exportGroupBuyOrderSummary, exportGroupBuyPaymentRecord } from "@/components/utils/ExportCSV";
+import { getShortName } from "@/components/utils/nameUtils";
 import SelectMemberDialog from "@/components/SelectMemberDialog";
 import {
   Select,
@@ -871,7 +872,7 @@ export default function GroupBuyDetail() {
                               <div className="text-xs sm:text-sm space-y-0.5 sm:space-y-1">
                                 {product.members.map((member, idx) => (
                                   <div key={idx} className="text-slate-600">
-                                    • {member.name} × {member.quantity}
+                                    • {getShortName(member.name)} × {member.quantity}
                                   </div>
                                 ))}
                               </div>
@@ -965,7 +966,7 @@ export default function GroupBuyDetail() {
                                     to={createPageUrl('MemberDetail') + '?id=' + summary.member_id}
                                     className="text-purple-600 hover:text-purple-700 hover:underline"
                                   >
-                                    {summary.member_name}
+                                    {getShortName(summary.member_name)}
                                   </Link>
                                   {summary.isOrganizerMember && (
                                     <div className="text-xs text-green-600 mt-0.5">開團者</div>

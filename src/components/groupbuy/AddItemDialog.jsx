@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function AddItemDialog({ open, onOpenChange, members, currentUser, item, onAdd, presetProducts = [] }) {
   const [selectedMember, setSelectedMember] = useState('');
@@ -236,7 +237,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
               <SelectContent>
                 {members.map(member => (
                   <SelectItem key={member.id} value={member.id}>
-                    {member.name}
+                    {getShortName(member.name)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -380,7 +381,7 @@ export default function AddItemDialog({ open, onOpenChange, members, currentUser
                                   checked={rowItem.splitMembers?.includes(m.id)}
                                   onCheckedChange={() => toggleSplitMember(index, m.id)}
                                 />
-                                <span className="text-xs">{m.name}</span>
+                                <span className="text-xs">{getShortName(m.name)}</span>
                               </label>
                             ))}
                           </div>
