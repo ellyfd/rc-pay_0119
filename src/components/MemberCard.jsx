@@ -4,7 +4,6 @@ import { User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { getAvatarColorStyle } from "@/components/utils/colorMap";
-import { getShortName } from "@/components/utils/nameUtils";
 
 export default function MemberCard({ member, onClick, selected }) {
   const bgColor = getAvatarColorStyle(member.avatar_color);
@@ -15,7 +14,7 @@ export default function MemberCard({ member, onClick, selected }) {
           <div className={`w-10 h-10 rounded-full ${bgColor} flex items-center justify-center text-white font-bold text-base flex-shrink-0`}>
             {member.name?.charAt(0)}
           </div>
-          <h3 className="font-semibold text-sm text-slate-800 truncate flex-1">{getShortName(member.name)}</h3>
+          <h3 className="font-semibold text-sm text-slate-800 truncate flex-1">{member.name}</h3>
         </div>
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="bg-emerald-50 rounded p-2">
