@@ -183,35 +183,64 @@ export default function FoodOrder() {
       {/* Header */}
       <div className="bg-emerald-600 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-emerald-500 -ml-2 mb-2 md:mb-4 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                <UtensilsCrossed className="w-6 h-6 text-emerald-600" />
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl('Home')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-emerald-500 -ml-2 h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <UtensilsCrossed className="w-4 h-4 text-emerald-600" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">七分飽訂餐</h1>
-                <p className="text-emerald-100 text-sm">個人點餐系統</p>
-              </div>
+              <h1 className="text-lg font-bold">七分飽訂餐</h1>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex gap-1">
               <Link to={createPageUrl('AdminOrders')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500">
-                  <Settings className="w-5 h-5 mr-2" />
-                  訂單管理
+                <Button variant="ghost" size="sm" className="text-white hover:bg-emerald-500 h-8 w-8 p-0">
+                  <Settings className="w-4 h-4" />
                 </Button>
               </Link>
               <Link to={createPageUrl('ProductManagement')}>
-                <Button variant="ghost" className="text-white hover:bg-emerald-500">
-                  <Settings className="w-5 h-5 mr-2" />
-                  產品管理
+                <Button variant="ghost" size="sm" className="text-white hover:bg-emerald-500 h-8 w-8 p-0">
+                  <Settings className="w-4 h-4" />
                 </Button>
               </Link>
+            </div>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-emerald-500 -ml-2 mb-4 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+                  <UtensilsCrossed className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">七分飽訂餐</h1>
+                  <p className="text-emerald-100 text-sm">個人點餐系統</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Link to={createPageUrl('AdminOrders')}>
+                  <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                    <Settings className="w-5 h-5 mr-2" />
+                    訂單管理
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('ProductManagement')}>
+                  <Button variant="ghost" className="text-white hover:bg-emerald-500">
+                    <Settings className="w-5 h-5 mr-2" />
+                    產品管理
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

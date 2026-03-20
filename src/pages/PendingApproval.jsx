@@ -144,17 +144,32 @@ export default function PendingApproval() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="bg-slate-900 text-white sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="text-white hover:bg-slate-800 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Clock className="w-7 h-7 text-yellow-400" />
-            <div>
-              <h1 className="text-2xl font-bold">待審核交易</h1>
-              <p className="text-slate-400 text-sm">共 {pendingTransactions.length} 筆待處理</p>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center gap-2 md:hidden">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-slate-800 -ml-2 h-8 w-8 p-0">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
+              <Clock className="w-4 h-4 text-slate-900" />
+            </div>
+            <h1 className="text-lg font-bold">待審核交易</h1>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Clock className="w-7 h-7 text-yellow-400" />
+              <div>
+                <h1 className="text-2xl font-bold">待審核交易</h1>
+                <p className="text-slate-400 text-sm">共 {pendingTransactions.length} 筆待處理</p>
+              </div>
             </div>
           </div>
         </div>

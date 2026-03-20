@@ -437,75 +437,96 @@ export default function DrinkOrderDetail() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
       <div className="bg-orange-600 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('DrinkOrder')}>
-            <Button variant="ghost" className="text-white hover:bg-orange-500 -ml-2 mb-2 md:mb-4 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-white'}`}>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center gap-2 md:hidden">
+            <Link to={createPageUrl('DrinkOrder')}>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-orange-500 -ml-2 h-8 w-8 p-0">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-white'}`}>
               {isCompleted ? (
-                <CheckCircle className="w-7 h-7 text-white" />
+                <CheckCircle className="w-4 h-4 text-white" />
               ) : (
-                <Coffee className="w-7 h-7 text-orange-600" />
+                <Coffee className="w-4 h-4 text-orange-600" />
               )}
             </div>
-            <div className="flex-1">
-              {isEditingName ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    className="text-2xl font-bold bg-white/20 border-2 border-white/50 rounded px-3 py-1 text-white placeholder-white/70"
-                    placeholder="輸入訂單名稱"
-                    autoFocus
-                  />
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      await updateOrder.mutateAsync({
-                        id: orderId,
-                        data: { order_name: editedName }
-                      });
-                      setIsEditingName(false);
-                      toast.success('訂單名稱已更新');
-                    }}
-                    className="bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    儲存
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsEditingName(false)}
-                    className="text-white hover:bg-white/20"
-                  >
-                    取消
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold">
-                    {order.order_name || `${formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單`}
-                  </h1>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setEditedName(order.order_name || '');
-                      setIsEditingName(true);
-                    }}
-                    className="text-white hover:bg-white/20"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-              <p className="text-orange-100 text-sm mt-1">
-                {isCompleted ? '已完成' : '待付款'}
-              </p>
+            <h1 className="text-lg font-bold truncate">
+              {order.order_name || `${formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單`}
+            </h1>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('DrinkOrder')}>
+              <Button variant="ghost" className="text-white hover:bg-orange-500 -ml-2 mb-4 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-white'}`}>
+                {isCompleted ? (
+                  <CheckCircle className="w-7 h-7 text-white" />
+                ) : (
+                  <Coffee className="w-7 h-7 text-orange-600" />
+                )}
+              </div>
+              <div className="flex-1">
+                {isEditingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="text-2xl font-bold bg-white/20 border-2 border-white/50 rounded px-3 py-1 text-white placeholder-white/70"
+                      placeholder="輸入訂單名稱"
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        await updateOrder.mutateAsync({
+                          id: orderId,
+                          data: { order_name: editedName }
+                        });
+                        setIsEditingName(false);
+                        toast.success('訂單名稱已更新');
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      儲存
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setIsEditingName(false)}
+                      className="text-white hover:bg-white/20"
+                    >
+                      取消
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl font-bold">
+                      {order.order_name || `${formatTaiwanTime(order.created_date, 'MM/dd HH:mm')} 訂單`}
+                    </h1>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditedName(order.order_name || '');
+                        setIsEditingName(true);
+                      }}
+                      className="text-white hover:bg-white/20"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                <p className="text-orange-100 text-sm mt-1">
+                  {isCompleted ? '已完成' : '待付款'}
+                </p>
+              </div>
             </div>
           </div>
         </div>

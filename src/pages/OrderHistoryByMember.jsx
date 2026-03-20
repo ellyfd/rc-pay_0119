@@ -90,16 +90,31 @@ export default function OrderHistoryByMember() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <div className="bg-emerald-600 text-white sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('AdminOrders')}>
-            <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回訂單管理
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">按成員查詢訂單</h1>
-              <p className="text-emerald-100 text-sm">查看特定成員的所有訂單記錄</p>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center gap-2 md:hidden">
+            <Link to={createPageUrl('AdminOrders')}>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-emerald-500 -ml-2 h-8 w-8 p-0">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+              <Users className="w-4 h-4 text-emerald-600" />
+            </div>
+            <h1 className="text-lg font-bold">按成員查詢</h1>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('AdminOrders')}>
+              <Button variant="ghost" className="text-white hover:bg-emerald-500 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回訂單管理
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">按成員查詢訂單</h1>
+                <p className="text-emerald-100 text-sm">查看特定成員的所有訂單記錄</p>
+              </div>
             </div>
           </div>
         </div>

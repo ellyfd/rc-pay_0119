@@ -106,27 +106,52 @@ export default function GroupBuyTemplates() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       <div className="bg-purple-600 text-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 md:py-6">
-          <Link to={createPageUrl('GroupBuy')}>
-            <Button variant="ghost" className="text-white hover:bg-purple-500 mb-2 md:mb-4 -ml-2 h-8 md:h-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              返回團購列表
-            </Button>
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">團購範本管理</h1>
-              <p className="text-purple-200 text-sm mt-1">建立和管理常用的團購設定範本</p>
+          {/* Mobile: compact single-row */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl('GroupBuy')}>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-purple-500 -ml-2 h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <h1 className="text-lg font-bold">範本管理</h1>
             </div>
             <Button
+              size="sm"
               onClick={() => {
                 setEditingTemplate(null);
                 setShowForm(true);
               }}
-              className="bg-white text-purple-600 hover:bg-purple-50"
+              className="bg-white text-purple-600 hover:bg-purple-50 h-8"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              新增範本
+              <Plus className="w-4 h-4 mr-1" />
+              新增
             </Button>
+          </div>
+          {/* Desktop: original layout */}
+          <div className="hidden md:block">
+            <Link to={createPageUrl('GroupBuy')}>
+              <Button variant="ghost" className="text-white hover:bg-purple-500 mb-4 -ml-2 h-10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回團購列表
+              </Button>
+            </Link>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">團購範本管理</h1>
+                <p className="text-purple-200 text-sm mt-1">建立和管理常用的團購設定範本</p>
+              </div>
+              <Button
+                onClick={() => {
+                  setEditingTemplate(null);
+                  setShowForm(true);
+                }}
+                className="bg-white text-purple-600 hover:bg-purple-50"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                新增範本
+              </Button>
+            </div>
           </div>
         </div>
       </div>
