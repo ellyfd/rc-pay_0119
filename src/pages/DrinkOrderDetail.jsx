@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function DrinkOrderDetail() {
   const [orderId, setOrderId] = useState(null);
@@ -522,7 +523,7 @@ export default function DrinkOrderDetail() {
                   </SelectTrigger>
                   <SelectContent>
                     {members.map(m => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -661,7 +662,7 @@ export default function DrinkOrderDetail() {
                           {itemIdx === 0 && (
                             <td className="px-3 py-2" rowSpan={items.length}>
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{item.member_name}</span>
+                                <span className="font-medium">{getShortName(item.member_name)}</span>
                                 {!isCompleted && (
                                   <Button
                                     variant="ghost"

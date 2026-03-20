@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { formatTaiwanTime } from "@/components/utils/dateUtils";
 import { parseOrderItems } from "@/components/utils/orderItemUtils";
+import { getShortName } from "@/components/utils/nameUtils";
 
 // P3-3：提取表格行為獨立元件
 export default function OrderTableRow({
@@ -22,7 +23,7 @@ export default function OrderTableRow({
   return (
     <tr className="border-b hover:bg-slate-50">
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
-        <div className="font-medium text-slate-800 leading-tight">{order.member_name}</div>
+        <div className="font-medium text-slate-800 leading-tight">{getShortName(order.member_name)}</div>
         <div className="text-xs text-slate-500">
           {formatTaiwanTime(order.created_date, 'HH:mm')}
         </div>

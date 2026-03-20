@@ -1,16 +1,17 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { toTaiwanTime, getTaiwanNow, formatTaiwanTime } from "@/components/utils/dateUtils";
+import { getShortName } from "@/components/utils/nameUtils";
 
 export default function TransactionItem({ transaction }) {
   const getDescription = () => {
     switch (transaction.type) {
       case 'deposit':
-        return `${transaction.to_member_name}`;
+        return `${getShortName(transaction.to_member_name)}`;
       case 'withdraw':
-        return `${transaction.from_member_name}`;
+        return `${getShortName(transaction.from_member_name)}`;
       case 'transfer':
-        return `${transaction.from_member_name} → ${transaction.to_member_name}`;
+        return `${getShortName(transaction.from_member_name)} → ${getShortName(transaction.to_member_name)}`;
       default:
         return '';
     }

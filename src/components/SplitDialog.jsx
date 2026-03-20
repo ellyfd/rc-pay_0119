@@ -10,6 +10,8 @@ import React, { useState, useMemo } from "react";
  *  - onConfirm: (result) => void  // result: array of { member_id, member_name, quantity, price }
  *  - onClose: () => void
  */
+import { getShortName } from "@/components/utils/nameUtils";
+
 function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
   const [quantities, setQuantities] = useState({ [currentMember.id]: 1 });
 
@@ -107,7 +109,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
               本人
             </div>
             <MemberRow
-              name={currentMember.name}
+              name={getShortName(currentMember.name)}
               quantity={quantities[currentMember.id] || 1}
               amount={Math.round(unitPrice * (quantities[currentMember.id] || 1))}
               onDecrease={() =>
@@ -131,7 +133,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
                 return (
                   <MemberRow
                     key={member.id}
-                    name={member.name}
+                    name={getShortName(member.name)}
                     quantity={qty}
                     amount={qty > 0 ? Math.round(unitPrice * qty) : null}
                     onDecrease={() => setQty(member.id, qty - 1)}
@@ -153,7 +155,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
                   key={m.member_id}
                   className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-2.5 py-1"
                 >
-                  <span className="font-medium">{m.member_name.split(" ")[0]}</span>
+                  <span className="font-medium">{getShortName(m.member_name)}</span>
                   <span className="text-green-500">×{m.quantity}</span>
                   <span className="font-semibold">${m.price}</span>
                 </span>
