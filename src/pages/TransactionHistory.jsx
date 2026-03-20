@@ -36,8 +36,8 @@ export default function TransactionHistory() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
-      <div className="bg-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 md:py-6">
+      <div className="bg-slate-900 text-white sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-3 md:px-4 py-3 md:py-6">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" className="text-white hover:bg-slate-800 mb-3 md:mb-4 -ml-2 h-8 md:h-10">
               <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
