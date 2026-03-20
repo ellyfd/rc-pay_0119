@@ -369,14 +369,14 @@ export default function Home() {
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <Link to={createPageUrl('FoodOrder')}>
-            <Button className="w-full bg-emerald-600 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-emerald-700">
+            <Button className="w-full bg-emerald-600 text-white px-2 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-emerald-700">
               <UtensilsCrossed className="w-4 h-4 md:w-5 md:h-5" />
               <span className="hidden sm:inline md:mr-0">七分飽訂餐</span>
               <span className="sm:hidden">訂餐</span>
             </Button>
           </Link>
           <Link to={createPageUrl('DrinkOrder')}>
-            <Button className="w-full bg-orange-600 text-white px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-orange-700">
+            <Button className="w-full bg-orange-600 text-white px-2 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors shadow h-12 md:h-14 hover:bg-orange-700">
               <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
               <span className="hidden sm:inline md:mr-0">訂飲料</span>
               <span className="sm:hidden">飲料</span>
@@ -385,7 +385,7 @@ export default function Home() {
           <Button
             onClick={() => setShowTransaction(true)}
             variant="outline"
-            className="px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors h-12 md:h-14 border-slate-300 text-slate-700 hover:bg-slate-100"
+            className="px-2 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors h-12 md:h-14 border-slate-300 text-slate-700 hover:bg-slate-100"
             disabled={allMembers.length === 0}
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
@@ -395,7 +395,7 @@ export default function Home() {
           <Button
             onClick={() => setShowBatchTransaction(true)}
             variant="outline"
-            className="px-2 py-2 text-xs md:text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors h-12 md:h-14 border-slate-300 text-slate-700 hover:bg-slate-100"
+            className="px-2 py-2 text-sm font-semibold rounded-[50px] inline-flex items-center justify-center gap-1 md:gap-2 whitespace-nowrap transition-colors h-12 md:h-14 border-slate-300 text-slate-700 hover:bg-slate-100"
             disabled={allMembers.length === 0}
           >
             <Users className="w-4 h-4 md:w-5 md:h-5" />
