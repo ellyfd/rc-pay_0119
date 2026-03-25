@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { ArrowLeft, UtensilsCrossed, Settings, Save } from "lucide-react";
+import { ArrowLeft, UtensilsCrossed, Settings, Save, Plus, Minus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -77,9 +77,9 @@ export default function FoodOrder() {
       const mealBox = mealBoxes.find(p => p.id === mealBoxId);
       if (mealBox) sum += mealBox.price;
     }
-    sideDishes.forEach(dishId => {
-      const dish = sideDishProducts.find(p => p.id === dishId);
-      if (dish) sum += dish.price;
+    sideDishes.forEach(({ id, quantity }) => {
+      const dish = sideDishProducts.find(p => p.id === id);
+      if (dish) sum += dish.price * quantity;
     });
     return sum;
   }, [mealBoxId, mealBoxes, sideDishes, sideDishProducts]);
@@ -146,7 +146,7 @@ export default function FoodOrder() {
         }
       }
 
-      for (const dishId of sideDishes) {
+      for (const { id: dishId, quantity } of sideDishes) {
         const dish = sideDishProducts.find(p => p.id === dishId);
         if (dish) {
           itemsToCreate.push({
@@ -154,7 +154,7 @@ export default function FoodOrder() {
             product_id: dish.id,
             product_name: dish.name,
             price: dish.price,
-            quantity: 1,
+            quantity,
             rice_option: 'normal'
           });
         }
@@ -361,8 +361,13 @@ export default function FoodOrder() {
                 <Select
                   value=""
                   onValueChange={(value) => {
-                    if (value && !sideDishes.includes(value)) {
-                      setSideDishes([...sideDishes, value]);
+                    if (value) {
+                      const existing = sideDishes.find(d => d.id === value);
+                      if (existing) {
+                        setSideDishes(sideDishes.map(d => d.id === value ? { ...d, quantity: d.quantity + 1 } : d));
+                      } else {
+                        setSideDishes([...sideDishes, { id: value, quantity: 1 }]);
+                      }
                     }
                   }}
                 >
@@ -379,19 +384,44 @@ export default function FoodOrder() {
                 </Select>
                 {sideDishes.length > 0 && (
                   <div className="mt-3 space-y-2">
-                    {sideDishes.map((dishId) => {
+                    {sideDishes.map(({ id: dishId, quantity }) => {
                       const dish = sideDishProducts.find(d => d.id === dishId);
                       return dish ? (
                         <div key={dishId} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
                           <span className="text-sm text-slate-700">{dish.name} - ${dish.price}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSideDishes(sideDishes.filter(id => id !== dishId))}
-                            className="text-red-500 hover:text-red-700 h-6 px-2"
-                          >
-                            移除
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (quantity <= 1) {
+                                  setSideDishes(sideDishes.filter(d => d.id !== dishId));
+                                } else {
+                                  setSideDishes(sideDishes.map(d => d.id === dishId ? { ...d, quantity: d.quantity - 1 } : d));
+                                }
+                              }}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <span className="text-sm font-medium w-6 text-center">{quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSideDishes(sideDishes.map(d => d.id === dishId ? { ...d, quantity: d.quantity + 1 } : d))}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSideDishes(sideDishes.filter(d => d.id !== dishId))}
+                              className="text-red-500 hover:text-red-700 h-6 px-2 ml-1"
+                            >
+                              移除
+                            </Button>
+                          </div>
                         </div>
                       ) : null;
                     })}
