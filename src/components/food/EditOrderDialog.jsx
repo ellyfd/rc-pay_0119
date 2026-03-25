@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save } from "lucide-react";
+import { Save, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { parseOrderItems } from "@/components/utils/orderItemUtils";
 
@@ -34,7 +34,7 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
         setRiceOption('normal');
       }
 
-      setSideDishes(sideItems.map(item => item.product_id));
+      setSideDishes(sideItems.map(item => ({ id: item.product_id, quantity: item.quantity || 1 })));
     }
   }, [order, orderItems]);
 
@@ -44,9 +44,9 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
       const mealBox = mealBoxes.find(p => p.id === mealBoxId);
       if (mealBox) total += mealBox.price;
     }
-    sideDishes.forEach(dishId => {
-      const dish = sideDishProducts.find(p => p.id === dishId);
-      if (dish) total += dish.price;
+    sideDishes.forEach(({ id, quantity }) => {
+      const dish = sideDishProducts.find(p => p.id === id);
+      if (dish) total += dish.price * quantity;
     });
     return total;
   };
@@ -75,14 +75,14 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
       }
     }
 
-    sideDishes.forEach(dishId => {
+    sideDishes.forEach(({ id: dishId, quantity }) => {
       const dish = sideDishProducts.find(p => p.id === dishId);
       if (dish) {
         items.push({
           product_id: dish.id,
           product_name: dish.name,
           price: dish.price,
-          quantity: 1,
+          quantity,
           rice_option: 'normal'
         });
       }
@@ -145,8 +145,13 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
             <Select
               value=""
               onValueChange={(value) => {
-                if (value && !sideDishes.includes(value)) {
-                  setSideDishes([...sideDishes, value]);
+                if (value) {
+                  const existing = sideDishes.find(d => d.id === value);
+                  if (existing) {
+                    setSideDishes(sideDishes.map(d => d.id === value ? { ...d, quantity: d.quantity + 1 } : d));
+                  } else {
+                    setSideDishes([...sideDishes, { id: value, quantity: 1 }]);
+                  }
                 }
               }}
             >
@@ -163,19 +168,44 @@ export default function EditOrderDialog({ open, onOpenChange, order, orderItems,
             </Select>
             {sideDishes.length > 0 && (
               <div className="mt-3 space-y-2">
-                {sideDishes.map((dishId) => {
+                {sideDishes.map(({ id: dishId, quantity }) => {
                   const dish = sideDishProducts.find(d => d.id === dishId);
                   return dish ? (
                     <div key={dishId} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
                       <span className="text-sm text-slate-700">{dish.name} - ${dish.price}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSideDishes(sideDishes.filter(id => id !== dishId))}
-                        className="text-red-500 hover:text-red-700 h-6 px-2"
-                      >
-                        移除
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (quantity <= 1) {
+                              setSideDishes(sideDishes.filter(d => d.id !== dishId));
+                            } else {
+                              setSideDishes(sideDishes.map(d => d.id === dishId ? { ...d, quantity: d.quantity - 1 } : d));
+                            }
+                          }}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="text-sm font-medium w-6 text-center">{quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSideDishes(sideDishes.map(d => d.id === dishId ? { ...d, quantity: d.quantity + 1 } : d))}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSideDishes(sideDishes.filter(d => d.id !== dishId))}
+                          className="text-red-500 hover:text-red-700 h-6 px-2 ml-1"
+                        >
+                          移除
+                        </Button>
+                      </div>
                     </div>
                   ) : null;
                 })}
