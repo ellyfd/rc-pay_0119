@@ -212,9 +212,10 @@ export default function OrderHistoryByMember() {
                         <tr>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[8%]">日期</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[7%]">時間</th>
-                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[22%]">餐盒</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">餐盒</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[8%]">飯量</th>
-                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">單點</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[18%]">單點</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[6%]">數量</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">付款</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">狀態</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b w-[15%]">金額</th>
@@ -272,8 +273,7 @@ export default function OrderHistoryByMember() {
                                    <div className="space-y-0.5">
                                      {sideItems.map(item => (
                                        <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
-                                         {item.product_name}
-                                         {item.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{item.quantity}</span>}
+                                         {item.product_name} {item.quantity > 1 && `×${item.quantity}`}
                                          <span className="text-xs text-slate-500 ml-1">${item.price * (item.quantity || 1)}</span>
                                        </div>
                                      ))}
@@ -281,6 +281,12 @@ export default function OrderHistoryByMember() {
                                  ) : (
                                    <span className="text-slate-400">-</span>
                                  )}
+                               </td>
+                               <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
+                                 {(() => {
+                                   const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                                   return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
+                                 })()}
                                </td>
                                <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
                                  <Badge className={`text-xs ${
