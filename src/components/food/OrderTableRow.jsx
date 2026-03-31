@@ -31,7 +31,10 @@ export default function OrderTableRow({
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         {mealBox ? (
           <div className="text-slate-700 leading-tight">
-            <div className="break-words">{mealBox.product_name}</div>
+            <div className="break-words">
+              {mealBox.product_name}
+              {mealBox.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{mealBox.quantity}</span>}
+            </div>
             <div className="text-xs text-slate-500">${mealBox.price}</div>
           </div>
         ) : (
@@ -54,7 +57,8 @@ export default function OrderTableRow({
             {sideItems.map(item => (
               <div key={item.id} className="text-slate-700 leading-tight break-words">
                 {item.product_name}
-                <span className="text-xs text-slate-500 ml-1">${item.price}</span>
+                {item.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{item.quantity}</span>}
+                <span className="text-xs text-slate-500 ml-1">${item.price * (item.quantity || 1)}</span>
               </div>
             ))}
           </div>
