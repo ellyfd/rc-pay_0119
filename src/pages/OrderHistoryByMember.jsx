@@ -213,9 +213,9 @@ export default function OrderHistoryByMember() {
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[8%]">日期</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[7%]">時間</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">餐盒</th>
-                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[6%]">數量</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[8%]">飯量</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[18%]">單點</th>
+                          <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[6%]">數量</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">付款</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">狀態</th>
                           <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b w-[15%]">金額</th>
@@ -256,12 +256,6 @@ export default function OrderHistoryByMember() {
                                    <span className="text-slate-400">-</span>
                                  )}
                                </td>
-                               <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
-                                 {(() => {
-                                   const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                                   return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
-                                 })()}
-                               </td>
                                <td className="px-1.5 sm:px-3 py-2 sm:py-3">
                                  {mealBox ? (
                                    <span className="text-slate-700 whitespace-nowrap">
@@ -284,6 +278,12 @@ export default function OrderHistoryByMember() {
                                  ) : (
                                    <span className="text-slate-400">-</span>
                                  )}
+                               </td>
+                               <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
+                                 {(() => {
+                                   const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                                   return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
+                                 })()}
                                </td>
                                <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
                                  <Badge className={`text-xs ${

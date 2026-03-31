@@ -202,9 +202,9 @@ export default function OrderHistoryByDate() {
                               <tr>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[14%]">成員</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">餐盒</th>
-                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[7%]">數量</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[9%]">飯量</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[18%]">單點</th>
+                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[7%]">數量</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">付款</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">狀態</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b w-[13%]">金額</th>
@@ -234,12 +234,6 @@ export default function OrderHistoryByDate() {
                                          <span className="text-slate-400">-</span>
                                        )}
                                      </td>
-                                     <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
-                                       {(() => {
-                                         const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                                         return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
-                                       })()}
-                                     </td>
                                      <td className="px-2 sm:px-3 py-2 sm:py-3">
                                        {mealBox ? (
                                          <span className="text-slate-700 whitespace-nowrap">
@@ -262,6 +256,12 @@ export default function OrderHistoryByDate() {
                                        ) : (
                                          <span className="text-slate-400">-</span>
                                        )}
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
+                                       {(() => {
+                                         const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                                         return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
+                                       })()}
                                      </td>
                                      <td className="px-3 py-3 text-center">
                                        <Badge className={`text-xs ${

@@ -41,11 +41,6 @@ export default function OrderTableRow({
           <span className="text-slate-400">-</span>
         )}
       </td>
-      <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
-        <span className={`font-medium ${totalQuantity > 1 ? 'text-orange-600' : 'text-slate-700'}`}>
-          {totalQuantity}
-        </span>
-      </td>
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         {mealBox ? (
           <span className="text-slate-700 whitespace-nowrap">
@@ -69,6 +64,11 @@ export default function OrderTableRow({
         ) : (
           <span className="text-slate-400">-</span>
         )}
+      </td>
+      <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
+        <span className={`font-medium ${totalQuantity > 1 ? 'text-orange-600' : 'text-slate-700'}`}>
+          {totalQuantity}
+        </span>
       </td>
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         <Badge className={`text-xs ${
