@@ -429,6 +429,7 @@ export default function AdminOrders() {
                     <tr>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">成員</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">餐盒</th>
+                      <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b">數量</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">飯量</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">單點</th>
                       <th className="px-1.5 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b">付款</th>
@@ -451,7 +452,7 @@ export default function AdminOrders() {
                       />
                     ))}
                     <tr className="bg-emerald-50 font-bold">
-                      <td colSpan="5" className="px-1.5 sm:px-3 py-3 sm:py-4 text-right text-sm sm:text-lg">總計</td>
+                      <td colSpan="6" className="px-1.5 sm:px-3 py-3 sm:py-4 text-right text-sm sm:text-lg">總計</td>
                       <td className="px-1.5 sm:px-3 py-3 sm:py-4 text-right text-sm sm:text-lg text-emerald-600 whitespace-nowrap">
                         ${totalAmount.toLocaleString()}
                       </td>

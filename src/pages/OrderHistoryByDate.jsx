@@ -200,10 +200,11 @@ export default function OrderHistoryByDate() {
                           <table className="w-full min-w-[650px] text-xs sm:text-sm">
                             <thead className="bg-slate-50">
                               <tr>
-                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[15%]">成員</th>
-                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[22%]">餐盒</th>
-                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[10%]">飯量</th>
-                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">單點</th>
+                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[14%]">成員</th>
+                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[20%]">餐盒</th>
+                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[7%]">數量</th>
+                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[9%]">飯量</th>
+                                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-semibold text-slate-700 border-b w-[18%]">單點</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">付款</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-semibold text-slate-700 border-b w-[10%]">狀態</th>
                                 <th className="px-2 sm:px-3 py-2 sm:py-3 text-right font-semibold text-slate-700 border-b w-[13%]">金額</th>
@@ -226,15 +227,18 @@ export default function OrderHistoryByDate() {
                                      <td className="px-2 sm:px-3 py-2 sm:py-3">
                                        {mealBox ? (
                                          <div className="text-slate-700 leading-tight">
-                                           <div className="break-words line-clamp-2">
-                                             {mealBox.product_name}
-                                             {mealBox.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{mealBox.quantity}</span>}
-                                           </div>
+                                           <div className="break-words line-clamp-2">{mealBox.product_name}</div>
                                            <div className="text-xs text-slate-500">${mealBox.price}</div>
                                          </div>
                                        ) : (
                                          <span className="text-slate-400">-</span>
                                        )}
+                                     </td>
+                                     <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
+                                       {(() => {
+                                         const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                                         return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
+                                       })()}
                                      </td>
                                      <td className="px-2 sm:px-3 py-2 sm:py-3">
                                        {mealBox ? (
@@ -250,8 +254,7 @@ export default function OrderHistoryByDate() {
                                          <div className="space-y-0.5">
                                            {sideItems.map(item => (
                                              <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
-                                               {item.product_name}
-                                               {item.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{item.quantity}</span>}
+                                               {item.product_name} {item.quantity > 1 && `×${item.quantity}`}
                                                <span className="text-xs text-slate-500 ml-1">${item.price * (item.quantity || 1)}</span>
                                              </div>
                                            ))}

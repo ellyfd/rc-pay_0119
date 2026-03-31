@@ -20,6 +20,9 @@ export default function OrderTableRow({
   // P2-13: 使用共用工具函式
   const { mealBox, sideItems } = parseOrderItems(items, mealBoxes, sideDishProducts);
 
+  // 計算訂單總數量
+  const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
   return (
     <tr className="border-b hover:bg-slate-50">
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
@@ -31,15 +34,17 @@ export default function OrderTableRow({
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         {mealBox ? (
           <div className="text-slate-700 leading-tight">
-            <div className="break-words">
-              {mealBox.product_name}
-              {mealBox.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{mealBox.quantity}</span>}
-            </div>
+            <div className="break-words">{mealBox.product_name}</div>
             <div className="text-xs text-slate-500">${mealBox.price}</div>
           </div>
         ) : (
           <span className="text-slate-400">-</span>
         )}
+      </td>
+      <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
+        <span className={`font-medium ${totalQuantity > 1 ? 'text-orange-600' : 'text-slate-700'}`}>
+          {totalQuantity}
+        </span>
       </td>
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         {mealBox ? (
@@ -56,8 +61,7 @@ export default function OrderTableRow({
           <div className="space-y-0.5">
             {sideItems.map(item => (
               <div key={item.id} className="text-slate-700 leading-tight break-words">
-                {item.product_name}
-                {item.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{item.quantity}</span>}
+                {item.product_name} {item.quantity > 1 && `×${item.quantity}`}
                 <span className="text-xs text-slate-500 ml-1">${item.price * (item.quantity || 1)}</span>
               </div>
             ))}
