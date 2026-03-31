@@ -262,8 +262,16 @@ export default function OrderHistoryByDate() {
                                      </td>
                                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
                                        {(() => {
-                                         const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                                         return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
+                                         const allQty = [];
+                                         if (mealBox) allQty.push(mealBox.quantity || 1);
+                                         sideItems.forEach(item => allQty.push(item.quantity || 1));
+                                         return allQty.length > 0 ? (
+                                           <div className="space-y-0.5">
+                                             {allQty.map((qty, idx) => (
+                                               <div key={idx} className={`leading-tight font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</div>
+                                             ))}
+                                           </div>
+                                         ) : <span className="text-slate-400">-</span>;
                                        })()}
                                      </td>
                                      <td className="px-3 py-3 text-center">

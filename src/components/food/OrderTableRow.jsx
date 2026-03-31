@@ -20,8 +20,10 @@ export default function OrderTableRow({
   // P2-13: 使用共用工具函式
   const { mealBox, sideItems } = parseOrderItems(items, mealBoxes, sideDishProducts);
 
-  // 計算訂單總數量
-  const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  // 組合所有品項的數量列表（餐盒 + 單點）
+  const allItemQuantities = [];
+  if (mealBox) allItemQuantities.push(mealBox.quantity || 1);
+  sideItems.forEach(item => allItemQuantities.push(item.quantity || 1));
 
   return (
     <tr className="border-b hover:bg-slate-50">
@@ -69,9 +71,17 @@ export default function OrderTableRow({
         )}
       </td>
       <td className="px-1.5 sm:px-3 py-2 sm:py-3 text-center">
-        <span className={`font-medium ${totalQuantity > 1 ? 'text-orange-600' : 'text-slate-700'}`}>
-          {totalQuantity}
-        </span>
+        {allItemQuantities.length > 0 ? (
+          <div className="space-y-0.5">
+            {allItemQuantities.map((qty, idx) => (
+              <div key={idx} className={`leading-tight font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>
+                {qty}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className="text-slate-400">-</span>
+        )}
       </td>
       <td className="px-1.5 sm:px-3 py-2 sm:py-3">
         <Badge className={`text-xs ${
