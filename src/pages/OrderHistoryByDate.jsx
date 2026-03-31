@@ -248,8 +248,8 @@ export default function OrderHistoryByDate() {
                                          <div className="space-y-0.5">
                                            {sideItems.map(item => (
                                              <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
-                                               {item.product_name} {item.quantity > 1 && `×${item.quantity}`}
-                                               <span className="text-xs text-slate-500 ml-1">${item.price * (item.quantity || 1)}</span>
+                                               {item.product_name}
+                                               <span className="text-xs text-slate-500 ml-1">${item.price}</span>
                                              </div>
                                            ))}
                                          </div>
@@ -259,8 +259,16 @@ export default function OrderHistoryByDate() {
                                      </td>
                                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-center">
                                        {(() => {
-                                         const qty = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                                         return <span className={`font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</span>;
+                                         const allQty = [];
+                                         if (mealBox) allQty.push(mealBox.quantity || 1);
+                                         sideItems.forEach(item => allQty.push(item.quantity || 1));
+                                         return allQty.length > 0 ? (
+                                           <div className="space-y-0.5">
+                                             {allQty.map((qty, idx) => (
+                                               <div key={idx} className={`leading-tight font-medium ${qty > 1 ? 'text-orange-600' : 'text-slate-700'}`}>{qty}</div>
+                                             ))}
+                                           </div>
+                                         ) : <span className="text-slate-400">-</span>;
                                        })()}
                                      </td>
                                      <td className="px-3 py-3 text-center">
