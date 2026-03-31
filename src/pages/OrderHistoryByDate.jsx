@@ -227,7 +227,10 @@ export default function OrderHistoryByDate() {
                                      <td className="px-2 sm:px-3 py-2 sm:py-3">
                                        {mealBox ? (
                                          <div className="text-slate-700 leading-tight">
-                                           <div className="break-words line-clamp-2">{mealBox.product_name}</div>
+                                           <div className="break-words line-clamp-2">
+                                             {mealBox.product_name}
+                                             {mealBox.quantity > 1 && <span className="text-orange-600 font-medium ml-1">x{mealBox.quantity}</span>}
+                                           </div>
                                            <div className="text-xs text-slate-500">${mealBox.price}</div>
                                          </div>
                                        ) : (
@@ -248,8 +251,8 @@ export default function OrderHistoryByDate() {
                                          <div className="space-y-0.5">
                                            {sideItems.map(item => (
                                              <div key={item.id} className="text-slate-700 leading-tight break-words line-clamp-2">
-                                               {item.product_name}
-                                               <span className="text-xs text-slate-500 ml-1">${item.price}</span>
+                                               {item.product_name} {item.quantity > 1 && `×${item.quantity}`}
+                                               <span className="text-xs text-slate-500 ml-1">${item.price * (item.quantity || 1)}</span>
                                              </div>
                                            ))}
                                          </div>
