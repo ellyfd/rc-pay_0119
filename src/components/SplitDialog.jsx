@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 /**
  * 分攤對話框元件
@@ -13,9 +13,20 @@ import React, { useState, useMemo } from "react";
 import { getShortName } from "@/components/utils/nameUtils";
 
 function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
-  const [quantities, setQuantities] = useState({ [currentMember.id]: 1 });
+  const [quantities, setQuantities] = useState(() =>
+    currentMember?.id ? { [currentMember.id]: 1 } : {}
+  );
 
-  const otherMembers = allMembers.filter((m) => m.id !== currentMember.id);
+  // Prevent background scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const otherMembers = useMemo(
+    () => allMembers.filter((m) => m.id !== currentMember?.id),
+    [allMembers, currentMember?.id]
+  );
 
   const totalQty = useMemo(
     () => Object.values(quantities).reduce((s, q) => s + q, 0),
@@ -71,6 +82,8 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
     }
     onConfirm(adjustedMembers);
   };
+
+  if (!currentMember?.id) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center">
