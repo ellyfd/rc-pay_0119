@@ -936,7 +936,7 @@ export default function DrinkOrderDetail() {
       />
 
       {/* 分攤項目對話框 */}
-      {showSplitDialog && splitItemIndex !== null && (
+      {showSplitDialog && splitItemIndex !== null && editItems[splitItemIndex] && (
         <SplitDialog
           item={editItems[splitItemIndex]}
           currentMember={{

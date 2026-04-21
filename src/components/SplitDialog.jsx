@@ -13,16 +13,16 @@ import React, { useState, useMemo } from "react";
 import { getShortName } from "@/components/utils/nameUtils";
 
 function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
-  const [quantities, setQuantities] = useState({ [currentMember.id]: 1 });
+  const [quantities, setQuantities] = useState({ [currentMember?.id]: 1 });
 
-  const otherMembers = allMembers.filter((m) => m.id !== currentMember.id);
+  const otherMembers = allMembers.filter((m) => m.id !== currentMember?.id);
 
   const totalQty = useMemo(
     () => Object.values(quantities).reduce((s, q) => s + q, 0),
     [quantities]
   );
 
-  const unitPrice = totalQty > 0 ? item.price / totalQty : 0;
+  const unitPrice = totalQty > 0 ? (item?.price ?? 0) / totalQty : 0;
 
   const setQty = (memberId, qty) => {
     setQuantities((prev) => {
@@ -57,13 +57,15 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
   const adjustedMembers = useMemo(() => {
     if (participatingMembers.length === 0) return [];
     const sum = participatingMembers.reduce((s, m) => s + m.price, 0);
-    const diff = item.price - sum;
+    const diff = (item?.price ?? 0) - sum;
     const result = [...participatingMembers];
     if (diff !== 0) {
       result[0] = { ...result[0], price: result[0].price + diff };
     }
     return result;
-  }, [participatingMembers, item.price]);
+  }, [participatingMembers, item?.price]);
+
+  if (!item || !currentMember) return null;
 
   const handleConfirm = () => {
     if (participatingMembers.length <= 1) {
