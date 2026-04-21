@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
+import { getShortName } from "@/components/utils/nameUtils";
 
 /**
  * 分攤對話框元件
- * 
+ *
  * Props:
  *  - item: { item_name, price }
  *  - currentMember: { id, name }
@@ -10,25 +11,25 @@ import React, { useState, useMemo } from "react";
  *  - onConfirm: (result) => void  // result: array of { member_id, member_name, quantity, price }
  *  - onClose: () => void
  */
-import { getShortName } from "@/components/utils/nameUtils";
-
 function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
   const [quantities, setQuantities] = useState({ [currentMember?.id]: 1 });
 
-  const otherMembers = allMembers.filter((m) => m.id !== currentMember?.id);
+  // Derive safe values before any conditional logic
+  const itemPrice = item?.price ?? 0;
+  const otherMembers = (allMembers || []).filter((m) => m.id !== currentMember?.id);
 
   const totalQty = useMemo(
     () => Object.values(quantities).reduce((s, q) => s + q, 0),
     [quantities]
   );
 
-  const unitPrice = totalQty > 0 ? (item?.price ?? 0) / totalQty : 0;
+  const unitPrice = totalQty > 0 ? itemPrice / totalQty : 0;
 
   const setQty = (memberId, qty) => {
     setQuantities((prev) => {
       const next = { ...prev };
       if (qty <= 0) {
-        if (memberId === currentMember.id) {
+        if (memberId === currentMember?.id) {
           next[memberId] = 1;
         } else {
           delete next[memberId];
@@ -44,7 +45,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
     return Object.entries(quantities)
       .filter(([, q]) => q > 0)
       .map(([id, qty]) => {
-        const member = allMembers.find((m) => m.id === id);
+        const member = (allMembers || []).find((m) => m.id === id);
         return {
           member_id: id,
           member_name: member?.name || "",
@@ -57,20 +58,19 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
   const adjustedMembers = useMemo(() => {
     if (participatingMembers.length === 0) return [];
     const sum = participatingMembers.reduce((s, m) => s + m.price, 0);
-    const diff = (item?.price ?? 0) - sum;
+    const diff = itemPrice - sum;
     const result = [...participatingMembers];
     if (diff !== 0) {
       result[0] = { ...result[0], price: result[0].price + diff };
     }
     return result;
-  }, [participatingMembers, item?.price]);
+  }, [participatingMembers, itemPrice]);
 
+  // Early return AFTER all hooks
   if (!item || !currentMember) return null;
 
   const handleConfirm = () => {
-    if (participatingMembers.length <= 1) {
-      return;
-    }
+    if (participatingMembers.length <= 1) return;
     onConfirm(adjustedMembers);
   };
 
@@ -82,6 +82,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-slate-800">分攤項目</h3>
             <button
+              type="button"
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
             >
@@ -99,7 +100,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
                 共 {totalQty} 份 · 每份 ${Math.round(unitPrice)}
               </div>
             </div>
-            <div className="text-xl font-bold text-orange-600">${item.price}</div>
+            <div className="text-xl font-bold text-orange-600">${itemPrice}</div>
           </div>
         </div>
 
@@ -149,7 +150,6 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
 
         {/* 底部預覽 & 確認 */}
         <div className="border-t border-slate-100 px-5 py-4 space-y-3">
-          {/* 分攤預覽 */}
           {participatingMembers.length > 1 && (
             <div className="flex flex-wrap gap-1.5">
               {adjustedMembers.map((m) => (
@@ -167,12 +167,14 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
 
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
             >
               取消
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
               disabled={participatingMembers.length <= 1}
               className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
@@ -190,14 +192,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
   );
 }
 
-function MemberRow({
-  name,
-  quantity,
-  amount,
-  onDecrease,
-  onIncrease,
-  isCurrentMember,
-}) {
+function MemberRow({ name, quantity, amount, onDecrease, onIncrease, isCurrentMember }) {
   const active = quantity > 0;
 
   return (
@@ -208,23 +203,16 @@ function MemberRow({
           : "bg-white border border-slate-100 hover:border-slate-200"
       }`}
     >
-      {/* 左：名字 & 金額 */}
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         <div
           className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-            active
-              ? "bg-blue-600 text-white"
-              : "bg-slate-100 text-slate-400"
+            active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"
           }`}
         >
           {name.charAt(0)}
         </div>
         <div className="min-w-0">
-          <div
-            className={`text-sm font-medium truncate ${
-              active ? "text-slate-800" : "text-slate-500"
-            }`}
-          >
+          <div className={`text-sm font-medium truncate ${active ? "text-slate-800" : "text-slate-500"}`}>
             {name}
             {isCurrentMember && (
               <span className="text-xs text-slate-400 ml-1">（本人）</span>
@@ -236,7 +224,6 @@ function MemberRow({
         </div>
       </div>
 
-      {/* 右：數量控制 */}
       <div className="flex items-center gap-0.5 flex-shrink-0">
         <button
           type="button"
@@ -252,11 +239,7 @@ function MemberRow({
         >
           −
         </button>
-        <div
-          className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
-            active ? "text-blue-700" : "text-slate-300"
-          }`}
-        >
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${active ? "text-blue-700" : "text-slate-300"}`}>
           {quantity}
         </div>
         <button
