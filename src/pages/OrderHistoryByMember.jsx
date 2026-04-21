@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import { useQuery } from '@tanstack/react-query';
@@ -67,7 +66,7 @@ export default function OrderHistoryByMember() {
   };
 
   const getOrderItems = (orderId) => {
-    return orderItems.filter(item => item.order_id === orderId);
+    return allOrderItems.filter(item => item.order_id === orderId);
   };
 
   const selectedMember = members.find(m => m.id === selectedMemberId);

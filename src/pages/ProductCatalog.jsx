@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/components/hooks/useCurrentUser';
 import AdminGuard from '@/components/AdminGuard';
@@ -99,17 +98,9 @@ export default function ProductCatalog() {
     );
   }
 
-  // P2-8: AdminGuard check (after all hooks)
-  if (!userLoading && currentUser?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <Card className="p-12 text-center">
-          <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-600 font-medium">僅限管理員查看</p>
-        </Card>
-      </div>
-    );
-  }
+  // P2-8: 使用 AdminGuard 元件檢查權限
+  const guard = <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Package} />;
+  if (guard) return guard;
 
   // Get unique categories
   const categories = useMemo(() => 
