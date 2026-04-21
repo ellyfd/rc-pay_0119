@@ -66,7 +66,7 @@ export default function OrderHistoryByMember() {
   };
 
   const getOrderItems = (orderId) => {
-    return allOrderItems.filter(item => item.order_id === orderId);
+    return orderItems.filter(item => item.order_id === orderId);
   };
 
   const selectedMember = members.find(m => m.id === selectedMemberId);

@@ -90,18 +90,6 @@ export default function ProductCatalog() {
     });
   };
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
-        <LoadingSpinner message="載入中..." />
-      </div>
-    );
-  }
-
-  // P2-8: 使用 AdminGuard 元件檢查權限
-  const guard = <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Package} />;
-  if (guard) return guard;
-
   // Get unique categories
   const categories = useMemo(() => 
     ['all', ...new Set(products.map(p => p.category).filter(Boolean))],
@@ -129,6 +117,18 @@ export default function ProductCatalog() {
     }, {}),
     [filteredProducts]
   );
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <LoadingSpinner message="載入中..." />
+      </div>
+    );
+  }
+
+  if (!currentUser || currentUser.role !== 'admin') {
+    return <AdminGuard currentUser={currentUser} isLoading={userLoading} icon={Package} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">

@@ -102,7 +102,7 @@ function SplitDialog({ item, currentMember, allMembers, onConfirm, onClose }) {
         </div>
 
         {/* 成員列表 */}
-        <div className="flex-1 overflow-y-auto px-5 py-3">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
           {/* 原成員（本人） */}
           <div className="mb-2">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
@@ -237,6 +237,7 @@ function MemberRow({
       {/* 右：數量控制 */}
       <div className="flex items-center gap-0.5 flex-shrink-0">
         <button
+          type="button"
           onClick={onDecrease}
           disabled={isCurrentMember && quantity <= 1}
           className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg font-medium transition-all ${
@@ -257,6 +258,7 @@ function MemberRow({
           {quantity}
         </div>
         <button
+          type="button"
           onClick={onIncrease}
           className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-medium text-blue-600 hover:bg-blue-100 active:bg-blue-200 transition-all"
         >
