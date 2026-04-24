@@ -65,34 +65,21 @@ export default function EditMemberOrderDialog({
 
         <div className="space-y-4">
           {editItems.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  {editingMember ? '付款人：' : '成員：'}
-                </label>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-700 w-14 shrink-0">成員：</label>
                 <Select
-                  value={editingMember
-                    ? (editItems[0].paid_by_id || editItems[0].member_id)
-                    : editItems[0].member_id}
+                  value={editItems[0].member_id}
                   onValueChange={(v) => {
                     const member = memberMap.get(v);
-                    if (editingMember) {
-                      const isProxy = v !== editingMember;
-                      const updated = editItems.map(item => ({
-                        ...item,
-                        paid_by_id: isProxy ? v : undefined,
-                        paid_by_name: isProxy ? (member?.name || '') : undefined,
-                      }));
-                      onUpdateItem(updated);
-                    } else {
-                      const updated = editItems.map(item => ({
-                        ...item,
-                        member_id: v,
-                        member_name: member?.name || '',
-                      }));
-                      onUpdateItem(updated);
-                    }
+                    const updated = editItems.map(item => ({
+                      ...item,
+                      member_id: v,
+                      member_name: member?.name || '',
+                    }));
+                    onUpdateItem(updated);
                   }}
+                  disabled={!!editingMember}
                 >
                   <SelectTrigger className="text-sm flex-1">
                     <SelectValue placeholder="選擇成員" />
@@ -104,10 +91,40 @@ export default function EditMemberOrderDialog({
                   </SelectContent>
                 </Select>
               </div>
-              {editingMember && editItems[0]?.paid_by_id && editItems[0].paid_by_id !== editingMember && (
-                <p className="text-xs text-orange-600 mt-1">
-                  {getShortName(memberMap.get(editingMember)?.name || '')}（{getShortName(editItems[0].paid_by_name)} 代付，將扣{getShortName(editItems[0].paid_by_name)}的款）
-                </p>
+              {editingMember && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-semibold text-slate-700 w-14 shrink-0">代付：</label>
+                    <Select
+                      value={editItems[0].paid_by_id || '__self__'}
+                      onValueChange={(v) => {
+                        const isProxy = v !== '__self__';
+                        const member = isProxy ? memberMap.get(v) : null;
+                        const updated = editItems.map(item => ({
+                          ...item,
+                          paid_by_id: isProxy ? v : undefined,
+                          paid_by_name: isProxy ? (member?.name || '') : undefined,
+                        }));
+                        onUpdateItem(updated);
+                      }}
+                    >
+                      <SelectTrigger className="text-sm flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__self__">無（自付）</SelectItem>
+                        {members.filter(m => m.id !== editingMember).map(m => (
+                          <SelectItem key={m.id} value={m.id}>{getShortName(m.name)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {editItems[0]?.paid_by_id && (
+                    <p className="text-xs text-orange-600">
+                      將扣 {getShortName(editItems[0].paid_by_name)} 的款
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
