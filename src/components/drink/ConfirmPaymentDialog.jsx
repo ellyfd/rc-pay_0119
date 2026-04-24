@@ -46,7 +46,11 @@ export default function ConfirmPaymentDialog({
           </div>
         )}
         <p className="text-sm text-slate-700">
-          確定要從 <b>{confirmPayment.fromName}</b> 轉帳
+          確定要從 <b>{confirmPayment.fromName}</b>
+          {confirmPayment.proxyFor && (
+            <> （代 <b>{confirmPayment.proxyFor}</b> 付款）</>
+          )}
+          {' '}轉帳
           <b className="text-orange-600"> ${confirmPayment.amount}</b> 給
           <b> {confirmPayment.toName}</b> 嗎？
         </p>

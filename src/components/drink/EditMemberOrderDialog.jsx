@@ -67,17 +67,31 @@ export default function EditMemberOrderDialog({
           {editItems.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
-                <label className="text-sm font-semibold text-slate-700">成員：</label>
+                <label className="text-sm font-semibold text-slate-700">
+                  {editingMember ? '付款人：' : '成員：'}
+                </label>
                 <Select
-                  value={editItems[0].member_id}
+                  value={editingMember
+                    ? (editItems[0].paid_by_id || editItems[0].member_id)
+                    : editItems[0].member_id}
                   onValueChange={(v) => {
                     const member = memberMap.get(v);
-                    const updated = editItems.map(item => ({
-                      ...item,
-                      member_id: v,
-                      member_name: member?.name || ''
-                    }));
-                    onUpdateItem(updated);
+                    if (editingMember) {
+                      const isProxy = v !== editingMember;
+                      const updated = editItems.map(item => ({
+                        ...item,
+                        paid_by_id: isProxy ? v : undefined,
+                        paid_by_name: isProxy ? (member?.name || '') : undefined,
+                      }));
+                      onUpdateItem(updated);
+                    } else {
+                      const updated = editItems.map(item => ({
+                        ...item,
+                        member_id: v,
+                        member_name: member?.name || '',
+                      }));
+                      onUpdateItem(updated);
+                    }
                   }}
                 >
                   <SelectTrigger className="text-sm flex-1">
@@ -90,6 +104,11 @@ export default function EditMemberOrderDialog({
                   </SelectContent>
                 </Select>
               </div>
+              {editingMember && editItems[0]?.paid_by_id && editItems[0].paid_by_id !== editingMember && (
+                <p className="text-xs text-orange-600 mt-1">
+                  {getShortName(memberMap.get(editingMember)?.name || '')}（{getShortName(editItems[0].paid_by_name)} 代付，將扣{getShortName(editItems[0].paid_by_name)}的款）
+                </p>
+              )}
             </div>
           )}
 

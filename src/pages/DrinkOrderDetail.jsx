@@ -193,7 +193,9 @@ export default function DrinkOrderDetail() {
   };
 
   // 處理餘額轉帳
-  const processBalanceTransfer = async (fromMember, toMember, totalAmount, orderDate) => {
+  const processBalanceTransfer = async (fromMember, toMember, totalAmount, orderDate, proxyFor) => {
+    const baseNote = `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料`;
+    const note = proxyFor ? `${baseNote}（代付 ${proxyFor}）` : baseNote;
     await createTransaction.mutateAsync({
       type: 'transfer',
       amount: totalAmount,
@@ -202,7 +204,7 @@ export default function DrinkOrderDetail() {
       to_member_id: toMember.id,
       from_member_name: fromMember.name,
       to_member_name: toMember.name,
-      note: `${format(new Date(orderDate), 'yyyy/MM/dd')} 飲料`
+      note,
     });
 
     await updateMember.mutateAsync({
@@ -252,8 +254,10 @@ export default function DrinkOrderDetail() {
           return;
         }
 
-        const fromMember = memberMap.get(memberId);
+        const proxyPayerId = memberItems[0]?.paid_by_id;
+        const fromMember = memberMap.get(proxyPayerId || memberId);
         const toMember = memberMap.get(order.payer_id);
+        const orderingMember = memberMap.get(memberId);
 
         if (!fromMember || !toMember) return;
 
@@ -275,7 +279,8 @@ export default function DrinkOrderDetail() {
           fromMember,
           toMember,
           orderDate: order.order_date,
-          insufficientBalance: (fromMember.balance || 0) < totalAmount
+          insufficientBalance: (fromMember.balance || 0) < totalAmount,
+          proxyFor: proxyPayerId ? (orderingMember?.name || '') : undefined,
         });
         return;
       }
@@ -348,7 +353,9 @@ export default function DrinkOrderDetail() {
       item_name: '',
       price: 0,
       payment_method: lastItem?.payment_method || 'cash',
-      paid: false
+      paid: false,
+      paid_by_id: lastItem?.paid_by_id,
+      paid_by_name: lastItem?.paid_by_name,
     }]);
   };
 
@@ -670,8 +677,13 @@ export default function DrinkOrderDetail() {
                           )}
                           {itemIdx === 0 && (
                             <td className="px-3 py-2" rowSpan={items.length}>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium">{getShortName(item.member_name)}</span>
+                                {item.paid_by_name && (
+                                  <span className="text-xs text-orange-600 whitespace-nowrap">
+                                    （{getShortName(item.paid_by_name)} 代付）
+                                  </span>
+                                )}
                                 {!isCompleted && (
                                   <Button
                                     variant="ghost"
@@ -957,16 +969,19 @@ export default function DrinkOrderDetail() {
           }
         }}
         onConfirm={async () => {
-          const { fromMember, toMember, amount, memberId } = confirmPayment;
+          const { fromMember, toMember, amount, memberId, proxyFor } = confirmPayment;
           try {
-            await processBalanceTransfer(fromMember, toMember, amount, order.order_date);
-            toast.success(`${fromMember.name} 已轉帳 $${amount} 給 ${toMember.name}`);
+            await processBalanceTransfer(fromMember, toMember, amount, order.order_date, proxyFor);
+            const msg = proxyFor
+              ? `${fromMember.name} 已代 ${proxyFor} 轉帳 $${amount} 給 ${toMember.name}`
+              : `${fromMember.name} 已轉帳 $${amount} 給 ${toMember.name}`;
+            toast.success(msg);
             setConfirmPayment(null);
           } catch (error) {
             toast.error(`轉帳失敗：${error.message}`);
             await updateOrder.mutateAsync({
               id: orderId,
-              data: { items: order.items.map(item => 
+              data: { items: order.items.map(item =>
                 item.member_id === memberId ? { ...item, paid: false } : item
               )}
             });
