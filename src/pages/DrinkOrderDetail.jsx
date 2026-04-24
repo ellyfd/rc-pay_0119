@@ -267,19 +267,6 @@ export default function DrinkOrderDetail() {
         const calculatedAmount = Math.round(itemTotal + memberShipping);
         const totalAmount = actualCharges[chargeKey] ?? calculatedAmount;
 
-        if ((fromMember.balance || 0) < totalAmount) {
-          toast.error(`${fromMember.name} 餘額不足！目前餘額：$${fromMember.balance || 0}，需要：$${totalAmount}`);
-          await updateOrder.mutateAsync({
-            id: orderId,
-            data: { 
-              items: order.items.map(item => 
-                item.member_id === memberId ? { ...item, paid: false } : item
-              )
-            }
-          });
-          return;
-        }
-
         setConfirmPayment({
           memberId,
           fromName: fromMember.name,
@@ -287,7 +274,8 @@ export default function DrinkOrderDetail() {
           amount: totalAmount,
           fromMember,
           toMember,
-          orderDate: order.order_date
+          orderDate: order.order_date,
+          insufficientBalance: (fromMember.balance || 0) < totalAmount
         });
         return;
       }
