@@ -79,7 +79,6 @@ export default function EditMemberOrderDialog({
                     }));
                     onUpdateItem(updated);
                   }}
-                  disabled={!!editingMember}
                 >
                   <SelectTrigger className="text-sm flex-1">
                     <SelectValue placeholder="選擇成員" />
