@@ -177,6 +177,7 @@ export default function DrinkOrder() {
       }).join('\n');
 
       const result = await base44.integrations.Core.InvokeLLM({
+        model: "claude_sonnet_4_6",
         prompt: `請仔細分析這張 Uber Eats 訂單圖片，這是一個團購訂單，有多位成員分別訂購不同商品。
 
       **系統成員列表與別名參考：**
